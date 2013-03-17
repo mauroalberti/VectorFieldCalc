@@ -1,0 +1,9 @@
+; the next section is mandatory
+[general]
+name=VectorFieldCalc
+qgisMinimumVersion=1.0
+description=Calculates vector field parameters given two rasters representing x- and y- velocities
+category=Raster
+version=version 1.1
+; end of mandatory metadata
+

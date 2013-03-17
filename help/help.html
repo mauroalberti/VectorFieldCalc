@@ -1,0 +1,177 @@
+<html>
+<head>
+	<title>VectorFieldCalc v. 1.1</title>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<link href="style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h2>VectorFieldCalc v. 1.1</h2>
+	<p>see: <a href="http://www.malg.eu/vectorparameters.php">www.malg.eu/vectorparameters.php</a>
+	<p>
+		This plugin for Quantum GIS allows to calculate physical parameters (e.g., divergence, curl module, pathlines), given a 2D, steady vector field,
+		such as the velocity field of glacial flows.
+	</p>
+
+	<div>
+		In details, the calculated parameters are summarized below:
+		<br /><br />
+		<table>
+		<tr>
+		<th>Vector parameters</th>
+		<th>Magnitude gradients</th>
+		<th>Pathlines</th>		
+		</tr>
+		<tr>
+		<td>magnitude</td>
+		<td>along x axis</td>
+		<td>pathlines from given start points</td>
+		</tr>
+		<tr>
+		<td>orientations</td>
+		<td>along y axis</td>
+		<td></td>
+		</tr>
+		<tr>
+		<td>divergence</td>
+		<td>along flowlines</td>
+		<td></td>
+		</tr>
+		<tr>
+		<td>curl module</td>
+		<td></td>
+		<td></td>
+		</tr>
+		</table>
+	</div>
+
+	<p>
+		Divergence and curl are two vector operators widely used in physics and engineering, 
+		for example, for the study of water flows. The <i>nabla</i> differential operator allows to 
+		calculate these two operators from a vector field:
+	</p>
+	<img src="ims/vf1_eq_1_small.png">
+	
+<br />
+<h2>Input</h2>
+
+<p>
+	The vector field is defined in two input rasters, storing the x-axis and y-axis components of the field.
+	These two rasters must have the same geographical extent and resolution. 
+	In addition, the two raster should have no axis rotations, as well as the same cell resolution in x- and y-directions: 
+	these are requisites respected by the great majority of raster files.
+</p>
+
+<br />
+<h2>Derived parameters</h2>
+
+<h4>Magnitude</h4>
+
+<p>
+The vector magnitudes for each cell of the input rasters.
+</p>
+
+<h4>Orientations</h4>
+
+<p>
+The orientations of the vectors are calculated as decimal degrees (0-360&deg;) from the map top, in a clockwise sense.
+</p>
+
+	<h4>Divergence</h4>
+
+	<p>
+		The divergence is a scalar value derived from the scalar product of nabla and the vector field in the 
+		neighborhood of a point (<i>x, y, z</i>):
+	</p>
+	
+	<img src="ims/vf1_eq_2_small.png">
+
+	<p>
+		The divergence indicates the tendency of a flow to diverge (positive values) or converge (negative) at each individual cell.
+	</p>
+	
+	<h4>Curl magnitude</h4>
+
+	<p>
+		The curl is the vector product of <i>nabla</i> and the vector field:
+	</p>
+			
+	<img src="ims/vf1_eq_3_small.png">
+
+	<p>	
+		The curl is in general represented by a vector field. Sice the input vector field is 2D, the resulting  field has 
+		the resulting vectors constantly vertical, such that it can be represented by a scalar field with values equal to the curl module, 
+		positive for anticlockwise rotations, negative for clockwise ones.
+	</p>
+	
+	<p>
+		With GIS data, we usually consider 2D dimensionality. Therefore, we only consider partial 
+		derivatives with respect to <i>x</i> and <i>y</i> axes. For the curl, we will have a vertical vector (parallel to <i>k</i>), 
+		whose magnitude is equal to the last component of the curl formula.
+	</p>
+
+	<p>
+		Positive values indicate anti-clockwise rotations, negative values clockwise rotations.
+	</p>
+	
+	<h4>Magnitude gradients</h4>
+
+	<p>
+		The variations of the vector magnitudes can be calculated along two fixed orientations, i.e. the x- and y- axis directions, 
+		as well as along the local orientations of the vector field. 
+		Positive gradients indicate increase of the vector field magnitude in the analyzed direction, negative gradients the opposite.
+	</p>
+
+	<p>
+		To determine the magnitude gradients along flow directions, we use a modified version of the equation 
+		for a DEM directional slope (Neteler & Mitasova, 2008, eq. A.27):
+		<br />&nbsp;&nbsp;<i>velocity change per unit length = (dz/dx) * sin(alpha) + (dz/dy) * cos(alpha)</i>
+		<br />where <i>alpha</i> is the local orientation of the flow line.
+	</p>
+			
+	<h4>Pathlines</h4>
+
+	<p>
+		The pathlines are calculated for a steady vector field, i.e., a field whose components do not vary with time. 
+	</p>
+			
+	<p>
+		The pathlines are calculated using the Runge-Kutta-Fehlenberg 45 method (RKF 45), 
+		that allows to estimate the error associated with each step interpolation. The step size is adaptive, 
+		i.e. it is changed automatically from the program to accommodate interpolation errors not larger than 
+		the provided maximum step error. Values of the vector field are interpolated using a bilinear interpolation, 
+		for both lothe x and the y components.
+	</p>
+
+	<div>
+		Input parameters are:
+		<ul>
+			<li><em>name of shapefile</em> storing start points for pathline calculation</li>
+			<li><em>time step</em>: initial value of the individual time steps used for interpolating the path. 
+			It can be changed by the program to accommodate the maximum error for step.</li>
+			<li><em>total time</em>: the maximum value of the cumulated time for which a single pathline will be calculated.</li> 
+			<li><em>max error</em>: the maximum error  allowed for each single step. Its estimation is given by the RKF 45 method.</li>
+			<li><em>name of the shapefile</em> storing the interpolated pathlines.</li>
+		</ul>
+	</div>
+	<br />
+	<div>
+	The output consists in a point shapefile with the following attribute fields:
+	<ul>
+	<li><em>path_id</em>: pathline counter, with increasing integer values for each input point</li>
+	<li><em>point_id</em>: progressive counter for each interpolated point within a pathline</li>
+	<li><em>x</em>: x value for interpolated point</li>
+	<li><em>y</em>: y value for interpolated point</li>
+	<li><em>ds</em>: segment length associated with interpolated point</li>
+	<li><em>s</em>: cumulated length for pathline</li>
+	<li><em>vx</em>: x component of the velocity vector for interpolated point</li>
+	<li><em>vy</em>: y component of the velocity vector for interpolated point</li>
+	<li><em>vmagn</em>: magnitude of the velocity vector for interpolated point</li>
+	<li><em>dt</em>: time step for interpolated point</li>
+	<li><em>t</em>: cumulated time for pathline</li>
+	<li><em>error</em>: error (in spatial unit) for interpolated point</li>
+	</ul>
+	</div>
+<br />
+
+</body>
+</html>

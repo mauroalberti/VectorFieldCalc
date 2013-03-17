@@ -1,0 +1,9 @@
+; the next section is mandatory
+[general]
+name=qgSurf
+qgisMinimumVersion=1.0
+description=Calculates the intersections between a geological plane and a DEM
+category=Raster
+version=version 0.1.2
+; end of mandatory metadata
+
