@@ -11,12 +11,12 @@ from qgis.core import *
 
 def lastUsedDir():
   settings = QSettings()
-  return settings.value( "/VectorFieldCalc/lastDir", QVariant( "" ) ).toString()
+  return settings.value( "/VectorFieldCalc/lastDir", unicode( "" ), type=unicode )
 
 def setLastUsedDir( lastDir ):
   path = QFileInfo( lastDir ).absolutePath()
   settings = QSettings()
-  settings.setValue( "/VectorFieldCalc/lastDir", QVariant( path ) )
+  settings.setValue( "/VectorFieldCalc/lastDir", unicode( path ) )
   
 
   

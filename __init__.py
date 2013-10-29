@@ -6,8 +6,8 @@
  Processing of vector fields
                              -------------------
         begin                : 2011-11-27
-        current version      : 2012-09-16
-        copyright            : (C) 2011-2012 by Mauro Alberti - www.malg.eu
+        current version      : 2013-10-24
+        copyright            : (C) 2011-2013 by Mauro Alberti - www.malg.eu
         email                : alberti.m65@gmail.com
  ***************************************************************************/
 
@@ -22,31 +22,6 @@
  ***************************************************************************/
 
 """
-
-
-def name():
-    
-    return "VectorFieldCalc"
-
-
-def description():
-    
-    return "Calculations of vector field parameters (divergence, magnitude, flowlines, etc.)"
-
-
-def version():
-    
-    return "1.1"
-
-
-def icon():
-    
-    return "icon.png"
-
-
-def qgisMinimumVersion():
-    
-    return "1.0"
 
 
 def classFactory(iface):

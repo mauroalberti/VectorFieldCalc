@@ -47,8 +47,7 @@ class Point:
     
     # create a new point shifted by given amount
     def movedby(self, sx, sy, sz=0.0):
-        return Point( self.x + sx , self.y + sy, self.z + sz )
-        
+        return Point( self.x + sx , self.y + sy, self.z + sz )        
 
 
 # GDAL raster parameters 
@@ -165,18 +164,20 @@ class GDALParameters:
     def get_rotationB(self):
         return self.rotationB
      
+     
     # check absence of axis rotations or pixel size differences
     def check_params(self, tolerance = 1e-06):
         
         # check if pixel size can be considered the same in the two axis directions
         if abs(abs(self.pixsizeEW) - abs(self.pixsizeNS))/abs(self.pixsizeNS) > tolerance :
-            raise Raster_Parameters_Errors, 'Pixel sizes in x and y directions are different in raster' 
+            return False, 'Pixel sizes in x and y directions are different in raster' 
             
         # check for the absence of axis rotations
         if abs(self.rotationA) > tolerance or abs(self.rotationB) > tolerance:
-            raise Raster_Parameters_Errors, 'There should be no axis rotation in raster' 
+            raise False, 'There should be no axis rotation in raster' 
         
-        return
+        return True, 'OK'
+
 
     # checks equivalence between the geographical parameters of two grids
     def geo_equiv(self, other, tolerance=1.0e-6): 
@@ -604,15 +605,15 @@ class Grid:
         
         # checking existence of output slope grid
         if os.path.exists(outgrid_fn):
-          os.remove(outgrid_fn)
+          raise Output_Errors, "Output grid '%s' already exists" % outgrid_fn
 
         try:
             outputgrid = open(outgrid_fn, 'w') #create the output ascii file
         except:
-            raise Output_Errors, 'Unable to create output grid: ' + outgrid_fn
+            raise Output_Errors, "Unable to create output grid '%s'" % outgrid_fn
        
         if outputgrid is None:
-            raise Output_Errors, 'Unable to create output grid: ' + outgrid_fn
+            raise Output_Errors, "Unable to create output grid '%s'" % outgrid_fn
 
         # writes header of grid ascii file
         outputgrid.write('NCOLS %d\n' % self.get_xlines_num())
@@ -638,8 +639,7 @@ class Grid:
                     
         outputgrid.close()
 
-        return True
-        
+        return True        
 
 
 def read_raster_band(raster_name):
