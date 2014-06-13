@@ -535,26 +535,30 @@ class Grid:
         return True
  
 
-    # return the velocity components of a point in a velocity field
-    def point_velocity(self, currpoint):
-        if not self.include_point_location(currpoint): 
+    def point_velocity( self, currpoint ):
+        """
+        return the velocity components of a point in a velocity field
+        """
+        
+        if not self.include_point_location( currpoint ): 
             return None, None 
             
-        currpoint_gridcoord = self.geog2gridcoord(currpoint)            
-        currpoint_vx = self.interpolate_level_bilinear(0, currpoint_gridcoord)
-        currpoint_vy = self.interpolate_level_bilinear(1, currpoint_gridcoord)
+        currpoint_gridcoord = self.geog2gridcoord( currpoint )            
+        currpoint_vx = self.interpolate_level_bilinear( 0, currpoint_gridcoord )
+        currpoint_vy = self.interpolate_level_bilinear( 1, currpoint_gridcoord )
         
         return currpoint_vx, currpoint_vy
         
  
-    # interpolate according to RKF method
-    def interpolate_RKF(self, delta_time, curr_Pt):
+    def interpolate_RKF( self, delta_time, curr_Pt ):
+        """
+        interpolate points according to RKF method
+        """
  
-        curr_Pt_gridcoord = self.geog2gridcoord(curr_Pt) 
+        K1_vx, K1_vy = self.point_velocity( curr_Pt )
+        if K1_vx is None or K1_vy is None:
+            return None, None
         
-        K1_vx = self.interpolate_level_bilinear(0, curr_Pt_gridcoord)
-        K1_vy = self.interpolate_level_bilinear(1, curr_Pt_gridcoord) 
-
         K2_Pt = Point(curr_Pt.x + (0.25)*delta_time*K1_vx, curr_Pt.y + (0.25)*delta_time*K1_vy) 
         K2_vx, K2_vy = self.point_velocity(K2_Pt)
         if K2_vx is None or K2_vy is None:
@@ -582,8 +586,7 @@ class Grid:
                       curr_Pt.y - (8.0/27.0)*delta_time*K1_vy + (2.0)*delta_time*K2_vy - (3544.0/2565.0)*delta_time*K3_vy + (1859.0/4104.0)*delta_time*K4_vy - (11.0/40.0)*delta_time*K5_vy) 
         K6_vx, K6_vy = self.point_velocity(K6_Pt)
         if K6_vx is None or K6_vy is None:
-            return None, None
-            
+            return None, None            
          
         rkf_4o_x = curr_Pt.x + delta_time*((25.0/216.0)*K1_vx + (1408.0/2565.0)*K3_vx + (2197.0/4104.0)*K4_vx - (1.0/5.0)*K5_vx)
         rkf_4o_y = curr_Pt.y + delta_time*((25.0/216.0)*K1_vy + (1408.0/2565.0)*K3_vy + (2197.0/4104.0)*K4_vy - (1.0/5.0)*K5_vy)
@@ -605,7 +608,7 @@ class Grid:
         
         # checking existence of output slope grid
         if os.path.exists(outgrid_fn):
-          raise Output_Errors, "Output grid '%s' already exists" % outgrid_fn
+            raise Output_Errors, "Output grid '%s' already exists" % outgrid_fn
 
         try:
             outputgrid = open(outgrid_fn, 'w') #create the output ascii file
@@ -644,9 +647,6 @@ class Grid:
 
 def read_raster_band(raster_name):
     # read input raster band based on GDAL
-            
-    # GDAL register
-    gdal.AllRegister
     
     # open raster file and check operation success 
     raster_data = gdal.Open(str(raster_name), GA_ReadOnly )    

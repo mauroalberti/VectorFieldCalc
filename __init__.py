@@ -6,8 +6,7 @@
  Processing of vector fields
                              -------------------
         begin                : 2011-11-27
-        current version      : 2013-10-24
-        copyright            : (C) 2011-2013 by Mauro Alberti - www.malg.eu
+        copyright            : (C) 2011-2014 by Mauro Alberti - www.malg.eu
         email                : alberti.m65@gmail.com
  ***************************************************************************/
 

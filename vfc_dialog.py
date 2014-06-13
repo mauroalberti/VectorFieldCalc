@@ -205,8 +205,8 @@ class vfc_dialog( QDialog ):
         
         self.pathlines_stepmaxerror_input = QLineEdit()
         self.pathlines_stepmaxerror_input.setPlaceholderText("1e-6")
-        pathline_layout.addWidget(self.pathlines_stepmaxerror_input, 1, 6, 1, 1)
-
+        pathline_layout.addWidget(self.pathlines_stepmaxerror_input, 1, 6, 1, 1)        
+                
         pathline_layout.addWidget( QLabel( "Output shapefile" ), 2, 0, 1, 2)
         
         self.pathlines_outshapefile_input = QLineEdit()
@@ -593,11 +593,22 @@ class vfc_dialog( QDialog ):
         # verify input parameters                
         if pathlines_input_shapefile is None or pathlines_input_shapefile == '':
             QMessageBox.critical(self, "Pathline calculation", "No input point layer defined")   
-            return            
-        for pathline_value, pathline_message in zip((time_step, total_time, error_max_tolerance),('Time step', 'Total time', 'Step max error')):
-            if pathline_value is None or pathline_value == '' or not is_number(str(pathline_value)) or float(str(pathline_value)) <= 0.0:
-                QMessageBox.critical(self, "Pathline calculation", pathline_message+" should be a number larger than zero (period as decimal separator)")   
-                return 
+            return 
+        try:
+            time_step = float( time_step )
+            total_time = float( total_time )
+            assert time_step * total_time > 0.0
+        except:
+            QMessageBox.critical( self, "Pathline calculation", "Time step and total time should be both positive or both negative" )   
+            return 
+        
+        try:
+            error_max_tolerance = float( error_max_tolerance )
+            assert error_max_tolerance > 0.0
+        except:
+            QMessageBox.critical( self, "Pathline calculation", "Max error should be a positive number" )   
+            return                        
+                       
         if pathlines_output_shapefile is None or pathlines_output_shapefile == '':
             QMessageBox.critical(self, "Pathline calculation", "No output point layer defined")   
             return 
@@ -612,9 +623,6 @@ class vfc_dialog( QDialog ):
         
         pathlines_input_shapefile = str( pathlines_input_shapefile )        
         pathlines_output_shapefile = str( pathlines_output_shapefile )
-        time_step = float( time_step )
-        total_time = float( total_time )
-        error_max_tolerance = float( error_max_tolerance )
 
         # get input and output shapefiles        
         driver = ogr.GetDriverByName( 'ESRI Shapefile' ) 
@@ -713,7 +721,7 @@ class vfc_dialog( QDialog ):
                 continue                        
                 
             # pathline cycle
-            while pathline_cumulated_time < total_time:
+            while abs( pathline_cumulated_time ) < abs( total_time ):
                 
                 if vector_field.include_point_location(curr_Pt):            
                     
@@ -727,8 +735,8 @@ class vfc_dialog( QDialog ):
                     # velocity magnitude
                     curr_v_magnitude = sqrt(curr_Pt_vx**2 + curr_Pt_vy**2)            
     
-                    # update total lenght
-                    if pathline_cumulated_time > 0:
+                    # update total length
+                    if abs( pathline_cumulated_time ) > 0:
                         delta_s = curr_Pt.distance(self.prev_Pt)
                         pathline_cumulated_length += delta_s
     
@@ -815,7 +823,7 @@ class vfc_dialog( QDialog ):
         
         QMessageBox.about(self, "About VectorFieldCalc", 
         """
-            <p>VectorFieldCalc version 1.2<br />2013-10-25<br />License: GPL v. 3</p>
+            <p>VectorFieldCalc version 1.3<br />License: GPL v. 3</p>
             <p>M. Alberti, <a href="http://www.malg.eu">www.malg.eu</a></p> 
             <p>This application calculates vector field parameters (e.g., divergence, curl module, gradients)
             and pathlines.            

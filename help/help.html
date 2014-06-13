@@ -1,11 +1,11 @@
 <html>
 <head>
-	<title>VectorFieldCalc v. 1.2</title>
+	<title>VectorFieldCalc</title>
 	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 	<link href="style.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-	<h2>VectorFieldCalc v. 1.2</h2>
+	<h2>VectorFieldCalc v. 1.3</h2>
 	<p>see: <a href="http://www.malg.eu/vectorparameters.php">www.malg.eu/vectorparameters.php</a>
 	<p>
 		This plugin for Quantum GIS allows to calculate physical parameters (e.g., divergence, curl module, pathlines), given a 2D, steady vector field,
@@ -146,9 +146,9 @@ The orientations of the vectors are calculated as decimal degrees (0-360&deg;) f
 		Input parameters are:
 		<ul>
 			<li><em>name of shapefile</em> storing start points for pathline calculation</li>
-			<li><em>time step</em>: initial value of the individual time steps used for interpolating the path. 
+			<li><em>time step</em>: initial value of the individual time steps used for interpolating the path: <i>positive</i> if you want to calculate forward pathlines, <i>negative</i> for backward pathlines. 
 			It can be changed by the program to accommodate the maximum error for step.</li>
-			<li><em>total time</em>: the maximum value of the cumulated time for which a single pathline will be calculated.</li> 
+			<li><em>total time</em>: the cumulated time for which a single pathline will be calculated: <i>positive</i> if you want to calculate forward pathlines, <i>negative</i> for backward pathlines. Time step and total time must have the same sign.</li> 
 			<li><em>max error</em>: the maximum error  allowed for each single step. Its estimation is given by the RKF 45 method.</li>
 			<li><em>name of the shapefile</em> storing the interpolated pathlines.</li>
 		</ul>
@@ -166,8 +166,8 @@ The orientations of the vectors are calculated as decimal degrees (0-360&deg;) f
 	<li><em>vx</em>: x component of the velocity vector for interpolated point</li>
 	<li><em>vy</em>: y component of the velocity vector for interpolated point</li>
 	<li><em>vmagn</em>: magnitude of the velocity vector for interpolated point</li>
-	<li><em>dt</em>: time step for interpolated point</li>
-	<li><em>t</em>: cumulated time for pathline</li>
+	<li><em>dt</em>: time step for interpolated point: <i>positive</i> for forward pathlines, <i>negative</i> for backward p.</li>
+	<li><em>t</em>: cumulated time for pathline: <i>positive</i> for forward pathlines, <i>negative</i> for backward p.</li>
 	<li><em>error</em>: error (in spatial unit) for interpolated point</li>
 	</ul>
 	</div>

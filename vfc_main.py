@@ -26,20 +26,20 @@ class VectorFieldCal:
         # Create action that will start plugin configuration
         
         self.action = QAction(QIcon(":/plugins/VectorFieldCalc/icon.png"), \
-            "VectFieldCalc", self.iface.mainWindow())
+            "VectorFieldCalc", self.iface.mainWindow())
         
         # connect the action to the run method
         self.action.triggered.connect( self.run )
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
-        self.iface.addPluginToMenu("&VectFieldCalc", self.action)
+        self.iface.addPluginToMenu("&VectorFieldCalc", self.action)
 
 
     def unload(self):
         # Remove the plugin menu item and icon
         
-        self.iface.removePluginMenu("&VectFieldCalc",self.action)
+        self.iface.removePluginMenu("&VectorFieldCalc",self.action)
         self.iface.removeToolBarIcon(self.action)
 
 
