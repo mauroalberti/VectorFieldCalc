@@ -2,9 +2,9 @@
 name=VectorFieldCalc
 description=Calculates vector field parameters and pathlines, given two rasters representing x- and y- velocities
 category=Plugins
-version=1.3
+version=2.0
 experimental=False
-qgisMinimumVersion=2.0
+qgisMinimumVersion=3.0
 author=Mauro Alberti
 email=alberti.m65@gmail.com
 icon=./icon.png
@@ -14,6 +14,7 @@ changelog=
     1.2: - version compatible with QGis 2.0
     	 - fixed bug in computations management
     1.3: - added backward (upstream) calculation
+    2.0: - ported to QGIS 3
 
 ; tags are in comma separated value format, spaces are allowed
 tags=raster,vector field, curl, divergence, flow, gradient, magnitude
