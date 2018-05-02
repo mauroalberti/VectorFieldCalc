@@ -11,17 +11,16 @@ class ArrCoord(object):
     """
     2D Array coordinates.
     Manages coordinates in the raster (array) space.
-
     """
 
     def __init__(self, ival=0.0, jval=0.0):
         """
-        @param  ival:  the i (-y) array coordinate of the point.
-        @type  ival:  number or string convertible to float.
-        @param  jval:  the j (x) array coordinate of the point.
-        @type  jval:  number or string convertible to float.
+        :param  ival:  the i (-y) array coordinate of the point.
+        :type  ival:  number or string convertible to float.
+        :param  jval:  the j (x) array coordinate of the point.
+        :type  jval:  number or string convertible to float.
 
-        @return:  self.
+        :return:  self.
         """
         self._i = float(ival)
         self._j = float(jval)
@@ -30,7 +29,7 @@ class ArrCoord(object):
         """
         Get i (row) coordinate value.
 
-        @return:  the i (-y) array coordinate of the point - float.
+        :return:  the i (-y) array coordinate of the point - float.
         """
         return self._i
 
@@ -38,10 +37,10 @@ class ArrCoord(object):
         """
         Set i (row) coordinate value.
 
-        @param  ival:  the i (-y) array coordinate of the point.
-        @type  ival:  number or string convertible to float.
+        :param  ival:  the i (-y) array coordinate of the point.
+        :type  ival:  number or string convertible to float.
 
-        @return:  self.
+        :return:  self.
         """
         self._i = float(ival)
 
@@ -52,28 +51,36 @@ class ArrCoord(object):
         """
         Get j (column) coordinate value.
 
-        @return:  the j (x) array coordinate of the point - float.
+        :return:  the j (x) array coordinate of the point - float.
         """
+        
         return self._j
 
     def s_j(self, jval):
         """
         Set j (column) coordinate value.
 
-        @param  jval:  the j (x) array coordinate of the point.
-        @type  jval:  number or string convertible to float.
+        :param  jval:  the j (x) array coordinate of the point.
+        :type  jval:  number or string convertible to float.
 
-        @return:  self.
+        :return:  self.
         """
+        
         self._j = jval
 
     j = property(g_j, s_j)
 
     def grid2geogcoord(self, currGeoGrid):
+        """
+        
+        :param currGeoGrid: 
+        :return: 
+        """
+        
         currPt_geogr_y = currGeoGrid.domain.trcorner.p_y - self.i * currGeoGrid.cellsize_y
         currPt_geogr_x = currGeoGrid.domain.llcorner.p_x + self.j * currGeoGrid.cellsize_x
 
-        return Point(currPt_geogr_x, currPt_geogr_y)
+        return currPt_geogr_x, currPt_geogr_y
 
 
 class RectangularDomain(object):
@@ -86,13 +93,14 @@ class RectangularDomain(object):
         """
         Class constructor.
 
-        @param  pt_llc:  lower-left corner of the domain.
-        @type  pt_llc:  Point.
-        @param  pt_trc:  top-right corner of the domain.
-        @type  pt_trc:  Point.
+        :param  pt_llc:  lower-left corner of the domain.
+        :type  pt_llc:  Point.
+        :param  pt_trc:  top-right corner of the domain.
+        :type  pt_trc:  Point.
 
-        @return:  RectangularDomain instance.
+        :return:  RectangularDomain instance.
         """
+        
         self._llcorner = pt_llc
         self._trcorner = pt_trc
 
@@ -101,8 +109,9 @@ class RectangularDomain(object):
         """
         Get lower-left corner of the spatial domain.
 
-        @return:  lower-left corner of the spatial domain - Point.
+        :return:  lower-left corner of the spatial domain - Point.
         """
+        
         return self._llcorner
 
     @property
@@ -110,8 +119,9 @@ class RectangularDomain(object):
         """
         Get top-right corner of the spatial domain.
 
-        @return:  top-right corner of the spatial domain - Point.
+        :return:  top-right corner of the spatial domain - Point.
         """
+        
         return self._trcorner
 
     @property
@@ -119,8 +129,9 @@ class RectangularDomain(object):
         """
         Get x range of spatial domain.
 
-        @return:  x range - float.
+        :return:  x range - float.
         """
+        
         return self.trcorner.p_x - self.llcorner.p_x
 
     @property
@@ -128,8 +139,9 @@ class RectangularDomain(object):
         """
         Get y range of spatial domain.
 
-        @return:  y range - float.
+        :return:  y range - float.
         """
+        
         return self.trcorner.p_y - self.llcorner.p_y
 
     @property
@@ -137,8 +149,9 @@ class RectangularDomain(object):
         """
         Get z range of spatial domain.
 
-        @return:  z range - float.
+        :return:  z range - float.
         """
+        
         return self.trcorner.p_z - self.llcorner.p_z
 
     @property
@@ -146,12 +159,19 @@ class RectangularDomain(object):
         """
         Get horizontal area of spatial domain.
 
-        @return:  area - float.
+        :return:  area - float.
         """
+
         return self.xrange * self.yrange
 
-# check array input
+
 def arr_check(curr_array):
+    """
+    check array input.
+
+    :param curr_array:
+    :return:
+    """
     if len(curr_array.shape) != 3 and \
             curr_array.shape[2] != 2:
         return False
@@ -169,14 +189,14 @@ class Grid(object):
         """
         Grid class constructor.
 
-        @param  source_filename:  name of file from which data and geo-parameters derive.
-        @type  source_filename:  string.
-        @param  grid_params:  the geo-parameters of the grid.
-        @type  grid_params:  class GDALParameters.
-        @param  grid_data:  the array storing the data.
-        @type  grid_data:  2D np.array.
+        :param  source_filename:  name of file from which data and geo-parameters derive.
+        :type  source_filename:  string.
+        :param  grid_params:  the geo-parameters of the grid.
+        :type  grid_params:  class GDALParameters.
+        :param  grid_data:  the array storing the data.
+        :type  grid_data:  2D np.array.
 
-        @return:  self.
+        :return:  self.
         """
         self._sourcename = source_filename
 
@@ -198,10 +218,10 @@ class Grid(object):
         """
         Set spatial domain.
 
-        @param  domain:  Spatial domain to be attributed to the current Grid instance.
-        @type  domain:  class RectangularDomain.
+        :param  domain:  Spatial domain to be attributed to the current Grid instance.
+        :type  domain:  class RectangularDomain.
 
-        @return: self
+        :return: self
         """
 
         del self._grid_domain
@@ -211,7 +231,7 @@ class Grid(object):
         """
         Get spatial domain.
 
-        @return: the spatial domain of the current Grid instance - class RectangularDomain.
+        :return: the spatial domain of the current Grid instance - class RectangularDomain.
         """
 
         return self._grid_domain
@@ -220,7 +240,7 @@ class Grid(object):
         """
         Delete current spatial domain of the Grid instance.
 
-        @return: self
+        :return: self
         """
 
         del self._grid_domain
@@ -232,10 +252,10 @@ class Grid(object):
         """
         Set grid data array.
 
-        @param data_array: numpy.array of data values.
-        @param type: 2D numpy.array.
+        :param data_array: numpy.array of data values.
+        :param type: 2D numpy.array.
 
-        @return: self.
+        :return: self.
         """
 
         if self._grid_data is not None:
@@ -247,7 +267,7 @@ class Grid(object):
         """
         Get grid data array.
 
-        @return: 2D numpy.array.
+        :return: 2D numpy.array.
         """
 
         return self._grid_data
@@ -256,7 +276,7 @@ class Grid(object):
         """
         Delete grid data array.
 
-        @return: self.
+        :return: self.
         """
 
         del self._grid_data
@@ -298,7 +318,7 @@ class Grid(object):
         """
         Get row number of the grid domain.
 
-        @return: number of rows of data array - int.
+        :return: number of rows of data array - int.
         """
 
         return np.shape(self.data)[0]
@@ -308,7 +328,7 @@ class Grid(object):
         """
         Get column number of the grid domain.
 
-        @return: number of columns of data array - int.
+        :return: number of columns of data array - int.
         """
 
         return np.shape(self.data)[1]
@@ -318,7 +338,7 @@ class Grid(object):
         """
         Get the cell size of the grid in the x direction.
 
-        @return: cell size in the x (j) direction - float.
+        :return: cell size in the x (j) direction - float.
         """
 
         return self.domain.xrange / float(self.col_num)
@@ -328,7 +348,7 @@ class Grid(object):
         """
         Get the cell size of the grid in the y direction.
 
-        @return: cell size in the y (-i) direction - float.
+        :return: cell size in the y (-i) direction - float.
         """
 
         return self.domain.yrange / float(self.row_num)
@@ -338,7 +358,7 @@ class Grid(object):
         """
         Get the mean horizontal cell size.
 
-        @return: mean horizontal cell size - float.
+        :return: mean horizontal cell size - float.
         """
 
         return (self.cellsize_x + self.cellsize_y) / 2.0
@@ -347,10 +367,10 @@ class Grid(object):
         """
         Converts from geographic to raster (array) coordinates.
 
-        @param curr_Pt: point whose geographical coordinates will be converted to raster (array) ones.
-        @type curr_Pt: Point.
+        :param curr_Pt: point whose geographical coordinates will be converted to raster (array) ones.
+        :type curr_Pt: Point.
 
-        @return: point coordinates in raster (array) frame - class ArrCoord.
+        :return: point coordinates in raster (array) frame - class ArrCoord.
         """
         currArrCoord_grid_i = (self.domain.trcorner.p_y - curr_Pt.p_y) / self.cellsize_y
         currArrCoord_grid_j = (curr_Pt.p_x - self.domain.llcorner.p_x) / self.cellsize_x
@@ -362,7 +382,7 @@ class Grid(object):
         Creates an array storing the geographical coordinates of the cell centers along the x axis.
         Direction is from left to right.
 
-        @return: numpy.array, shape: 1 x col_num.
+        :return: numpy.array, shape: 1 x col_num.
         """
 
         x_values = self.domain.llcorner.p_x + self.cellsize_x * (0.5 + np.arange(self.col_num))
@@ -374,7 +394,7 @@ class Grid(object):
         Creates an array storing the geographical coordinates of the cell centers along the y axis.
         Direction is from top to bottom.
 
-        @return: numpy.array, shape: row_num x 1.
+        :return: numpy.array, shape: row_num x 1.
         """
 
         y_values = self.domain.trcorner.p_y - self.cellsize_y * (0.5 + np.arange(self.row_num))
@@ -385,7 +405,7 @@ class Grid(object):
         """
         Return an array representing the forward gradient in the y direction (top-wards), with values scaled by cell size.
 
-        @return: numpy.array, same shape as current Grid instance
+        :return: numpy.array, same shape as current Grid instance
         """
 
         gf = np.zeros(np.shape(self.data)) * np.NaN
@@ -397,7 +417,7 @@ class Grid(object):
         """
         Return an array representing the forward gradient in the x direction (right-wards), with values scaled by cell size.
 
-        @return: numpy.array, same shape as current Grid instance
+        :return: numpy.array, same shape as current Grid instance
         """
 
         gf = np.zeros(np.shape(self.data), ) * np.NaN
@@ -410,10 +430,10 @@ class Grid(object):
         Interpolate the z value at a point, given its array coordinates.
         Interpolation method: bilinear.
 
-        @param curr_Pt_array_coord: array coordinates of the point for which the interpolation will be made.
-        @type curr_Pt_array_coord: class ArrCoord.
+        :param curr_Pt_array_coord: array coordinates of the point for which the interpolation will be made.
+        :type curr_Pt_array_coord: class ArrCoord.
 
-        @return: interpolated z value - float.
+        :return: interpolated z value - float.
         """
 
         currPt_cellcenter_i = curr_Pt_array_coord.i - 0.5
@@ -441,14 +461,14 @@ class Grid(object):
         Calculates the intersections (as points) between DEM (the self object) and an analytical surface.
         Currently it works only with planes.
 
-        @param surf_type: type of considered surface (i.e., plane, the only case implemented at present).
-        @type surf_type: String.
-        @param srcPt: point, expressed in geographical coordinates, that the plane must contain.
-        @type srcPt: Point.
-        @param srcPlaneAttitude: orientation of the surface (currently only planes).
-        @type srcPlaneAttitude: class GPlane.
+        :param surf_type: type of considered surface (i.e., plane, the only case implemented at present).
+        :type surf_type: String.
+        :param srcPt: point, expressed in geographical coordinates, that the plane must contain.
+        :type srcPt: Point.
+        :param srcPlaneAttitude: orientation of the surface (currently only planes).
+        :type srcPlaneAttitude: class GPlane.
 
-        @return: tuple of four arrays
+        :return: tuple of four arrays
         """
 
         if surf_type == 'plane':

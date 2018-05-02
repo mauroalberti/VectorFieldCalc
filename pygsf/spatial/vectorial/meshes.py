@@ -114,8 +114,8 @@ class AnalyticGeosurface(object):
         # calculate array from formula
         try:
             self.X, self.Y, self.Z = formula_to_grid(array_range, array_size, formula)
-        except AnaliticSurfaceCalcException, msg:
-            raise AnaliticSurfaceCalcException, msg
+        except AnaliticSurfaceCalcException as msg:
+            raise AnaliticSurfaceCalcException(msg)
 
         # calculate geographic transformations to surface
         self.geographical_values = self.get_geographical_param_values()
@@ -133,6 +133,10 @@ class AnalyticGeosurface(object):
         self.deformations = deformation_matrices(self.deformational_params)
 
     def geosurface_center(self):
+        """
+
+        :return:
+        """
 
         array_range, _, _ = self.anal_param_values
         a_min, a_max, b_min, b_max = array_range

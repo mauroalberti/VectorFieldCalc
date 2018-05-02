@@ -16,4 +16,5 @@ class OGRIOException(Exception):
 
 # exception for raster parameters
 class Raster_Parameters_Errors(Exception):
+
     pass

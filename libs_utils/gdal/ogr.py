@@ -1,4 +1,7 @@
 
+
+import os
+
 from osgeo import ogr, osr
 
 from .exceptions import *
@@ -8,10 +11,10 @@ def read_line_shapefile_via_ogr(line_shp_path):
     """
     Read line shapefile using OGR.
 
-    @param  line_shp_path:  parameter to check.
-    @type  line_shp_path:  QString or string
-
+    :param  line_shp_path:  parameter to check.
+    :type  line_shp_path:  QString or string
     """
+
     # reset layer parameters
 
     if line_shp_path is None or line_shp_path == '':
@@ -70,6 +73,12 @@ def read_line_shapefile_via_ogr(line_shp_path):
 
 
 def shapefile_create_def_field(field_def):
+    """
+
+    :param field_def:
+    :return:
+    """
+
     fieldDef = ogr.FieldDefn(field_def['name'], field_def['ogr_type'])
     if field_def['ogr_type'] == ogr.OFTString:
         fieldDef.SetWidth(field_def['width'])
@@ -111,12 +120,19 @@ def shapefile_create(path, geom_type, fields_dict_list, crs=None):
 
 
 def ogr_get_solution_shapefile(path, fields_dict_list):
+    """
+
+    :param path:
+    :param fields_dict_list:
+    :return:
+    """
+
     driver = ogr.GetDriverByName("ESRI Shapefile")
 
     dataSource = driver.Open(str(path), 0)
 
     if dataSource is None:
-        raise OGRIOException, 'Unable to open shapefile in provided path'
+        raise OGRIOException("Unable to open shapefile in provided path")
 
     point_shapelayer = dataSource.GetLayer()
 
@@ -144,6 +160,15 @@ def ogr_get_solution_shapefile(path, fields_dict_list):
 
 
 def ogr_write_point_result(point_shapelayer, field_list, rec_values_list2, geom_type=ogr.wkbPoint25D):
+    """
+
+    :param point_shapelayer:
+    :param field_list:
+    :param rec_values_list2:
+    :param geom_type:
+    :return:
+    """
+
     outshape_featdef = point_shapelayer.GetLayerDefn()
 
     for rec_value_list in rec_values_list2:

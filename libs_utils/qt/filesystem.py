@@ -38,6 +38,14 @@ def update_directory_key(settings, settings_dir_key, fileName):
 
 
 def new_file_path(parent, show_msg, path, filter_text):
+    """
+
+    :param parent:
+    :param show_msg:
+    :param path:
+    :param filter_text:
+    :return:
+    """
 
     output_filename = QFileDialog.getSaveFileName(parent,
                                                   show_msg,
@@ -50,6 +58,14 @@ def new_file_path(parent, show_msg, path, filter_text):
 
 
 def old_file_path(parent, show_msg, filter_extension, filter_text):
+    """
+
+    :param parent:
+    :param show_msg:
+    :param filter_extension:
+    :param filter_text:
+    :return:
+    """
 
     input_filename = QFileDialog.getOpenFileName(parent,
                                                  parent.tr(show_msg),
@@ -59,3 +75,4 @@ def old_file_path(parent, show_msg, filter_extension, filter_text):
         return ''
     else:
         return input_filename
+

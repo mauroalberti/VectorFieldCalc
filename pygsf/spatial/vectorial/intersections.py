@@ -5,14 +5,19 @@ from math import *
 
 import numpy as np
 
-from ..gsf.geometry import Point, GAxis, GVect, Vect
-
-from .features import Segment, ParamLine3D
+from .vectorial import Point, Axis, Direct, Segment, ParamLine3D
 from .profile import PlaneAttitude
-from .errors import ConnectionException
+from ...exceptions.spatial import *
 
 
 def calculate_distance_with_sign(projected_point, section_init_pt, section_vector):
+    """
+
+    :param projected_point:
+    :param section_init_pt:
+    :param section_vector:
+    :return:
+    """
 
     assert projected_point.z != np.nan
     assert projected_point.z is not None
@@ -24,6 +29,12 @@ def calculate_distance_with_sign(projected_point, section_init_pt, section_vecto
 
 
 def get_intersection_slope(intersection_versor_3d, section_vector):
+    """
+
+    :param intersection_versor_3d:
+    :param section_vector:
+    :return:
+    """
 
     slope_radians = abs(radians(intersection_versor_3d.slope))
     scalar_product_for_downward_sense = section_vector.sp(intersection_versor_3d.downward)
@@ -38,12 +49,26 @@ def get_intersection_slope(intersection_versor_3d, section_vector):
 
 
 def calculate_intersection_versor(section_cartes_plane, structural_cartes_plane):
+    """
+
+    :param section_cartes_plane:
+    :param structural_cartes_plane:
+    :return:
+    """
 
     return section_cartes_plane.inters_versor(structural_cartes_plane)
 
 
 def calculate_nearest_intersection(intersection_versor_3d, section_cartes_plane, structural_cartes_plane,
                                    structural_pt):
+    """
+
+    :param intersection_versor_3d:
+    :param section_cartes_plane:
+    :param structural_cartes_plane:
+    :param structural_pt:
+    :return:
+    """
 
     dummy_inters_point = section_cartes_plane.inters_point(structural_cartes_plane)
     dummy_structural_vector = Segment(dummy_inters_point, structural_pt).vector()
@@ -56,6 +81,13 @@ def calculate_nearest_intersection(intersection_versor_3d, section_cartes_plane,
 
 
 def calculate_axis_intersection(map_axis, section_cartes_plane, structural_pt):
+    """
+
+    :param map_axis:
+    :param section_cartes_plane:
+    :param structural_pt:
+    :return:
+    """
 
     axis_versor = map_axis.as_vect().versor
     l, m, n = axis_versor.x, axis_versor.y, axis_versor.z
@@ -64,6 +96,13 @@ def calculate_axis_intersection(map_axis, section_cartes_plane, structural_pt):
 
 
 def map_measure_to_section(structural_rec, section_data, map_axis=None):
+    """
+
+    :param structural_rec:
+    :param section_data:
+    :param map_axis:
+    :return:
+    """
 
     # extract source data
     structural_pt, structural_plane, structural_pt_id = structural_rec
@@ -105,13 +144,19 @@ def map_struct_pts_on_section(structural_data, section_data, mapping_method):
     defines:
         - 2D x-y location in section
         - plane-plane segment intersection
+
+    :param structural_data:
+    :param section_data:
+    :param mapping_method:
+    :return:
     """
+
 
     if mapping_method['method'] == 'nearest':
         return [map_measure_to_section(structural_rec, section_data) for structural_rec in structural_data]
 
     if mapping_method['method'] == 'common axis':
-        map_axis = GAxis(mapping_method['trend'], mapping_method['plunge'])
+        map_axis = Axis(mapping_method['trend'], mapping_method['plunge'])
         return [map_measure_to_section(structural_rec, section_data, map_axis) for structural_rec in structural_data]
 
     if mapping_method['method'] == 'individual axes':
@@ -119,7 +164,7 @@ def map_struct_pts_on_section(structural_data, section_data, mapping_method):
         result = []
         for structural_rec, (trend, plunge) in zip(structural_data, mapping_method['individual_axes_values']):
             try:
-                map_axis = GAxis(trend, plunge)
+                map_axis = Axis(trend, plunge)
                 result.append(map_measure_to_section(structural_rec, section_data, map_axis))
             except:
                 continue
@@ -134,6 +179,13 @@ class IntersectionParameters(object):
     """
 
     def __init__(self, sourcename, srcPt, srcPlaneAttitude):
+        """
+
+        :param sourcename:
+        :param srcPt:
+        :param srcPlaneAttitude:
+        """
+
         self._sourcename = sourcename
         self._srcPt = srcPt
         self._srcPlaneAttitude = srcPlaneAttitude
@@ -142,6 +194,9 @@ class IntersectionParameters(object):
 class Intersections(object):
 
     def __init__(self):
+        """
+        Constructor
+        """
 
         self.parameters = None
 
@@ -195,6 +250,10 @@ class Intersections(object):
         return links
 
     def set_neighbours(self):
+        """
+
+        :return:
+        """
 
         # shape of input arrays (equal shapes)
         num_rows, num_cols = self.xcoords_x.shape
@@ -333,8 +392,11 @@ class Intersections(object):
     def follow_path(self, start_id):
         """
         Creates a path of connected intersections from a given start intersection.
-        
+
+        :param start_id:
+        :return:
         """
+
         from_id = start_id
 
         while self.links[from_id - 1]['conn_to'] == 0:
@@ -342,21 +404,21 @@ class Intersections(object):
             conns = self.neighbours[from_id]
             num_conn = len(conns)
             if num_conn == 0:
-                raise ConnectionException, 'no connected intersection'
+                raise IntersectionConnectionException("no connected intersection")
             elif num_conn == 1:
                 if self.links[conns[0] - 1]['conn_from'] == 0 and self.links[conns[0] - 1]['conn_to'] != from_id:
                     to_id = conns[0]
                 else:
-                    raise ConnectionException, 'no free connection'
+                    raise IntersectionConnectionException("no free connection")
             elif num_conn == 2:
                 if self.links[conns[0] - 1]['conn_from'] == 0 and self.links[conns[0] - 1]['conn_to'] != from_id:
                     to_id = conns[0]
                 elif self.links[conns[1] - 1]['conn_from'] == 0 and self.links[conns[1] - 1]['conn_to'] != from_id:
                     to_id = conns[1]
                 else:
-                    raise ConnectionException, 'no free connection'
+                    raise IntersectionConnectionException("no free connection")
             else:
-                raise ConnectionException, 'multiple connection'
+                raise IntersectionConnectionException("multiple connection")
 
             # set connection
             self.links[to_id - 1]['conn_from'] = from_id
@@ -366,6 +428,11 @@ class Intersections(object):
             from_id = to_id
 
     def path_closed(self, start_id):
+        """
+
+        :param start_id:
+        :return:
+        """
 
         from_id = start_id
 
@@ -380,6 +447,11 @@ class Intersections(object):
         return False
 
     def invert_path(self, start_id):
+        """
+
+        :param start_id:
+        :return:
+        """
 
         self.links[start_id - 1]['start'] = False
 
@@ -401,6 +473,11 @@ class Intersections(object):
         return
 
     def patch_path(self, start_id):
+        """
+
+        :param start_id:
+        :return:
+        """
 
         if self.path_closed(start_id): return
 
@@ -429,6 +506,10 @@ class Intersections(object):
             self.links[new_toid - 1]['start'] = False
 
     def define_paths(self):
+        """
+
+        :return:
+        """
 
         # simple networks starting from border
         for ndx in xrange(self.links.shape[0]):
@@ -472,9 +553,7 @@ class Intersections(object):
     def define_networks(self):
         """
         Creates list of connected intersections,
-        to output as line shapefile
-        
-        
+        to output as line shapefile.
         """
 
         pid = 0
@@ -528,3 +607,4 @@ class Intersections(object):
                 networks[pid] = network_list
 
         return networks
+

@@ -2,13 +2,18 @@
 import numpy as np
 
 
-def get_statistics(topo_array):
+def get_statistics(array):
+    """
 
-    min = np.nanmin(topo_array)
-    max = np.nanmax(topo_array)
-    mean = np.nanmean(topo_array)
-    var = np.nanvar(topo_array)
-    std = np.nanstd(topo_array)
+    :param array: numpy array
+    :return:
+    """
+
+    min = np.nanmin(array)
+    max = np.nanmax(array)
+    mean = np.nanmean(array)
+    var = np.nanvar(array)
+    std = np.nanstd(array)
 
     stats = dict(min=min,
                  max=max,

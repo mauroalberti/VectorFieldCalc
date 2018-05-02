@@ -1,22 +1,24 @@
 from __future__ import division
 
-from math import isnan, sin, cos, asin, radians, degrees, floor, ceil, sqrt
+from math import floor, ceil
 
 import numpy as np
 
-from osgeo import ogr, osr
+from osgeo import osr
+
 
 from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QGis, QgsCoordinateTransform, QgsPoint, QgsRaster
-from qgis.gui import *
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 
-from .errors import VectorIOException
-from ..gsf.geometry import Point
+from .exceptions import *
 
 
 def get_on_the_fly_projection(canvas):
+    """
+
+    :param canvas:
+    :return:
+    """
 
     on_the_fly_projection = True if canvas.hasCrsTransformEnabled() else False
 
@@ -29,9 +31,14 @@ def get_on_the_fly_projection(canvas):
 
 
 def vector_type(layer):
+    """
+
+    :param layer:
+    :return:
+    """
 
     if not layer.type() == QgsMapLayer.VectorLayer:
-        raise VectorIOException("Layer is not vector")
+        raise QgisIOException("Layer is not vector")
 
     if layer.geometryType() == QGis.Point:
         return "point"
@@ -40,51 +47,85 @@ def vector_type(layer):
     elif layer.geometryType() == QGis.Polygon:
         return "polygon"
     else:
-        raise VectorIOException("Unknown vector type")
+        raise QgisIOException("Unknown vector type")
 
 
 def loaded_layers():
+    """
+
+    :return:
+    """
 
     return QgsMapLayerRegistry.instance().mapLayers().values()
 
 
 def loaded_vector_layers():
+    """
+
+    :return:
+    """
 
     return filter(lambda layer: layer.type() == QgsMapLayer.VectorLayer,
                   loaded_layers())
 
 
 def loaded_polygon_layers():
+    """
+
+    :return:
+    """
 
     return filter(lambda layer: layer.geometryType() == QGis.Polygon,
                   loaded_vector_layers())
 
 
 def loaded_line_layers():
+    """
+
+    :return:
+    """
 
     return filter(lambda layer: layer.geometryType() == QGis.Line,
                   loaded_vector_layers())
 
 
 def loaded_point_layers():
+    """
+
+    :return:
+    """
 
     return filter(lambda layer: layer.geometryType() == QGis.Point,
                   loaded_vector_layers())
 
 
 def loaded_raster_layers():
+    """
+
+    :return:
+    """
 
     return filter(lambda layer: layer.type() == QgsMapLayer.RasterLayer,
                   loaded_layers())
 
 
 def loaded_monoband_raster_layers():
+    """
+
+    :return:
+    """
 
     return filter(lambda layer: layer.bandCount() == 1,
                   loaded_raster_layers())
 
 
 def pt_geoms_attrs(pt_layer, field_list=None):
+    """
+
+    :param pt_layer:
+    :param field_list:
+    :return:
+    """
 
     if field_list is None:
         field_list = []
@@ -118,6 +159,12 @@ def pt_geoms_attrs(pt_layer, field_list=None):
 
 
 def line_geoms_attrs(line_layer, field_list=None):
+    """
+
+    :param line_layer:
+    :param field_list:
+    :return:
+    """
 
     if field_list is None:
         field_list = []
@@ -148,6 +195,12 @@ def line_geoms_attrs(line_layer, field_list=None):
 
 
 def line_geoms_with_id(line_layer, curr_field_ndx):
+    """
+
+    :param line_layer:
+    :param curr_field_ndx:
+    :return:
+    """
 
     lines = []
     progress_ids = []
@@ -177,17 +230,33 @@ def line_geoms_with_id(line_layer, curr_field_ndx):
 
 
 def polyline_to_xytuple_list(qgsline):
+    """
+
+    :param qgsline:
+    :return:
+    """
 
     assert len(qgsline) > 0
     return [(qgspoint.x(), qgspoint.y()) for qgspoint in qgsline]
 
 
 def multipolyline_to_xytuple_list2(qgspolyline):
+    """
+
+    :param qgspolyline:
+    :return:
+    """
 
     return [polyline_to_xytuple_list(qgsline) for qgsline in qgspolyline]
 
 
 def field_values(layer, curr_field_ndx):
+    """
+
+    :param layer:
+    :param curr_field_ndx:
+    :return:
+    """
 
     values = []
 
@@ -203,6 +272,12 @@ def field_values(layer, curr_field_ndx):
 
 
 def vect_attrs(layer, field_list):
+    """
+
+    :param layer:
+    :param field_list:
+    :return:
+    """
 
     if layer.selectedFeatureCount() > 0:
         features = layer.selectedFeatures()
@@ -222,6 +297,11 @@ def vect_attrs(layer, field_list):
 
 
 def raster_qgis_params(raster_layer):
+    """
+
+    :param raster_layer:
+    :return:
+    """
 
     name = raster_layer.name()
 
@@ -253,25 +333,52 @@ def raster_qgis_params(raster_layer):
 
 
 def qgs_pt(x, y):
+    """
+
+    :param x:
+    :param y:
+    :return:
+    """
 
     return QgsPoint(x, y)
 
 
 def project_qgs_point(qgsPt, srcCrs, destCrs):
+    """
+
+    :param qgsPt:
+    :param srcCrs:
+    :param destCrs:
+    :return:
+    """
 
     return QgsCoordinateTransform(srcCrs, destCrs).transform(qgsPt)
 
 
 def project_point(pt, srcCrs, destCrs):
+    """
+
+    :param pt:
+    :param srcCrs:
+    :param destCrs:
+    :return:
+    """
 
     qgs_pt = QgsPoint(pt.x, pt.y)
     proj_qgs_pt = project_qgs_point(qgs_pt, srcCrs, destCrs)
     proj_x, proj_y = proj_qgs_pt.x(), proj_qgs_pt.y()
 
-    return Point(proj_x, proj_y)
+    return proj_x, proj_y
 
 
 def project_xy_list(src_crs_xy_list, srcCrs, destCrs):
+    """
+
+    :param src_crs_xy_list:
+    :param srcCrs:
+    :param destCrs:
+    :return:
+    """
 
     pt_list_dest_crs = []
     for x, y in src_crs_xy_list.pts:
@@ -283,6 +390,11 @@ def project_xy_list(src_crs_xy_list, srcCrs, destCrs):
 
 
 def qcolor2rgbmpl(qcolor):
+    """
+
+    :param qcolor:
+    :return:
+    """
 
     red = qcolor.red() / 255.0
     green = qcolor.green() / 255.0
@@ -290,98 +402,23 @@ def qcolor2rgbmpl(qcolor):
     return red, green, blue
 
 
-"""
-Modified from: profiletool, script: tools/ptmaptool.py
-
-#-----------------------------------------------------------
-# 
-# Profile
-# Copyright (C) 2008  Borys Jurgiel
-# Copyright (C) 2012  Patrice Verchere
-#-----------------------------------------------------------
-# 
-# licensed under the terms of GNU GPL 2
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along
-# with this program; if not, print to the Free Software Foundation, Inc.,
-# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-#---------------------------------------------------------------------
-"""
-
-
-class PointMapToolEmitPoint(QgsMapToolEmitPoint):
-
-    def __init__(self, canvas, button):
-
-        super(PointMapToolEmitPoint, self).__init__(canvas)
-        self.canvas = canvas
-        self.cursor = QCursor(Qt.CrossCursor)
-        self.button = button
-
-    def setCursor(self, cursor):
-
-        self.cursor = QCursor(cursor)
-
-
-class MapDigitizeTool(QgsMapTool):
-
-    def __init__(self, canvas):
-
-        QgsMapTool.__init__(self, canvas)
-        self.canvas = canvas
-        self.cursor = QCursor(Qt.CrossCursor)
-
-    def canvasMoveEvent(self, event):
-
-        self.emit(SIGNAL("moved"), {'x': event.pos().x(), 'y': event.pos().y()})
-
-    def canvasReleaseEvent(self, event):
-
-        if event.button() == Qt.RightButton:
-            button_type = "rightClicked"
-        elif event.button() == Qt.LeftButton:
-            button_type = "leftClicked"
-        else:
-            return
-
-        self.emit(SIGNAL(button_type), {'x': event.pos().x(), 'y': event.pos().y()})
-
-    def canvasDoubleClickEvent(self, event):
-
-        self.emit(SIGNAL("doubleClicked"), {'x': event.pos().x(), 'y': event.pos().y()})
-
-    def activate(self):
-
-        QgsMapTool.activate(self)
-        self.canvas.setCursor(self.cursor)
-
-    def deactivate(self):
-
-        QgsMapTool.deactivate(self)
-
-    def isZoomTool(self):
-
-        return False
-
-    def setCursor(self, cursor):
-
-        self.cursor = QCursor(cursor)
-
-
 class QGisRasterParameters(object):
 
     def __init__(self, name, cellsizeEW, cellsizeNS, rows, cols, xMin, xMax, yMin, yMax, nodatavalue, crs):
+        """
+
+        :param name:
+        :param cellsizeEW:
+        :param cellsizeNS:
+        :param rows:
+        :param cols:
+        :param xMin:
+        :param xMax:
+        :param yMin:
+        :param yMax:
+        :param nodatavalue:
+        :param crs:
+        """
 
         self.name = name
         self.cellsizeEW = cellsizeEW
@@ -405,7 +442,7 @@ class QGisRasterParameters(object):
         """
 
         if self.xMin <= point.x <= self.xMax and \
-                                self.yMin <= point.y <= self.yMax:
+           self.yMin <= point.y <= self.yMax:
             return True
         else:
             return False
@@ -455,7 +492,7 @@ class QGisRasterParameters(object):
         x = self.xMin + (array_dict['x'] + 0.5) * self.cellsizeEW
         y = self.yMin + (array_dict['y'] + 0.5) * self.cellsizeNS
 
-        return Point(x, y)
+        return x, y
 
 
 def get_z(dem_layer, point):
@@ -545,8 +582,13 @@ def xy_from_canvas(canvas, position):
 
 
 def get_prjcrs_as_proj4str(canvas):
+    """
+    get project CRS information
 
-    # get project CRS information
+    :param canvas:
+    :return:
+    """
+
     hasOTFP, project_crs = get_on_the_fly_projection(canvas)
     if hasOTFP:
         proj4_str = str(project_crs.toProj4())

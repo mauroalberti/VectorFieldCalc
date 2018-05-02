@@ -1,9 +1,10 @@
+
 from __future__ import division
 
 from math import sqrt, radians, sin, cos
 
-from ..gsf.geometry import Point
-from .time_utils import standard_gpstime_to_seconds
+
+from ...utils.time import *
 
 
 WGS84 = {'semi-major axis': 6378137.0,
@@ -11,12 +12,25 @@ WGS84 = {'semi-major axis': 6378137.0,
 
 
 def n_phi(phi_rad):
+    """
+
+    :param phi_rad:
+    :return:
+    """
+
     a = WGS84['semi-major axis']
     e_squared = WGS84['first eccentricity squared']
     return a / sqrt(1.0 - e_squared * sin(phi_rad) ** 2)
 
 
 def geodetic2ecef(lat, lon, height):
+    """
+
+    :param lat:
+    :param lon:
+    :param height:
+    :return:
+    """
 
     e_squared = WGS84['first eccentricity squared']
 
@@ -34,6 +48,13 @@ def geodetic2ecef(lat, lon, height):
 class TrackPointGPX(object):
 
     def __init__(self, lat, lon, elev, time):
+        """
+
+        :param lat:
+        :param lon:
+        :param elev:
+        :param time:
+        """
 
         self.lat = float(lat)
         self.lon = float(lon)
@@ -41,8 +62,12 @@ class TrackPointGPX(object):
         self.time = time
 
     def as_pt3dt(self):
+        """
+
+        :return:
+        """
 
         x, y, _ = geodetic2ecef(self.lat, self.lon, self.elev)
         t = standard_gpstime_to_seconds(self.time)
 
-        return Point(x, y, self.elev, t)
+        return x, y, self.elev, t

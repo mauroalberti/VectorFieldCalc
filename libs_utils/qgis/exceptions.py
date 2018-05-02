@@ -1,0 +1,5 @@
+
+
+class QgisIOException(Exception):
+
+    pass
