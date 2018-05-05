@@ -91,7 +91,8 @@ ENV/
 # PyCharm
 .directory
 
-
+*.pyc
 .idea/
 .mypy_cache/
+__pycache__/
 

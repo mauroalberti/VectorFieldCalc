@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Sequence
-
-from ..exceptions.geology import *
+from pygsf.geology.exceptions import *
 from ..orientations.orientations import *
 
 
@@ -57,7 +55,7 @@ class Slick(object):
         return "Slick(az: {:.2f}°, pl: {:.2f}°, known_dir: {})".format(*self.s.d, self.hasKnownSense())
 
     @property
-    def geom(self):
+    def geom(self) -> [Direct, Axis]:
         """
         Returns the geometric object (Direct or Axis) defining the slickenline.
 
@@ -72,7 +70,7 @@ class Slick(object):
 
         return self.s
 
-    def hasKnownSense(self):
+    def hasKnownSense(self) -> bool:
         """
         Check whether the slickenline has known movement sense.
 
@@ -85,7 +83,7 @@ class Slick(object):
 
         return not isinstance(self.s, Axis)
 
-    def hasUnknownSense(self):
+    def hasUnknownSense(self) -> bool:
         """
         Check whether the slickenline has unknown/uncertain movement sense.
 
@@ -98,7 +96,7 @@ class Slick(object):
 
         return not self.hasKnownSense()
 
-    def setKnownSense(self):
+    def setKnownSense(self) -> 'Slick':
         """
         Return a new slickenline with movement sense set to known.
 
@@ -109,7 +107,7 @@ class Slick(object):
 
         return Slick(*self.s.d, True)
 
-    def setUnknownSense(self):
+    def setUnknownSense(self) -> 'Slick':
         """
         Set to unknown/uncertain the movement sense for the current Slickline instance.
 
@@ -120,7 +118,7 @@ class Slick(object):
 
         return Slick(*self.s.d, False)
 
-    def invert(self):
+    def invert(self) -> Optional['Slick']:
         """
         Invert the slickenline sense, when known, otherwise raise SlickSenseException.
 
@@ -140,7 +138,8 @@ class Fault(object):
     stored by a list of Slick instances (None when no slickenlines).
     """
 
-    def __init__(self, azim: [int, float], dip_ang: [int, float], is_rhr_strike: bool=False, slickenlines: Sequence[Slick]=None):
+    def __init__(self, azim: [int, float], dip_ang: [int, float],
+       is_rhr_strike: bool=False, slickenlines: Sequence[Slick]=None):
         """
         Create an instance of a Fault.
 
@@ -185,7 +184,7 @@ class Fault(object):
         return "Fault({}, {}) with {} slickeline(s)".format(*self.plane.dda, len(self.slicks))
 
     @property
-    def plane(self):
+    def plane(self) -> Plane:
         """
         Return fault plane, as a Plane instance.
 
@@ -225,14 +224,14 @@ class Fault(object):
         return self.numSlicks > 0
 
     @property
-    def slicks(self):
+    def slicks(self) -> List[Slick, ...]:
         """
         Return the slickenlines associated with the fault.
         """
 
         return self._slicks
 
-    def slick(self, ndx: int=0):
+    def slick(self, ndx: int=0) -> Slick:
         """
         Return the slickenline with the given index associated with the fault.
 
@@ -248,7 +247,7 @@ class Fault(object):
         else:
             return self._slicks[ndx]
 
-    def slickGeom(self, ndx: int=0):
+    def slickGeom(self, ndx: int=0) -> Optional[Direct, Axis]:
         """
         Return the geometric object (Direct or Axis) associated with slickenline.
 
@@ -265,9 +264,9 @@ class Fault(object):
             return self._slicks[ndx].s
 
     @property
-    def knownSense(self, ndx: int=0):
+    def knownSense(self, ndx: int=0) -> bool:
         """
-        Check if the Slick instance in the GFault instance has a known movement sense.
+        Check if the Slick instance in the Fault instance has a known movement sense.
 
         Example:
           >>> Fault(90, 45, slickenlines=[Slick(90, 45, False)]).knownSense
@@ -283,13 +282,13 @@ class Fault(object):
         else:
             return self._slicks[ndx].hasKnownSense()
 
-    def rake(self, ndx: int=0):
+    def rake(self, ndx: int=0) -> float:
         """
         Calculates the rake (sensu Aki & Richards, 1980) of the slickenline with the given index.
         The slickenlines must have known sense movement.
 
         :return: the rake value
-        :rtype: double
+        :rtype: float
 
         Examples:
           >>> Fault(180, 45, slickenlines=[Slick(90, 0)]).rake()
@@ -337,14 +336,14 @@ class Fault(object):
         else:
             return angle
 
-    def isNormal(self, ndx: int=0, rk_threshold=rake_threshold, dip_angle_threshold=angle_gplane_thrshld):
+    def isNormal(self, ndx: int=0, rk_threshold=rake_threshold, dip_angle_threshold=angle_gplane_thrshld) -> bool:
         """
-        Checks if a fault has normDirectFrwrd movements.
+        Checks if a fault has normal (downward) movements.
 
         :param ndx: slickenline index
         :param rk_threshold: the threshold, in degrees, for the rake angle
         :param dip_angle_threshold: the threshold, in degrees, for the dip angle of the geological plane
-        :return: True if normDirectFrwrd, False if not applicable
+        :return: True if normal, False if not applicable
 
         Examples:
           >>> Fault(0, 45, slickenlines=[Slick(0, 45)]).isNormal()
@@ -367,7 +366,7 @@ class Fault(object):
         else:
             return False
 
-    def isReverse(self, ndx: int=0, rk_threshold=rake_threshold, dip_angle_threshold=angle_gplane_thrshld):
+    def isReverse(self, ndx: int=0, rk_threshold=rake_threshold, dip_angle_threshold=angle_gplane_thrshld) -> bool:
         """
         Checks if a fault has reverse movements.
 
@@ -397,7 +396,7 @@ class Fault(object):
         else:
             return False
 
-    def isRightLateral(self, ndx: int=0, rk_threshold=rake_threshold, dip_angle_threshold=angle_gplane_thrshld):
+    def isRightLateral(self, ndx: int=0, rk_threshold=rake_threshold, dip_angle_threshold=angle_gplane_thrshld) -> bool:
         """
         Checks if a fault has right-lateral movements.
 
@@ -430,7 +429,7 @@ class Fault(object):
         else:
             return False
 
-    def isLeftLateral(self, ndx: int=0, rk_threshold=rake_threshold, dip_angle_threshold=angle_gplane_thrshld):
+    def isLeftLateral(self, ndx: int=0, rk_threshold=rake_threshold, dip_angle_threshold=angle_gplane_thrshld) -> bool:
         """
         Checks if a fault has left-lateral movements.
 

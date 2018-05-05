@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from math import isnan, isinf, sqrt, degrees, acos
+from .arrays import *
+
+isfinite = np.isfinite
 
 """
 Geometric parameters

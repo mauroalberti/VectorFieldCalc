@@ -3,7 +3,7 @@
 
 from math import sin, cos, radians, pi
 
-from ..exceptions.orientations import *
+from pygsf.orientations.exceptions import *
 from ..spatial.vectorial.vectorial import *
 from ..orientations.utils import *
 

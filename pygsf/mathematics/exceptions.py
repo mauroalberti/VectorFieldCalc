@@ -1,14 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-class RefFrameInputException(Exception):
-    """
-    Exception for RefFrame input
-    """
-
-    pass
-
-
 class InputValuesException(Exception):
     """
     Exception for values input.
@@ -20,6 +12,14 @@ class InputValuesException(Exception):
 class VectorInputException(Exception):
     """
     Exception for geometric input.
+    """
+
+    pass
+
+
+class RefFrameInputException(Exception):
+    """
+    Exception for RefFrame input
     """
 
     pass

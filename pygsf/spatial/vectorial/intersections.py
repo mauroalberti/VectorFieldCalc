@@ -5,9 +5,9 @@ from math import *
 
 import numpy as np
 
-from .vectorial import Point, Axis, Direct, Segment, ParamLine3D
+from .vectorial import Point, Axis, Segment, ParamLine3D
 from .profile import PlaneAttitude
-from ...exceptions.spatial import *
+from pygsf.spatial.exceptions import *
 
 
 def calculate_distance_with_sign(projected_point, section_init_pt, section_vector):

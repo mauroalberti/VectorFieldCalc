@@ -6,7 +6,7 @@ import json
 import numpy as np
 from osgeo import ogr
 
-from ...exceptions.spatial import AnaliticSurfaceIOException, AnaliticSurfaceCalcException
+from pygsf.spatial.exceptions import AnaliticSurfaceIOException, AnaliticSurfaceCalcException
 from ..raster.utils import formula_to_grid
 from ...mathematics.scalars import areClose
 from ...mathematics.transformations import deformMatrices

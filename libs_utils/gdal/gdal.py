@@ -2,6 +2,7 @@
 
 
 import numpy as np
+
 import gdal
 from gdalconst import *
 
@@ -311,7 +312,7 @@ def read_raster_band(raster_name, raster_params):
     # open raster file and check operation success
     raster_data = gdal.Open(str(raster_name), GA_ReadOnly)
     if raster_data is None:
-        raise IOError("No input data open")
+        raise RasterIOException("No input data open")
 
         # set critical grid values from geotransform array
     raster_params.set_topLeftX(raster_data.GetGeoTransform()[0])
@@ -327,12 +328,12 @@ def read_raster_band(raster_name, raster_params):
     # get no data value for current band
     raster_params.set_noDataValue(band.GetNoDataValue())
     if raster_params.get_noDataValue() is None:
-        raise IOError("Unable to get no data value from input raster. Try change input format\n(e.g., ESRI ascii grids generally work)")
+        raise RasterIOException("Unable to get no data value from input raster. Try change input format\n(e.g., ESRI ascii grids generally work)")
 
         # read data from band
     grid_values = band.ReadAsArray(0, 0, raster_params.get_cols(), raster_params.get_rows())
     if grid_values is None:
-        raise IOError("Unable to read data from raster")
+        raise RasterIOException("Unable to read data from raster")
 
     # transform data into numpy array
     data = np.asarray(grid_values)
@@ -354,7 +355,7 @@ def read_raster_layer(raster_name, layermap_items):
 
     # verify input parameters
     if raster_name is None or raster_name == '':
-        raise Raster_Parameters_Errors("No name defined for raster")
+        raise RasterParametersException("No name defined for raster")
 
     # get raster input file
     raster_layer = None
@@ -363,18 +364,18 @@ def read_raster_layer(raster_name, layermap_items):
             raster_layer = layer
             break
     if raster_layer is None:
-        raise Raster_Parameters_Errors("Unable to get raster name")
+        raise RasterParametersException("Unable to get raster name")
 
     try:
         raster_source = raster_layer.source()
     except:
-        raise Raster_Parameters_Errors("Unable to get raster file")
+        raise RasterParametersException("Unable to get raster file")
 
-        # get raster parameters and data
+    # get raster parameters and data
     try:
         raster_params, raster_array = read_raster_band(raster_source)
-    except (IOError, TypeError) as e:
-        raise Raster_Parameters_Errors(str(e))
+    except Exception as e:
+        raise RasterParametersException(str(e))
 
     return raster_params, raster_array
 

@@ -4,8 +4,6 @@
 import copy
 import xml.dom.minidom
 
-from ...exceptions.spatial import *
-
 from .vectorial import Line, xytuple_l2_to_MultiLine
 
 #from .qgs_tools import *

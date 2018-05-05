@@ -3,7 +3,7 @@
 
 from .vectors import Vect
 
-from ..exceptions.mathematics import *
+from pygsf.mathematics.exceptions import *
 from .scalars import areClose
 
 

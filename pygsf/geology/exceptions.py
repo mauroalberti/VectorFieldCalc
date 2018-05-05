@@ -3,7 +3,7 @@
 
 class SlickInputTypeException(Exception):
     """
-    Exception for slickenline type.
+    Exception for slickenline input type.
     """
 
     pass
@@ -11,7 +11,7 @@ class SlickInputTypeException(Exception):
 
 class FaultInputTypeException(Exception):
     """
-    Exception for GFault input type.
+    Exception for fault input type.
     """
 
     pass

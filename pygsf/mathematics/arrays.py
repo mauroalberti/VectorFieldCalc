@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Sequence, List, Tuple
-
-import numpy as np
+from ..defaults.mathematics import *
+from ..defaults.typing import *
 
 from .scalars import *
 
 
-array = np.array
-
-
-def arrToTuple(arr1D: 'array[int, float]') -> Tuple[float, ...]:
+def arrToTuple(arr1D: 'array[Numbers]') -> Tuple[float, ...]:
     """
     Modified from: https://stackoverflow.com/questions/10016352/convert-numpy-array-to-tuple
     Works just for 1D arrays
@@ -30,7 +26,7 @@ def arrToTuple(arr1D: 'array[int, float]') -> Tuple[float, ...]:
     return tuple(map(float, arr1D))
 
 
-def toFloats(iterable_obj: Sequence[int, float]) -> List[float, ...]:
+def toFloats(iterable_obj: Sequence[Numbers]) -> List[float]:
     """
     Converts an iterable object storing float-compatible values to a list of floats.
 
@@ -47,7 +43,8 @@ def toFloats(iterable_obj: Sequence[int, float]) -> List[float, ...]:
     return [float(item) for item in iterable_obj]
 
 
-def arraysAreClose(a_array: 'array[int, float]', b_array: 'array[int, float]', rtol: float=1e-012, atol: float=1e-12, equal_nan: bool=False, equal_inf: bool=False):
+def arraysAreClose(a_array: 'array[Numbers]', b_array: 'array[Numbers]',
+    rtol: float=1e-012, atol: float=1e-12, equal_nan: bool=False, equal_inf: bool=False) -> bool:
     """
     Check for equivalence between two numpy arrays.
 
@@ -88,7 +85,7 @@ def arraysAreClose(a_array: 'array[int, float]', b_array: 'array[int, float]', r
     return all(are_equal)
 
 
-def pointSolution(a_array: 'array[int, float]', b_array: 'array[int, float]'):
+def pointSolution(a_array: 'array[Numbers]', b_array: 'array[Numbers]'):
     """
     Finds a non-unique solution for a set of linear equations.
 
@@ -108,7 +105,7 @@ def pointSolution(a_array: 'array[int, float]', b_array: 'array[int, float]'):
         return None, None, None
 
 
-def xyzSvd(xyz_array):
+def xyzSvd(xyz_array) -> dict:
     """
     Calculates the SVD solution given a Numpy array.
 

@@ -47,7 +47,7 @@ class QGisRasterParameters(object):
         Check that a point is within or on the boundary of the grid area.
         Assume grid has no rotation.
 
-        :param point: qProf.gsf.geometry.Point
+        :param point: pygsf.vectorial.vectorial.Point
         :return: bool
         """
 
@@ -63,7 +63,7 @@ class QGisRasterParameters(object):
         the extreme cell center values.
         Assume grid has no rotation.
 
-        :param point: qProf.gsf.geometry.Point
+        :param point: pygsf.vectorial.vectorial.Point
         :return: bool
         """
 

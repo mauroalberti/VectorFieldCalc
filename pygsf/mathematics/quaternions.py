@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Tuple
-
 from .vectors import *
-from ..exceptions.mathematics import QuaternionInputException
+
+from .exceptions import QuaternionInputException
 
 
 class Quaternion(object):
@@ -96,7 +95,7 @@ class Quaternion(object):
           >>> Quaternion.fromArray(np.array([7.65, -12.34, -1.0]))
           Traceback (most recent call last):
           ...
-          pygsf.exceptions.mathematics.QuaternionInputException: Input array for quaternion must have size of 4
+          pygsf.mathematics.exceptions.QuaternionInputException: Input array for quaternion must have size of 4
         """
 
         if a.size != 4:
@@ -260,7 +259,7 @@ class Quaternion(object):
 
         if not isinstance(another, Quaternion):
             raise QuaternionInputException("Compared instance must be of Quaternion type")
-                                           )
+
         return ((self.q == another.q) | (np.isnan(self.q) & np.isnan(another.q))).all()
 
     def __ne__(self, another: 'Quaternion') -> bool:
@@ -320,7 +319,7 @@ class Quaternion(object):
 
         return Quaternion.fromArray(self.q - another.q)
 
-    def multByScalar(self, val: [int, float]) -> 'Quaternion':
+    def multByScalar(self, val: Numbers) -> 'Quaternion':
         """
         Multiplication of a quaternion by a scalar value.
 
@@ -551,7 +550,7 @@ class Quaternion(object):
 
         return abs(1.0 - sqrt(self.sqrdNorm())) < quat_normaliz_tolerance
 
-    def divByScalar(self, denominator: [int, float]) -> 'Quaternion':
+    def divByScalar(self, denominator: Numbers) -> 'Quaternion':
         """
         Division of a quaternion by a scalar.
 
@@ -566,7 +565,7 @@ class Quaternion(object):
           >>> Quaternion(1, 1, 3, 0).divByScalar(1e-11)
           Traceback (most recent call last):
           ...
-          pygsf.exceptions.mathematics.QuaternionCalculationException: Quaternion division by almost zero value
+          pygsf.mathematics.exceptions.QuaternionCalculationException: Quaternion division by almost zero value
         """
 
         if not isinstance(denominator, (int, float)):
@@ -640,7 +639,8 @@ class Quaternion(object):
         else:
             return self / sqrt(self.sqrdNorm())
 
-    def isCloseTo(self, another: 'Quaternion', rtol: float=1e-012, atol:float=1e-12, equal_nan: bool=False, equal_inf: bool=False):
+    def isCloseTo(self, another: 'Quaternion',
+        rtol: float=1e-012, atol:float=1e-12, equal_nan: bool=False, equal_inf: bool=False):
         """
         Check for quaternion equivalence.
 
@@ -670,7 +670,7 @@ class Quaternion(object):
 
         return arraysAreClose(self.q, another.q, rtol, atol, equal_nan, equal_inf)
 
-    def rotAngle(self):
+    def rotAngle(self) -> float:
         """
         Calculate the rotation angle associated with a normalized quaternion.
         Formula from p. 710 in Kagan, Y. Y., 1991. 3-D rotation of double-couple earthquake sources.
@@ -686,7 +686,7 @@ class Quaternion(object):
 
         return 2 * degrees(acos(self.normalize().scalar))
 
-    def toRotMatrix(self):
+    def toRotMatrix(self) -> 'numpy.array':
         """
         Computes the rotation matrix from the quaternion xyz.
         Formula as in:
@@ -725,9 +725,9 @@ class Quaternion(object):
         a32 = 2*(q0q1 + q2q3)
         a33 = q0q0 - q1q1 - q2q2 + q3q3
 
-        return np.array([(a11, a12, a13),
-                         (a21, a22, a23),
-                         (a31, a32, a33)])
+        return array([(a11, a12, a13),
+                     (a21, a22, a23),
+                     (a31, a32, a33)])
 
 
 if __name__ == "__main__":
