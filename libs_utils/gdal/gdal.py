@@ -1,90 +1,11 @@
+# -*- coding: utf-8 -*-
+
 
 import numpy as np
 import gdal
 from gdalconst import *
 
 from .exceptions import *
-
-
-def read_raster_band(raster_name, raster_params):
-    """
-
-    :param raster_name:
-    :param raster_params:
-    :return:
-    """
-
-    # read input raster band based on GDAL
-
-    # open raster file and check operation success
-    raster_data = gdal.Open(str(raster_name), GA_ReadOnly)
-    if raster_data is None:
-        raise IOError("No input data open")
-
-        # set critical grid values from geotransform array
-    raster_params.set_topLeftX(raster_data.GetGeoTransform()[0])
-    raster_params.set_pixSizeEW(raster_data.GetGeoTransform()[1])
-    raster_params.set_rotationA(raster_data.GetGeoTransform()[2])
-    raster_params.set_topLeftY(raster_data.GetGeoTransform()[3])
-    raster_params.set_rotationB(raster_data.GetGeoTransform()[4])
-    raster_params.set_pixSizeNS(raster_data.GetGeoTransform()[5])
-
-    # get single band
-    band = raster_data.GetRasterBand(1)
-
-    # get no data value for current band
-    raster_params.set_noDataValue(band.GetNoDataValue())
-    if raster_params.get_noDataValue() is None:
-        raise IOError("Unable to get no data value from input raster. Try change input format\n(e.g., ESRI ascii grids generally work)")
-
-        # read data from band
-    grid_values = band.ReadAsArray(0, 0, raster_params.get_cols(), raster_params.get_rows())
-    if grid_values is None:
-        raise IOError("Unable to read data from raster")
-
-    # transform data into numpy array
-    data = np.asarray(grid_values)
-
-    # if nodatavalue exists, set null values to NaN in numpy array
-    if raster_params.get_noDataValue() is not None:
-        data = np.where(abs(data - raster_params.get_noDataValue()) > 1e-05, data, np.NaN)
-
-    return raster_params, data
-
-
-def read_raster_layer(raster_name, layermap_items):
-    """
-
-    :param raster_name:
-    :param layermap_items:
-    :return:
-    """
-
-    # verify input parameters
-    if raster_name is None or raster_name == '':
-        raise Raster_Parameters_Errors("No name defined for raster")
-
-        # get raster input file
-    raster_layer = None
-    for (name, layer) in layermap_items:
-        if layer.name() == raster_name:
-            raster_layer = layer
-            break
-    if raster_layer is None:
-        raise Raster_Parameters_Errors("Unable to get raster name")
-
-    try:
-        raster_source = raster_layer.source()
-    except:
-        raise Raster_Parameters_Errors("Unable to get raster file")
-
-        # get raster parameters and data
-    try:
-        raster_params, raster_array = read_raster_band(raster_source)
-    except (IOError, TypeError) as e:
-        raise Raster_Parameters_Errors(str(e))
-
-    return raster_params, raster_array
 
 
 class GDALParameters(object):
@@ -374,4 +295,86 @@ class GDALParameters(object):
             return False
         else:
             return True
+
+
+def read_raster_band(raster_name, raster_params):
+    """
+    Read data and metadata of a raster band.
+
+    :param raster_name:
+    :param raster_params:
+    :return:
+    """
+
+    # read input raster band based on GDAL
+
+    # open raster file and check operation success
+    raster_data = gdal.Open(str(raster_name), GA_ReadOnly)
+    if raster_data is None:
+        raise IOError("No input data open")
+
+        # set critical grid values from geotransform array
+    raster_params.set_topLeftX(raster_data.GetGeoTransform()[0])
+    raster_params.set_pixSizeEW(raster_data.GetGeoTransform()[1])
+    raster_params.set_rotationA(raster_data.GetGeoTransform()[2])
+    raster_params.set_topLeftY(raster_data.GetGeoTransform()[3])
+    raster_params.set_rotationB(raster_data.GetGeoTransform()[4])
+    raster_params.set_pixSizeNS(raster_data.GetGeoTransform()[5])
+
+    # get single band
+    band = raster_data.GetRasterBand(1)
+
+    # get no data value for current band
+    raster_params.set_noDataValue(band.GetNoDataValue())
+    if raster_params.get_noDataValue() is None:
+        raise IOError("Unable to get no data value from input raster. Try change input format\n(e.g., ESRI ascii grids generally work)")
+
+        # read data from band
+    grid_values = band.ReadAsArray(0, 0, raster_params.get_cols(), raster_params.get_rows())
+    if grid_values is None:
+        raise IOError("Unable to read data from raster")
+
+    # transform data into numpy array
+    data = np.asarray(grid_values)
+
+    # if nodatavalue exists, set null values to NaN in numpy array
+    if raster_params.get_noDataValue() is not None:
+        data = np.where(abs(data - raster_params.get_noDataValue()) > 1e-05, data, np.NaN)
+
+    return raster_params, data
+
+
+def read_raster_layer(raster_name, layermap_items):
+    """
+
+    :param raster_name:
+    :param layermap_items:
+    :return:
+    """
+
+    # verify input parameters
+    if raster_name is None or raster_name == '':
+        raise Raster_Parameters_Errors("No name defined for raster")
+
+    # get raster input file
+    raster_layer = None
+    for (name, layer) in layermap_items:
+        if layer.name() == raster_name:
+            raster_layer = layer
+            break
+    if raster_layer is None:
+        raise Raster_Parameters_Errors("Unable to get raster name")
+
+    try:
+        raster_source = raster_layer.source()
+    except:
+        raise Raster_Parameters_Errors("Unable to get raster file")
+
+        # get raster parameters and data
+    try:
+        raster_params, raster_array = read_raster_band(raster_source)
+    except (IOError, TypeError) as e:
+        raise Raster_Parameters_Errors(str(e))
+
+    return raster_params, raster_array
 

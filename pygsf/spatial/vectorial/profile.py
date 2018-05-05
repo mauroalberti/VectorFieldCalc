@@ -1,16 +1,18 @@
+# -*- coding: utf-8 -*-
 
-from __future__ import division
 
 import copy
 import xml.dom.minidom
 
-from .features import Line, xytuple_l2_to_MultiLine
+from ...exceptions.spatial import *
 
-from .qgs_tools import *
+from .vectorial import Line, xytuple_l2_to_MultiLine
+
+#from .qgs_tools import *
 
 from .geodetic import TrackPointGPX
 
-from .errors import GPXIOException
+#from .errors import GPXIOException
 
 
 class GeoProfilesSet(object):
@@ -20,6 +22,10 @@ class GeoProfilesSet(object):
     """
 
     def __init__(self, name=""):
+        """
+
+        :param name:
+        """
 
         self._name = name
         self._geoprofiles = []  # a list of ProfileElements instances
@@ -28,49 +34,103 @@ class GeoProfilesSet(object):
 
     @property
     def name(self):
+        """
+
+        :return:
+        """
         return self._name
 
     @name.setter
     def name(self, new_name):
+        """
+
+        :param new_name:
+        :return:
+        """
 
         self._name = new_name
 
     @property
     def geoprofiles(self):
+        """
+
+        :return:
+        """
 
         return self._geoprofiles
 
     @property
     def geoprofiles_num(self):
+        """
+
+        :return:
+        """
 
         return len(self._geoprofiles)
 
     def geoprofile(self, ndx):
+        """
+
+        :param ndx:
+        :return:
+        """
 
         return self._geoprofiles[ndx]
 
     def append(self, geoprofile):
+        """
+
+        :param geoprofile:
+        :return:
+        """
 
         self._geoprofiles.append(geoprofile)
 
     def insert(self, ndx, geoprofile):
+        """
+
+        :param ndx:
+        :param geoprofile:
+        :return:
+        """
 
         self._geoprofiles.insert(ndx, geoprofile)
 
     def move(self, ndx_init, ndx_final):
+        """
+
+        :param ndx_init:
+        :param ndx_final:
+        :return:
+        """
 
         geoprofile = self._geoprofiles.pop(ndx_init)
         self.insert(ndx_final, geoprofile)
 
     def move_up(self, ndx):
+        """
+
+        :param ndx:
+        :return:
+        """
 
         self.move(ndx, ndx -1)
 
     def move_down(self, ndx):
+        """
+
+        :param ndx:
+        :return:
+        """
 
         self.move(ndx, ndx + 1)
 
     def remove(self, ndx):
+        """
+
+        :param ndx:
+        :return:
+        """
 
         _ = self._geoprofiles.pop(ndx)
 
@@ -82,6 +142,9 @@ class GeoProfile(object):
     """
 
     def __init__(self):
+        """
+
+        """
 
         self.source_data_type = None
         self.original_line = None
@@ -98,53 +161,109 @@ class GeoProfile(object):
         self.outcrops = []
 
     def set_topo_profiles(self, topo_profiles):
+        """
+
+        :param topo_profiles:
+        :return:
+        """
 
         self.profile_elevations = topo_profiles
 
     def add_intersections_pts(self, intersection_list):
+        """
+
+        :param intersection_list:
+        :return:
+        """
 
         self.lineaments += intersection_list
 
     def add_intersections_lines(self, formation_list, intersection_line3d_list, intersection_polygon_s_list2):
+        """
+
+        :param formation_list:
+        :param intersection_line3d_list:
+        :param intersection_polygon_s_list2:
+        :return:
+        """
 
         self.outcrops = zip(formation_list, intersection_line3d_list, intersection_polygon_s_list2)
 
     def get_current_dem_names(self):
+        """
+
+        :return:
+        """
 
         return self.profile_elevations.surface_names
 
     def max_s(self):
+        """
+
+        :return:
+        """
+
         return self.profile_elevations.max_s()
 
     def min_z_topo(self):
+        """
+
+        :return:
+        """
+
         return self.profile_elevations.min_z()
 
     def max_z_topo(self):
+        """
+
+        :return:
+        """
+
         return self.profile_elevations.max_z()
 
     def min_z_plane_attitudes(self):
+        """
+
+        :return:
+        """
 
         # TODO:  manage case for possible nan p_z values
         return min([plane_attitude.pt_3d.p_z for plane_attitude_set in self.geoplane_attitudes for plane_attitude in
                     plane_attitude_set if 0.0 <= plane_attitude.sign_hor_dist <= self.max_s()])
 
     def max_z_plane_attitudes(self):
+        """
+
+        :return:
+        """
 
         # TODO:  manage case for possible nan p_z values
         return max([plane_attitude.pt_3d.p_z for plane_attitude_set in self.geoplane_attitudes for plane_attitude in
                     plane_attitude_set if 0.0 <= plane_attitude.sign_hor_dist <= self.max_s()])
 
     def min_z_curves(self):
+        """
+
+        :return:
+        """
 
         return min([pt_2d.p_y for multiline_2d_list in self.geosurfaces for multiline_2d in multiline_2d_list for line_2d in
                     multiline_2d.lines for pt_2d in line_2d.pts if 0.0 <= pt_2d.p_x <= self.max_s()])
 
     def max_z_curves(self):
+        """
+
+        :return:
+        """
 
         return max([pt_2d.p_y for multiline_2d_list in self.geosurfaces for multiline_2d in multiline_2d_list for line_2d in
                     multiline_2d.lines for pt_2d in line_2d.pts if 0.0 <= pt_2d.p_x <= self.max_s()])
 
     def min_z(self):
+        """
+
+        :return:
+        """
 
         min_z = self.min_z_topo()
 
@@ -157,6 +276,10 @@ class GeoProfile(object):
         return min_z
 
     def max_z(self):
+        """
+
+        :return:
+        """
 
         max_z = self.max_z_topo()
 
@@ -169,10 +292,21 @@ class GeoProfile(object):
         return max_z
 
     def add_plane_attitudes(self, plane_attitudes):
+        """
+
+        :param plane_attitudes:
+        :return:
+        """
 
         self.geoplane_attitudes.append(plane_attitudes)
 
     def add_curves(self, lMultilines, lIds):
+        """
+
+        :param lMultilines:
+        :param lIds:
+        :return:
+        """
 
         self.geosurfaces.append(lMultilines)
         self.geosurfaces_ids.append(lIds)
@@ -181,6 +315,9 @@ class GeoProfile(object):
 class ProfileElevations(object):
 
     def __init__(self):
+        """
+
+        """
 
         self.line_source = None
         self.dem_params = []
@@ -205,10 +342,18 @@ class ProfileElevations(object):
         self.profile_created = False
 
     def max_s(self):
+        """
+
+        :return:
+        """
 
         return self.profile_s[-1]
 
     def min_z(self):
+        """
+
+        :return:
+        """
 
         return min(map(np.nanmin, self.profile_zs))
 
@@ -218,6 +363,10 @@ class ProfileElevations(object):
 
     @property
     def absolute_slopes(self):
+        """
+
+        :return:
+        """
 
         return map(np.fabs, self.profile_dirslopes)
 
@@ -225,6 +374,11 @@ class ProfileElevations(object):
 class DEMParams(object):
 
     def __init__(self, layer, params):
+        """
+
+        :param layer:
+        :param params:
+        """
 
         self.layer = layer
         self.params = params
@@ -233,6 +387,16 @@ class DEMParams(object):
 class PlaneAttitude(object):
 
     def __init__(self, rec_id, source_point_3d, source_geol_plane, point_3d, slope_rad, dwnwrd_sense, sign_hor_dist):
+        """
+
+        :param rec_id:
+        :param source_point_3d:
+        :param source_geol_plane:
+        :param point_3d:
+        :param slope_rad:
+        :param dwnwrd_sense:
+        :param sign_hor_dist:
+        """
 
         self.id = rec_id
         self.src_pt_3d = source_point_3d
@@ -244,6 +408,15 @@ class PlaneAttitude(object):
 
 
 def topoline_from_dem(resampled_trace2d, bOnTheFlyProjection, project_crs, dem, dem_params):
+    """
+
+    :param resampled_trace2d:
+    :param bOnTheFlyProjection:
+    :param project_crs:
+    :param dem:
+    :param dem_params:
+    :return:
+    """
 
     if bOnTheFlyProjection and dem.crs() != project_crs:
         trace2d_in_dem_crs = resampled_trace2d.crs_project(project_crs, dem.crs())
@@ -263,6 +436,17 @@ def topoline_from_dem(resampled_trace2d, bOnTheFlyProjection, project_crs, dem, 
 
 def topoprofiles_from_dems(canvas, source_profile_line, sample_distance, selected_dems, selected_dem_parameters,
                            invert_profile):
+    """
+
+    :param canvas:
+    :param source_profile_line:
+    :param sample_distance:
+    :param selected_dems:
+    :param selected_dem_parameters:
+    :param invert_profile:
+    :return:
+    """
+
     # get project CRS information
     on_the_fly_projection, project_crs = get_on_the_fly_projection(canvas)
 
@@ -302,6 +486,13 @@ def topoprofiles_from_dems(canvas, source_profile_line, sample_distance, selecte
 
 
 def topoprofiles_from_gpxfile(source_gpx_path, invert_profile, gpx_source):
+    """
+
+    :param source_gpx_path:
+    :param invert_profile:
+    :param gpx_source:
+    :return:
+    """
 
     doc = xml.dom.minidom.parse(source_gpx_path)
 
@@ -428,6 +619,13 @@ def intersect_with_dem(demLayer, demParams, on_the_fly_projection, project_crs, 
 
 
 def calculate_profile_lines_intersection(multilines2d_list, id_list, profile_line2d):
+    """
+
+    :param multilines2d_list:
+    :param id_list:
+    :param profile_line2d:
+    :return:
+    """
 
     profile_segment2d_list = profile_line2d.as_segments()
 
@@ -455,6 +653,12 @@ def calculate_profile_lines_intersection(multilines2d_list, id_list, profile_lin
 
 
 def intersection_distances_by_profile_start_list(profile_line, intersections):
+    """
+
+    :param profile_line:
+    :param intersections:
+    :return:
+    """
 
     # convert the profile line
     # from a CartesianLine2DT to a CartesianSegment2DT
@@ -473,6 +677,13 @@ def intersection_distances_by_profile_start_list(profile_line, intersections):
 
 
 def calculate_pts_in_projection(pts_in_orig_crs, srcCrs, destCrs):
+    """
+
+    :param pts_in_orig_crs:
+    :param srcCrs:
+    :param destCrs:
+    :return:
+    """
 
     pts_in_prj_crs = []
     for pt in pts_in_orig_crs:
@@ -483,6 +694,13 @@ def calculate_pts_in_projection(pts_in_orig_crs, srcCrs, destCrs):
 
 
 def profile_polygon_intersection(profile_qgsgeometry, polygon_layer, inters_polygon_classifaction_field_ndx):
+    """
+
+    :param profile_qgsgeometry:
+    :param polygon_layer:
+    :param inters_polygon_classifaction_field_ndx:
+    :return:
+    """
 
     intersection_polyline_polygon_crs_list = []
 
@@ -527,6 +745,13 @@ def profile_polygon_intersection(profile_qgsgeometry, polygon_layer, inters_poly
 
 
 def extract_multiline2d_list(structural_line_layer, on_the_fly_projection, project_crs):
+    """
+
+    :param structural_line_layer:
+    :param on_the_fly_projection:
+    :param project_crs:
+    :return:
+    """
 
     line_orig_crs_geoms_attrs = line_geoms_attrs(structural_line_layer)
 
@@ -549,6 +774,14 @@ def extract_multiline2d_list(structural_line_layer, on_the_fly_projection, proje
 
 
 def define_plot_structural_segment(structural_attitude, profile_length, vertical_exaggeration, segment_scale_factor=70.0):
+    """
+
+    :param structural_attitude:
+    :param profile_length:
+    :param vertical_exaggeration:
+    :param segment_scale_factor:
+    :return:
+    """
 
     ve = float(vertical_exaggeration)
     intersection_point = structural_attitude.pt_3d
@@ -585,6 +818,14 @@ def define_plot_structural_segment(structural_attitude, profile_length, vertical
 
 
 def calculate_projected_3d_pts(canvas, struct_pts, structural_pts_crs, demObj):
+    """
+
+    :param canvas:
+    :param struct_pts:
+    :param structural_pts_crs:
+    :param demObj:
+    :return:
+    """
 
     demCrs = demObj.params.crs
 
@@ -610,3 +851,4 @@ def calculate_projected_3d_pts(canvas, struct_pts, structural_pts_crs, demObj):
     assert len(struct_pts_in_prj_crs) == len(struct_pts_z)
 
     return [Point(pt.x, pt.y, z) for (pt, z) in zip(struct_pts_in_prj_crs, struct_pts_z)]
+

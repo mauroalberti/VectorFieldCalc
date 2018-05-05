@@ -303,7 +303,7 @@ class Point(object):
         elif not isfinite(scale_factor):
             return None
         else:
-            x, y, z = arr2tuple(self.a * scale_factor)
+            x, y, z = arrToTuple(self.a * scale_factor)
             return self.__class__(x, y, z)
 
     def invert(self) -> 'Point':
@@ -527,8 +527,8 @@ class CPlane(object):
           Point(0.0000, 0.0000, 1.0000)
         """
 
-        point = Point(*point_solution(array([[self.a, self.b, self.c]]),
-                                      array([-self.d])))
+        point = Point(*pointSolution(array([[self.a, self.b, self.c]]),
+                                     array([-self.d])))
         return point
 
     def intersVersor(self, another):
@@ -557,7 +557,7 @@ class CPlane(object):
         # find a point lying on the intersection line (this is a non-unique solution)
         a = array([[self.a, self.b, self.c], [another.a, another.b, another.c]])
         b = array([-self.d, -another.d])
-        x, y, z = point_solution(a, b)
+        x, y, z = pointSolution(a, b)
 
         return Point(x, y, z)
 

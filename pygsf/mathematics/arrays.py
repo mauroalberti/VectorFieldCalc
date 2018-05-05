@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Sequence, List, Tuple
+
 import numpy as np
 
 from .scalars import *
@@ -9,60 +11,71 @@ from .scalars import *
 array = np.array
 
 
-def arr2tuple(arr1D) -> tuple:
+def arrToTuple(arr1D: 'array[int, float]') -> Tuple[float, ...]:
     """
     Modified from: https://stackoverflow.com/questions/10016352/convert-numpy-array-to-tuple
     Works just for 1D arrays
 
-    :param arr1D:
-    :return: tuple of float values
+    :param arr1D: the 1D-arrays whose components have to be extracted
+    :type arr1D: numpy array
+    :return: a tuple derived from the array values extraction
+    :rtype: tuple of float
 
     Examples:
       >>> arr = array([1,2,3,4,5])
-      >>> arr2tuple(arr)
+      >>> arrToTuple(arr)
       (1.0, 2.0, 3.0, 4.0, 5.0)
     """
 
     return tuple(map(float, arr1D))
 
 
-def to_floats(iterable_obj):
+def toFloats(iterable_obj: Sequence[int, float]) -> List[float, ...]:
     """
     Converts an iterable object storing float-compatible values to a list of floats.
 
     :param iterable_obj:
-    :return: list of Floats
+    :type iterable_obj:
+    :return:
+    :rtype: list of Floats
 
-    Example:
-      >>> to_floats([1, 2, 3])
+    Examples:
+      >>> toFloats([1, 2, 3])
       [1.0, 2.0, 3.0]
     """
 
     return [float(item) for item in iterable_obj]
 
 
-def arrays_are_close(a_array, b_array, rtol=1e-012, atol=1e-12, equal_nan=False, equal_inf=False):
+def arraysAreClose(a_array: 'array[int, float]', b_array: 'array[int, float]', rtol: float=1e-012, atol: float=1e-12, equal_nan: bool=False, equal_inf: bool=False):
     """
     Check for equivalence between two numpy arrays.
 
-    :param a_array: numpy array
-    :param b_array: numpy array
+    :param a_array: first array to be compared
+    :type a_array: numpy array
+    :param b_array: second array to be compared with the first one
+    :type b_array: numpy array
     :param rtol: relative tolerance
+    :type rtol:
     :param atol: absolute tolerance
+    :type atol:
     :param equal_nan: consider nan values equivalent or not
+    :type equal_nan:
     :param equal_inf: consider inf values equivalent or not
-    :return: Boolean
+    :type equal_inf:
+    :return: whether the two arrays are close as component values
+    :rtype: bool
 
-    Example:
-      >>> arrays_are_close(array([1,2,3]), array([1,2,3]))
+    Examples:
+      >>> arraysAreClose(array([1,2,3]), array([1,2,3]))
       True
-      >>> arrays_are_close(array([[1,2,3], [4, 5, 6]]), array([1,2,3]))
+      >>> arraysAreClose(array([[1,2,3], [4, 5, 6]]), array([1,2,3]))
       False
-      >>> arrays_are_close(array([[1,2,3], [4,5,6]]), array([[1,2,3], [4,5,6]]))
+      >>> arraysAreClose(array([[1,2,3], [4,5,6]]), array([[1,2,3], [4,5,6]]))
       True
-      >>> arrays_are_close(array([[1,2,np.nan], [4,5,6]]), array([[1,2,np.nan], [4,5,6]]))
+      >>> arraysAreClose(array([[1,2,np.nan], [4,5,6]]), array([[1,2,np.nan], [4,5,6]]))
       False
-      >>> arrays_are_close(array([[1,2,np.nan], [4,5,6]]), array([[1,2,np.nan], [4,5,6]]), equal_nan=True)
+      >>> arraysAreClose(array([[1,2,np.nan], [4,5,6]]), array([[1,2,np.nan], [4,5,6]]), equal_nan=True)
       True
     """
     if a_array.shape != b_array.shape:
@@ -75,10 +88,18 @@ def arrays_are_close(a_array, b_array, rtol=1e-012, atol=1e-12, equal_nan=False,
     return all(are_equal)
 
 
-def point_solution(a_array, b_array):
+def pointSolution(a_array: 'array[int, float]', b_array: 'array[int, float]'):
     """
-    finds a non-unique solution
-    for a set of linear equations
+    Finds a non-unique solution for a set of linear equations.
+
+    :param a_array:
+    :type a_array: numpy array
+    :param b_array:
+    :type b_array: numpy array
+    :return:
+    :rtype:
+
+    Examples:
     """
 
     try:
@@ -87,12 +108,19 @@ def point_solution(a_array, b_array):
         return None, None, None
 
 
-def xyz_svd(xyz_array):
+def xyzSvd(xyz_array):
     """
     Calculates the SVD solution given a Numpy array.
 
     # modified after: 
     # http://stackoverflow.com/questions/15959411/best-fit-plane-algorithms-why-different-results-solved
+
+    :param xyz_array:
+    :type xyz_array: numpy array
+    :return:
+    :rtype:
+
+    Examples:
     """
 
     try:

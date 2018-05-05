@@ -1,17 +1,20 @@
+# -*- coding: utf-8 -*-
+
 
 from math import radians, sin, cos
 import json
 import numpy as np
-from osgeo import ogr, gdal
+from osgeo import ogr
 
+from ...exceptions.spatial import AnaliticSurfaceIOException, AnaliticSurfaceCalcException
+from ..raster.utils import formula_to_grid
+from ...mathematics.scalars import areClose
+from ...mathematics.transformations import deformMatrices
+#from ..gsf.array_utils import almost_zero
 
-from ..gsf.array_utils import formula_to_grid
-from ..gsf.transformations import deformation_matrices
-from ..gsf.array_utils import almost_zero
+from .vectorial import Segment
+#from .gdal_utils import shapefile_create, ogr_write_point_result
 
-from .features import Segment
-from .gdal_utils import shapefile_create, ogr_write_point_result
-from .errors import AnaliticSurfaceIOException, AnaliticSurfaceCalcException
 
 
 class TriangBeam(object):
@@ -23,6 +26,12 @@ class TriangBeam(object):
     """
 
     def __init__(self, apex_pt3d, vector_1, vector_2):
+        """
+
+        :param apex_pt3d:
+        :param vector_1:
+        :param vector_2:
+        """
         """
         assert almost_zero(versor_1.length() - 1.0)
         assert almost_zero(versor_2.length() - 1.0)
@@ -42,6 +51,11 @@ class TriangBeam(object):
 
     def point_fangles_degr(self, pt_3d):
         """
+
+        :param pt_3d:
+        :return:
+        """
+        """
         angles
         """
 
@@ -53,6 +67,11 @@ class TriangBeam(object):
         return angle_side_1, angle_side_2
 
     def is_within_fascio(self, pt_3d):
+        """
+
+        :param pt_3d:
+        :return:
+        """
 
         apertura = self.fangle_degr()
 
@@ -61,24 +80,48 @@ class TriangBeam(object):
         ang1, ang2 = self.point_fangles_degr(pt_3d)
         angle_sum = ang1 + ang2
 
-        return almost_zero(apertura - angle_sum)
+        return areClose(apertura, angle_sum)
 
 
 class CartesianTriangle(object):
 
     def __init__(self, pt_3d_1, pt_3d_2, pt_3d_3):
+        """
+
+        :param pt_3d_1:
+        :param pt_3d_2:
+        :param pt_3d_3:
+        """
 
         self._pt_1 = pt_3d_1
         self._pt_2 = pt_3d_2
         self._pt_3 = pt_3d_3
 
     def is_pt_within(self, pt_3d):
+        """
+
+        :param pt_3d:
+        :return:
+        """
 
         def versor3d(pt_1, pt_2):
+            """
+
+            :param pt_1:
+            :param pt_2:
+            :return:
+            """
 
             return Segment(pt_1, pt_2).vector().versor_full()
 
         def is_pt_in_fascio(pt_1, pt_2, pt_3):
+            """
+
+            :param pt_1:
+            :param pt_2:
+            :param pt_3:
+            :return:
+            """
 
             apex = pt_1
             versor_1 = versor3d(pt_1, pt_2)
@@ -100,6 +143,12 @@ class CartesianTriangle(object):
 class AnalyticGeosurface(object):
 
     def __init__(self, analytical_params, geogr_params, deform_params):
+        """
+
+        :param analytical_params:
+        :param geogr_params:
+        :param deform_params:
+        """
 
         self.analytical_params = analytical_params
         self.geographical_params = geogr_params
@@ -130,7 +179,7 @@ class AnalyticGeosurface(object):
                                                           np.array([geog_x_min, geog_y_min, 0.0]))
 
         # apply total transformations to grid points
-        self.deformations = deformation_matrices(self.deformational_params)
+        self.deformations = deformMatrices(self.deformational_params)
 
     def geosurface_center(self):
         """
@@ -148,6 +197,10 @@ class AnalyticGeosurface(object):
         return self.transform_loc(x, y, z)
 
     def geosurface_XYZ(self):
+        """
+
+        :return:
+        """
 
         geosurface_X = []
         geosurface_Y = []
@@ -162,6 +215,10 @@ class AnalyticGeosurface(object):
         return geosurface_X, geosurface_Y, geosurface_Z
 
     def get_analytical_param_values(self):
+        """
+
+        :return:
+        """
 
         try:
             a_min = float(self.analytical_params['a min'])
@@ -174,20 +231,24 @@ class AnalyticGeosurface(object):
 
             formula = str(self.analytical_params['formula'])
         except:
-            raise AnaliticSurfaceIOException, "Analytical value error"
+            raise AnaliticSurfaceIOException("Analytical value error")
 
         if a_min >= a_max or b_min >= b_max:
-            raise AnaliticSurfaceIOException, "Input a and b value error"
+            raise AnaliticSurfaceIOException("Input a and b value error")
 
         if grid_cols <= 0 or grid_rows <= 0:
-            raise AnaliticSurfaceIOException, "Grid column/row value error"
+            raise AnaliticSurfaceIOException("Grid column/row value error")
 
         if formula == '':
-            raise AnaliticSurfaceIOException, "Input analytical formula error"
+            raise AnaliticSurfaceIOException("Input analytical formula error")
 
         return (a_min, a_max, b_min, b_max), (grid_rows, grid_cols), formula
 
     def get_geographical_param_values(self):
+        """
+
+        :return:
+        """
 
         try:
             geog_x_min = float(self.geographical_params['geog x min'])
@@ -196,11 +257,18 @@ class AnalyticGeosurface(object):
             grid_width = float(self.geographical_params['grid width'])
             grid_rot_angle_degr = float(self.geographical_params['grid rot angle degr'])
         except:
-            raise AnaliticSurfaceIOException, "Input geographic value error"
+            raise AnaliticSurfaceIOException("Input geographic value error"
 
         return (geog_x_min, geog_y_min), (grid_height, grid_width), grid_rot_angle_degr
 
     def transform_loc(self, x, y, z):
+        """
+
+        :param x:
+        :param y:
+        :param z:
+        :return:
+        """
 
         pt = np.dot(self.geographic_transformation_matrix, np.array([x, y, z])) + self.geographic_offset_matrix
         for deformation in self.deformations:
@@ -214,6 +282,14 @@ class AnalyticGeosurface(object):
 
 
 def geographic_scale_matrix(a_range, b_range, grid_height, grid_width):
+    """
+
+    :param a_range:
+    :param b_range:
+    :param grid_height:
+    :param grid_width:
+    :return:
+    """
 
     assert a_range > 0.0
     assert b_range > 0.0
@@ -228,6 +304,12 @@ def geographic_scale_matrix(a_range, b_range, grid_height, grid_width):
 
 
 def geographic_rotation_matrix(grid_rot_angle_degr):
+    """
+
+    :param grid_rot_angle_degr:
+    :return:
+    """
+
     grid_rot_angle_rad = radians(grid_rot_angle_degr)
     sin_rot_angle = sin(grid_rot_angle_rad)
     cos_rot_angle = cos(grid_rot_angle_rad)
@@ -238,11 +320,24 @@ def geographic_rotation_matrix(grid_rot_angle_degr):
 
 
 def geographic_offset(transformation_matrix, llc_point_matr, llc_point_geog):
+    """
+
+    :param transformation_matrix:
+    :param llc_point_matr:
+    :param llc_point_geog:
+    :return:
+    """
 
     return llc_point_geog - np.dot(transformation_matrix, llc_point_matr)
 
 
 def geosurface_export_vtk(output_filepath, geodata):
+    """
+
+    :param output_filepath:
+    :param geodata:
+    :return:
+    """
 
     geosurface_XYZ, grid_dims = geodata
     X, Y, Z = geosurface_XYZ
@@ -280,6 +375,12 @@ def geosurface_export_vtk(output_filepath, geodata):
 
 
 def geosurface_export_grass(output_filepath, geodata):
+    """
+
+    :param output_filepath:
+    :param geodata:
+    :return:
+    """
     # Save in Grass format
 
     geosurface_XYZ, grid_dims = geodata
@@ -319,6 +420,13 @@ def geosurface_export_grass(output_filepath, geodata):
 
 
 def geosurface_export_esri_generate(output_filepath, geodata):
+    """
+
+    :param output_filepath:
+    :param geodata:
+    :return:
+    """
+
     # Save geosurface (GAS) in Esri generate  format
 
     geosurface_XYZ, grid_dims = geodata
@@ -364,18 +472,29 @@ def geosurface_export_esri_generate(output_filepath, geodata):
 
 
 def geosurface_save_gas(output_filepath, geodata):
+    """
+
+    :param output_filepath:
+    :param geodata:
+    :return:
+    """
 
     with open(output_filepath, 'w') as outfile:
         json.dump(geodata, outfile)
 
 
 def geosurface_read_gas_input(infile_path):
+    """
+
+    :param infile_path:
+    :return:
+    """
 
     try:
         with open(infile_path, 'r') as infile:
             input_geosurface = json.load(infile)
     except:
-        raise AnaliticSurfaceIOException, "Check input file name"
+        raise AnaliticSurfaceIOException("Check input file name")
 
     src_analytical_params = input_geosurface['analytical surface']
     src_geographical_params = input_geosurface['geographical params']
@@ -388,6 +507,14 @@ def geosurface_read_gas_input(infile_path):
 
 
 def geosurface_export_shapefile_pt3d(shapefile_path, geodata, fields_dict_list, crs=None):
+    """
+
+    :param shapefile_path:
+    :param geodata:
+    :param fields_dict_list:
+    :param crs:
+    :return:
+    """
 
     point_shapefile, point_shapelayer = shapefile_create(shapefile_path,
                                                          ogr.wkbPoint25D,
@@ -404,3 +531,4 @@ def geosurface_export_shapefile_pt3d(shapefile_path, geodata, fields_dict_list, 
 
     rec_values_list2 = zip(ids, X, Y, Z)
     ogr_write_point_result(point_shapelayer, field_list, rec_values_list2)
+

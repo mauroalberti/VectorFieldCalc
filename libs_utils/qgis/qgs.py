@@ -1,4 +1,5 @@
-from __future__ import division
+# -*- coding: utf-8 -*-
+
 
 from math import floor, ceil
 
@@ -6,15 +7,107 @@ import numpy as np
 
 from osgeo import osr
 
-
 from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QGis, QgsCoordinateTransform, QgsPoint, QgsRaster
-
 
 from .exceptions import *
 
 
+class QGisRasterParameters(object):
+
+    def __init__(self, name, cellsizeEW, cellsizeNS, rows, cols, xMin, xMax, yMin, yMax, nodatavalue, crs):
+        """
+
+        :param name:
+        :param cellsizeEW:
+        :param cellsizeNS:
+        :param rows:
+        :param cols:
+        :param xMin:
+        :param xMax:
+        :param yMin:
+        :param yMax:
+        :param nodatavalue:
+        :param crs:
+        """
+
+        self.name = name
+        self.cellsizeEW = cellsizeEW
+        self.cellsizeNS = cellsizeNS
+        self.rows = rows
+        self.cols = cols
+        self.xMin = xMin
+        self.xMax = xMax
+        self.yMin = yMin
+        self.yMax = yMax
+        self.nodatavalue = nodatavalue
+        self.crs = crs
+
+    def point_in_dem_area(self, point):
+        """
+        Check that a point is within or on the boundary of the grid area.
+        Assume grid has no rotation.
+
+        :param point: qProf.gsf.geometry.Point
+        :return: bool
+        """
+
+        if self.xMin <= point.x <= self.xMax and \
+                self.yMin <= point.y <= self.yMax:
+            return True
+        else:
+            return False
+
+    def point_in_interpolation_area(self, point):
+        """
+        Check that a point is within or on the boundary of the area defined by
+        the extreme cell center values.
+        Assume grid has no rotation.
+
+        :param point: qProf.gsf.geometry.Point
+        :return: bool
+        """
+
+        if self.xMin + self.cellsizeEW / 2.0 <= point.x <= self.xMax - self.cellsizeEW / 2.0 and \
+                self.yMin + self.cellsizeNS / 2.0 <= point.y <= self.yMax - self.cellsizeNS / 2.0:
+            return True
+        else:
+            return False
+
+    def geogr2raster(self, point):
+        """
+        Convert from geographic to raster-based coordinates.
+        Assume grid has no rotation.
+
+        :param point: qProf.gsf.geometry.Point
+        :return: dict
+        """
+
+        x = (point.x - (self.xMin + self.cellsizeEW / 2.0)) / self.cellsizeEW
+        y = (point.y - (self.yMin + self.cellsizeNS / 2.0)) / self.cellsizeNS
+
+        return dict(x=x, y=y)
+
+    def raster2geogr(self, array_dict):
+        """
+        Convert from raster-based to geographic coordinates.
+        Assume grid has no rotation.
+
+        :param array_dict: dict
+        :return: qProf.gsf.geometry.Point instance
+        """
+
+        assert 'x' in array_dict
+        assert 'y' in array_dict
+
+        x = self.xMin + (array_dict['x'] + 0.5) * self.cellsizeEW
+        y = self.yMin + (array_dict['y'] + 0.5) * self.cellsizeNS
+
+        return x, y
+
+
 def get_on_the_fly_projection(canvas):
     """
+    Determines if the on-the-fly projection is set and, when set, its value
 
     :param canvas:
     :return:
@@ -32,9 +125,10 @@ def get_on_the_fly_projection(canvas):
 
 def vector_type(layer):
     """
+    Determines the vectorial geometry type of layer features.
 
     :param layer:
-    :return:
+    :return: text representing the geometry type
     """
 
     if not layer.type() == QgsMapLayer.VectorLayer:
@@ -52,6 +146,7 @@ def vector_type(layer):
 
 def loaded_layers():
     """
+    Returns the layers, raster and vectorial, loaded in the map.
 
     :return:
     """
@@ -61,6 +156,7 @@ def loaded_layers():
 
 def loaded_vector_layers():
     """
+    Returns the vectorial layers loaded in the map.
 
     :return:
     """
@@ -71,6 +167,7 @@ def loaded_vector_layers():
 
 def loaded_polygon_layers():
     """
+    Returns the polygonal layers loaded in the map.
 
     :return:
     """
@@ -81,6 +178,7 @@ def loaded_polygon_layers():
 
 def loaded_line_layers():
     """
+    Returns the line layers loaded in the map.
 
     :return:
     """
@@ -91,6 +189,7 @@ def loaded_line_layers():
 
 def loaded_point_layers():
     """
+    Returns the point layers loaded in the map.
 
     :return:
     """
@@ -101,6 +200,7 @@ def loaded_point_layers():
 
 def loaded_raster_layers():
     """
+    Returns the raster layers loaded in the map.
 
     :return:
     """
@@ -111,6 +211,7 @@ def loaded_raster_layers():
 
 def loaded_monoband_raster_layers():
     """
+    Returns the single-band raster layers loaded in the map.
 
     :return:
     """
@@ -121,6 +222,7 @@ def loaded_monoband_raster_layers():
 
 def pt_geoms_attrs(pt_layer, field_list=None):
     """
+    Returns list of points coordinates and attributes.
 
     :param pt_layer:
     :param field_list:
@@ -160,6 +262,7 @@ def pt_geoms_attrs(pt_layer, field_list=None):
 
 def line_geoms_attrs(line_layer, field_list=None):
     """
+    Returns list of line points coordinates and attributes.
 
     :param line_layer:
     :param field_list:
@@ -196,6 +299,7 @@ def line_geoms_attrs(line_layer, field_list=None):
 
 def line_geoms_with_id(line_layer, curr_field_ndx):
     """
+    Returns list of counter, point coordinates and attributes.
 
     :param line_layer:
     :param curr_field_ndx:
@@ -236,7 +340,9 @@ def polyline_to_xytuple_list(qgsline):
     :return:
     """
 
-    assert len(qgsline) > 0
+    if len(qgsline) == 0:
+        raise QgisIOException("Input line is null")
+
     return [(qgspoint.x(), qgspoint.y()) for qgspoint in qgsline]
 
 
@@ -252,6 +358,7 @@ def multipolyline_to_xytuple_list2(qgspolyline):
 
 def field_values(layer, curr_field_ndx):
     """
+    Returns the values of the selected records associated with a given field index.
 
     :param layer:
     :param curr_field_ndx:
@@ -273,6 +380,7 @@ def field_values(layer, curr_field_ndx):
 
 def vect_attrs(layer, field_list):
     """
+    Returns the values of the selected records associated with a given field names list.
 
     :param layer:
     :param field_list:
@@ -298,6 +406,7 @@ def vect_attrs(layer, field_list):
 
 def raster_qgis_params(raster_layer):
     """
+    Extracts parameters for a given raster layer.
 
     :param raster_layer:
     :return:
@@ -334,6 +443,7 @@ def raster_qgis_params(raster_layer):
 
 def qgs_pt(x, y):
     """
+    Creates a QGIS point from a x-y values pair.
 
     :param x:
     :param y:
@@ -345,6 +455,7 @@ def qgs_pt(x, y):
 
 def project_qgs_point(qgsPt, srcCrs, destCrs):
     """
+    Project a QGIS point to a given CRS from a source CRS.
 
     :param qgsPt:
     :param srcCrs:
@@ -357,6 +468,7 @@ def project_qgs_point(qgsPt, srcCrs, destCrs):
 
 def project_point(pt, srcCrs, destCrs):
     """
+    Project a point to a given CRS from a source CRS.
 
     :param pt:
     :param srcCrs:
@@ -389,113 +501,14 @@ def project_xy_list(src_crs_xy_list, srcCrs, destCrs):
     return pt_list_dest_crs
 
 
-def qcolor2rgbmpl(qcolor):
+def get_z(dem_layer, point):
     """
+    Get the z value from a grid given a sampling point.
 
-    :param qcolor:
+    :param dem_layer:
+    :param point:
     :return:
     """
-
-    red = qcolor.red() / 255.0
-    green = qcolor.green() / 255.0
-    blue = qcolor.blue() / 255.0
-    return red, green, blue
-
-
-class QGisRasterParameters(object):
-
-    def __init__(self, name, cellsizeEW, cellsizeNS, rows, cols, xMin, xMax, yMin, yMax, nodatavalue, crs):
-        """
-
-        :param name:
-        :param cellsizeEW:
-        :param cellsizeNS:
-        :param rows:
-        :param cols:
-        :param xMin:
-        :param xMax:
-        :param yMin:
-        :param yMax:
-        :param nodatavalue:
-        :param crs:
-        """
-
-        self.name = name
-        self.cellsizeEW = cellsizeEW
-        self.cellsizeNS = cellsizeNS
-        self.rows = rows
-        self.cols = cols
-        self.xMin = xMin
-        self.xMax = xMax
-        self.yMin = yMin
-        self.yMax = yMax
-        self.nodatavalue = nodatavalue
-        self.crs = crs
-
-    def point_in_dem_area(self, point):
-        """
-        Check that a point is within or on the boundary of the grid area.
-        Assume grid has no rotation.
-        
-        :param point: qProf.gsf.geometry.Point
-        :return: bool
-        """
-
-        if self.xMin <= point.x <= self.xMax and \
-           self.yMin <= point.y <= self.yMax:
-            return True
-        else:
-            return False
-
-    def point_in_interpolation_area(self, point):
-        """
-        Check that a point is within or on the boundary of the area defined by
-        the extreme cell center values.
-        Assume grid has no rotation.
-        
-        :param point: qProf.gsf.geometry.Point
-        :return: bool
-        """
-
-        if self.xMin + self.cellsizeEW / 2.0 <= point.x <= self.xMax - self.cellsizeEW / 2.0 and \
-           self.yMin + self.cellsizeNS / 2.0 <= point.y <= self.yMax - self.cellsizeNS / 2.0:
-            return True
-        else:
-            return False
-
-    def geogr2raster(self, point):
-        """
-        Convert from geographic to raster-based coordinates.
-        Assume grid has no rotation.
-
-        :param point: qProf.gsf.geometry.Point
-        :return: dict
-        """
-
-        x = (point.x - (self.xMin + self.cellsizeEW / 2.0)) / self.cellsizeEW
-        y = (point.y - (self.yMin + self.cellsizeNS / 2.0)) / self.cellsizeNS
-
-        return dict(x=x, y=y)
-
-    def raster2geogr(self, array_dict):
-        """
-        Convert from raster-based to geographic coordinates.
-        Assume grid has no rotation.
-
-        :param array_dict: dict
-        :return: qProf.gsf.geometry.Point instance
-        """
-
-        assert 'x' in array_dict
-        assert 'y' in array_dict
-
-        x = self.xMin + (array_dict['x'] + 0.5) * self.cellsizeEW
-        y = self.yMin + (array_dict['y'] + 0.5) * self.cellsizeNS
-
-        return x, y
-
-
-def get_z(dem_layer, point):
 
     identification = dem_layer.dataProvider().identify(QgsPoint(point.x, point.y), QgsRaster.IdentifyFormatValue)
     if not identification.isValid():
@@ -509,7 +522,9 @@ def get_z(dem_layer, point):
 
 
 def interpolate_bilinear(dem, qrpDemParams, point):
-    """        
+    """
+    Interpolate the z value from a grid using the bilinear convolution.
+
     :param dem: qgis._core.QgsRasterLayer
     :param qrpDemParams: qProf.gis_utils.qgs_tools.QGisRasterParameters
     :param point: qProf.gis_utils.features.Point
@@ -552,8 +567,13 @@ def interpolate_bilinear(dem, qrpDemParams, point):
 
 def interpolate_z(dem, dem_params, point):
     """
-        dem_params: type qProf.gis_utils.qgs_tools.QGisRasterParameters
-        point: type qProf.gis_utils.features.Point
+    Interpolate the z value from a grid using bilinear convolution when possible.
+
+    :type dem:
+    :type dem_params: type qProf.gis_utils.qgs_tools.QGisRasterParameters
+    :type point: type qProf.gis_utils.features.Point
+    :return: interpolated z value
+    :rtype: float
     """
 
     if dem_params.point_in_interpolation_area(point):
@@ -565,6 +585,14 @@ def interpolate_z(dem, dem_params, point):
 
 
 def get_zs_from_dem(struct_pts_2d, demObj):
+    """
+    Extracts interpolated z values from dem.
+
+    :param struct_pts_2d:
+    :param demObj:
+    :return: interpolated z values
+    :rtype: list of float values
+    """
 
     z_list = []
     for point_2d in struct_pts_2d:
@@ -575,6 +603,14 @@ def get_zs_from_dem(struct_pts_2d, demObj):
 
 
 def xy_from_canvas(canvas, position):
+    """
+    Returns tuple of x, y coordinates from a position in the canvas.
+
+    :param canvas:
+    :param position:
+    :return: x and y coordinates
+    :rtype: tuple of two float values
+    """
 
     mapPos = canvas.getCoordinateTransform().toMapCoordinates(position["x"], position["y"])
 
@@ -583,7 +619,7 @@ def xy_from_canvas(canvas, position):
 
 def get_prjcrs_as_proj4str(canvas):
     """
-    get project CRS information
+    Get project CRS information.
 
     :param canvas:
     :return:
@@ -597,3 +633,4 @@ def get_prjcrs_as_proj4str(canvas):
         return project_crs_osr
     else:
         return None
+

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 
 def list2_to_list(list2):
     """

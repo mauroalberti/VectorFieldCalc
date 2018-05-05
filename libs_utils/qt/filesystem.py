@@ -1,35 +1,57 @@
 # -*- coding: utf-8 -*-
 
+
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
 
 
 def lastUsedDir(module_nm):
     """
-    from module RASTERCALC by Barry Rowlingson
+    Gets the last used directory for the given module.
+    Modified from module RASTERCALC by Barry Rowlingson.
 
-    :return:
+    :param module_nm: the current module name
+    :type module_nm: string
+    :return: the name of the last used directory
+    :rtype: string
     """
 
     settings = QSettings()
-    return settings.value("/{}/lastDir".format(module_nm), "", type=str)
+    return settings.value(
+        "/{}/lastDir".format(module_nm),
+        "",
+        type=str)
 
 
 def setLastUsedDir(module_nm, lastDir):
     """
-    from module RASTERCALC by Barry Rowlingson
+    Stores in the module QSettings the path of the last used directory.
+    Modified from module RASTERCALC by Barry Rowlingson.
 
-    :return:
+    :param module_nm: the current module name
+    :type module_nm: string
+    :param lastDir: the last used directory
+    :type lastDir: string
+
+    :return: None
     """
 
     path = QFileInfo(lastDir).absolutePath()
     settings = QSettings()
-    settings.setValue("/{}/lastDir".format(module_nm), str(path))
+    settings.setValue(
+        "/{}/lastDir".format(module_nm),
+        str(path))
 
 
-def update_directory_key(settings, settings_dir_key, fileName):
+def update_directory_key(settings: QSettings, settings_dir_key, fileName):
     """
-    modified from module RASTERCALC by Barry Rowlingson
+    Updates the value of a QSetting key with the path of a file.
+    Modified from module RASTERCALC by Barry Rowlingson.
+
+    :param settings:
+    :param settings_dir_key:
+    :param fileName:
+    :return:
     """
 
     path = QFileInfo(fileName).absolutePath()
@@ -39,6 +61,7 @@ def update_directory_key(settings, settings_dir_key, fileName):
 
 def new_file_path(parent, show_msg, path, filter_text):
     """
+    Defines the path of a new file.
 
     :param parent:
     :param show_msg:
@@ -59,6 +82,7 @@ def new_file_path(parent, show_msg, path, filter_text):
 
 def old_file_path(parent, show_msg, filter_extension, filter_text):
     """
+    Defines the path of a pre-existing file.
 
     :param parent:
     :param show_msg:

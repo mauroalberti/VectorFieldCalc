@@ -3,7 +3,7 @@
 
 class OrienInputException(Exception):
     """
-    Exception for geometric input.
+    Exception for orientation input.
     """
 
     pass

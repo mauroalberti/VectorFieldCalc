@@ -11,6 +11,7 @@ from ..defaults.mathematics import *
 from ..exceptions.mathematics import *
 from .arrays import *
 
+
 isfinite = np.isfinite
 
 
@@ -322,7 +323,7 @@ class Vect(object):
         elif not isfinite(scale_factor):
             return None
         else:
-            x, y, z = arr2tuple(self.a * scale_factor)
+            x, y, z = arrToTuple(self.a * scale_factor)
             return self.__class__(x, y, z)
 
     def invert(self) -> 'Vect':
@@ -353,7 +354,7 @@ class Vect(object):
           Vect(0.0000, 0.0000, 0.0000)
         """
 
-        x, y, z = arr2tuple(self.a + another.a)
+        x, y, z = arrToTuple(self.a + another.a)
         return self.__class__(x, y, z)
 
     def __sub__(self, another: 'Vect') -> 'Vect':
@@ -366,7 +367,7 @@ class Vect(object):
           Vect(0.0000, 0.0000, 0.8000)
         """
 
-        x, y, z = arr2tuple(self.a - another.a)
+        x, y, z = arrToTuple(self.a - another.a)
         return self.__class__(x, y, z)
 
     @property
@@ -627,7 +628,7 @@ class Vect(object):
           True
         """
 
-        x, y, z = arr2tuple(np.cross(self.a[:3], another.a[:3]))
+        x, y, z = arrToTuple(np.cross(self.a[:3], another.a[:3]))
         return Vect(x, y, z)
 
     def byMatrix(self, array3x3: 'np.array') -> 'Vect':
@@ -636,7 +637,7 @@ class Vect(object):
 
         """
 
-        x, y, z = arr2tuple(array3x3.dot(self.a))
+        x, y, z = arrToTuple(array3x3.dot(self.a))
         return Vect(x, y, z)
 
 

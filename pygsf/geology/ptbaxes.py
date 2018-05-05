@@ -301,7 +301,7 @@ class PTBAxes(object):
         :return: a 3x3 numpy arrays fo floats.
 
         Example:
-          >>> arrays_are_close(PTBAxes(p_axis=Axis.fromAzPl(0, 0), t_axis=Axis.fromAzPl(90, 0)).toMatrix(), np.identity(3))
+          >>> arraysAreClose(PTBAxes(p_axis=Axis.fromAzPl(0, 0), t_axis=Axis.fromAzPl(90, 0)).toMatrix(), np.identity(3))
           True
         """
 

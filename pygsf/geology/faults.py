@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from typing import Sequence
 
+from typing import Sequence
 
 from ..exceptions.geology import *
 from ..orientations.orientations import *
@@ -10,9 +10,9 @@ from ..orientations.orientations import *
 class Slick(object):
     """
     Slickeline.
-    It can be defined through a Direct instance, in which case it has a movement sense,
-    or via an Axis, when the movement sense is unknown or not sure.
-    When the movement sense is known, the Direct instance indicates the displacement of the block that is:
+    It can be represented by a Direct instance, when it has a movement sense,
+    or by an Axis instance, when the movement sense is unknown or not sure.
+    When the movement sense is known, the instance indicates the displacement of the block that is:
     - for a horizontal or a dipping, non vertical fault: the upper block
     - for a vertical fault: the block individuated by the (formal) dip direction.
     """
@@ -136,11 +136,11 @@ class Slick(object):
 
 class Fault(object):
     """
-    Represent a fault plane, represented by a Plane instance,
-    and zero, one or more slickenlines, represented by a list of Slick instances (None when no slickenlines).
+    Represent a fault plane, composed by a Plane instance, and zero, one or more slickenlines,
+    stored by a list of Slick instances (None when no slickenlines).
     """
 
-    def __init__(self, azim: [int, float], dip_ang: [int, float], is_rhr_strike=False, slickenlines: Sequence[Slick]=None):
+    def __init__(self, azim: [int, float], dip_ang: [int, float], is_rhr_strike: bool=False, slickenlines: Sequence[Slick]=None):
         """
         Create an instance of a Fault.
 
@@ -149,7 +149,10 @@ class Fault(object):
         :param  dip_ang:  Dip angle of the plane (0-90°).
         :type  dip_ang:  number or string convertible to float.
         :param is_rhr_strike: if the source azimuth is RHR strike (default is False, i.e. it is dip direction)
-        :return: the instantiated geological plane.
+        :type is_rhr_strike: bool
+        :param slickenlines: the slickenlines associated with the fault plane.
+        :type slickenlines: list of Slick instances.
+        :return: the instantiated fault instance.
 
         Example:
           >>> Fault(90, 45, slickenlines=[Slick(90, 45)])
@@ -168,13 +171,13 @@ class Fault(object):
         if slickenlines is None:
             slickenlines = []
 
-        pplane = Plane(azim, dip_ang, is_rhr_strike)
+        plane = Plane(azim, dip_ang, is_rhr_strike)
 
         for slickenline in slickenlines:
-            if not pplane.contains(slickenline.s):
+            if not plane.contains(slickenline.s):
                 raise FaultInputTypeException("All slickenlines must lie on the plane")
 
-        self._fltpln = pplane
+        self._fltpln = plane
         self._slicks = slickenlines
 
     def __repr__(self):

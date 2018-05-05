@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
+from typing import Tuple
+
 from .vectors import *
 from ..exceptions.mathematics import QuaternionInputException
 
@@ -14,7 +16,7 @@ class Quaternion(object):
         """
         Construct a Quaternion instance.
 
-        Example;
+        Examples:
           >>> Quaternion(1, 0, 1, 0)
           Quaternion(1.00000, 0.00000, 1.00000, 0.00000)
           >>> Quaternion()
@@ -23,17 +25,24 @@ class Quaternion(object):
 
         self.q = np.array([w, x, y, z], dtype=np.float64)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Instance representation.
+
+        :return:
+        :rtype: string
+        """
 
         return "Quaternion({:.5f}, {:.5f}, {:.5f}, {:.5f})".format(self.q[0], self.q[1], self.q[2], self.q[3])
 
-    def components(self):
+    def components(self) -> Tuple[float, float, float, float]:
         """
         Returns the quaternion xyz as a float tuple.
 
         :return: tuple of 4 float values
+        :rtype: tuple of four float values
 
-        Example:
+        Examples:
           >>> Quaternion(0, 1, 0, 0).components()
           (0.0, 1.0, 0.0, 0.0)
         """
@@ -41,13 +50,14 @@ class Quaternion(object):
         return self.q[0], self.q[1], self.q[2], self.q[3]
 
     @property
-    def scalar(self):
+    def scalar(self) -> float:
         """
         Return the scalar component of a quaternion.
 
-        :return: Float value
+        :return: scalar component
+        :rtype: float
 
-        Example:
+        Examples:
           >>> Quaternion(1, 2, 0, 3).scalar
           1.0
           >>> Quaternion(0.0, 4.6, 6.2, 3.1).scalar
@@ -57,13 +67,14 @@ class Quaternion(object):
         return self.q[0]
 
     @property
-    def vector(self):
+    def vector(self) -> Vect:
         """
         Return the vector component of the quaternion.
 
-        :return: Vect
+        :return:
+        :rtype: Vect
 
-        Example:
+        Examples:
           >>> Quaternion(0.1, 1.2, 3.1, 0.9).vector
           Vect(1.2000, 3.1000, 0.9000)
           >>> Quaternion(6.1, 4.9, 1.03, 5.12).vector
@@ -73,11 +84,11 @@ class Quaternion(object):
         return Vect(*self.components()[1:])
 
     @classmethod
-    def fromArray(cls, a):
+    def fromArray(cls, a) -> 'Quaternion':
         """
         Class method to construct a quaternion from a numpy 1x4 array.
 
-        Example:
+        Examples:
           >>> Quaternion.fromArray(np.array([1, 0, 1, 0]))
           Quaternion(1.00000, 0.00000, 1.00000, 0.00000)
           >>> Quaternion.fromArray(np.array([7.65, -12.34, -1.0, 2.234]))
@@ -97,14 +108,14 @@ class Quaternion(object):
         return obj
 
     @classmethod
-    def fromVect(cls, vect):
+    def fromVect(cls, vect) -> 'Quaternion':
         """
         Class method to construct a quaternion from a Vect.
 
         :param vect: Vector instance
         :return: Quaternion instance
 
-        Example:
+        Examples:
           >>> Quaternion.fromVect(Vect(1, 0, 3))
           Quaternion(0.00000, 1.00000, 0.00000, 3.00000)
         """
@@ -114,7 +125,7 @@ class Quaternion(object):
         return Quaternion(w, x, y, z)
 
     @classmethod
-    def fromRotMatr(cls, matr):
+    def fromRotMatr(cls, matr) -> 'Quaternion':
         """
         Class method to construct a quaternion from a 3x3 rotation matrix.
         """
@@ -160,11 +171,11 @@ class Quaternion(object):
         return Quaternion(w, x, y, z)
 
     @classmethod
-    def zero(cls):
+    def zero(cls) -> 'Quaternion':
         """
         Class method to construct a zero quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion.zero()
           Quaternion(0.00000, 0.00000, 0.00000, 0.00000)
         """
@@ -174,11 +185,11 @@ class Quaternion(object):
         return Quaternion(w, x, y, z)
 
     @classmethod
-    def identity(cls):
+    def identity(cls) -> 'Quaternion':
         """
         Class method to construct an identity quaternion (i.e., zero-rotation).
 
-        Example:
+        Examples:
           >>> Quaternion.identity()
           Quaternion(1.00000, 0.00000, 0.00000, 0.00000)
         """
@@ -188,11 +199,11 @@ class Quaternion(object):
         return Quaternion(w, x, y, z)
 
     @classmethod
-    def i(cls):
+    def i(cls) -> 'Quaternion':
         """
         Class method to construct the i elementary quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion.i()
           Quaternion(0.00000, 1.00000, 0.00000, 0.00000)
         """
@@ -202,11 +213,11 @@ class Quaternion(object):
         return Quaternion(w, x, y, z)
 
     @classmethod
-    def j(cls):
+    def j(cls) -> 'Quaternion':
         """
         Class method to construct the j elementary quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion.j()
           Quaternion(0.00000, 0.00000, 1.00000, 0.00000)
         """
@@ -216,11 +227,11 @@ class Quaternion(object):
         return Quaternion(w, x, y, z)
 
     @classmethod
-    def k(cls):
+    def k(cls) -> 'Quaternion':
         """
         Class method to construct the k elementary quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion.k()
           Quaternion(0.00000, 0.00000, 0.00000, 1.00000)
         """
@@ -229,14 +240,14 @@ class Quaternion(object):
 
         return Quaternion(w, x, y, z)
 
-    def __eq__(self, another):
+    def __eq__(self, another: 'Quaternion') -> bool:
         """
         Quaternion equality.
 
         :param another: a Quaternion instance
         :return: Boolean
 
-        Example:
+        Examples:
           >>> Quaternion(1, 1, 3, 0) == Quaternion(0, 7, -2, 4)
           False
           >>> Quaternion(1.0, 1.0, 3.0, 0.0) == Quaternion(1.0, 1.0, 3.0, 0.0)
@@ -247,79 +258,95 @@ class Quaternion(object):
           False
         """
 
+        if not isinstance(another, Quaternion):
+            raise QuaternionInputException("Compared instance must be of Quaternion type")
+                                           )
         return ((self.q == another.q) | (np.isnan(self.q) & np.isnan(another.q))).all()
 
-    def __ne__(self, another):
+    def __ne__(self, another: 'Quaternion') -> bool:
         """
         Quaternion inequality.
 
         :param another: a Quaternion instance
         :return: Boolean
 
-        Example:
+        Examples:
           >>> Quaternion(1, 1, 3, 0) != Quaternion(0, 7, -2, 4)
           True
           >>> Quaternion(1.0, 1.0, 3.0, np.nan) != Quaternion(1.0, 1.0, 3.0, np.nan)
           False
         """
 
+        if not isinstance(another, Quaternion):
+            raise QuaternionInputException("Compared instance must be of Quaternion type")
+
         return not (self == another)
 
-    def __add__(self, another):
+    def __add__(self, another: 'Quaternion') -> 'Quaternion':
         """
         Quaternion sum.
 
         :param another: Quaternion instance.
         :return: Quaternion instance.
 
-        Example:
+        Examples:
           >>> Quaternion(1, 1, 3, 0) + Quaternion(0, 7, -2, 4)
           Quaternion(1.00000, 8.00000, 1.00000, 4.00000)
           >>> Quaternion(2, 1, np.nan, 3) + Quaternion(3, 2, -2, 1)
           Quaternion(5.00000, 3.00000, nan, 4.00000)
         """
 
+        if not isinstance(another, Quaternion):
+            raise QuaternionInputException("Added instance must be of Quaternion type")
+
         return Quaternion.fromArray(self.q + another.q)
 
-    def __sub__(self, another):
+    def __sub__(self, another: 'Quaternion') -> 'Quaternion':
         """
         Quaternion difference.
 
         :param another: Quaternion instance.
         :return: Quaternion instance.
 
-        Example:
+        Examples:
           >>> Quaternion(1, 1, 3, 0) - Quaternion(0, 7, -2, 4)
           Quaternion(1.00000, -6.00000, 5.00000, -4.00000)
           >>> Quaternion(np.inf, 1, 3, np.inf) - Quaternion(np.nan, np.nan, -1, 4)
           Quaternion(nan, nan, 4.00000, inf)
         """
 
+        if not isinstance(another, Quaternion):
+            raise QuaternionInputException("Subtracted instance must be of Quaternion type")
+
         return Quaternion.fromArray(self.q - another.q)
 
-    def multByScalar(self, val):
+    def multByScalar(self, val: [int, float]) -> 'Quaternion':
         """
         Multiplication of a quaternion by a scalar value.
 
-        :param val: Integer or Float
+        :param val: scalar multiplicand
+        :type val: int or float
         :return: Quaternion instance
 
-        Example:
+        Examples:
           >>> Quaternion(1, 1, 3, 0).multByScalar(4)
           Quaternion(4.00000, 4.00000, 12.00000, 0.00000)
           >>> Quaternion(1.9, -1.2, 3.6, 4.1).multByScalar(2)
           Quaternion(3.80000, -2.40000, 7.20000, 8.20000)
         """
 
+        if not isinstance(val, (int, float)):
+            raise QuaternionInputException("Multiplier must be int or float")
+        
         return Quaternion.fromArray(self.q * val)
 
-    def __neg__(self):
+    def __neg__(self) -> 'Quaternion':
         """
         Negative of quaternion.
 
         :return: Quaternion instance.
 
-        Example:
+        Examples:
           >>> - Quaternion(1, 1, 3, 0)
           Quaternion(-1.00000, -1.00000, -3.00000, -0.00000)
           >>> - Quaternion(1.9, -1.2, 3.6, 4.1)
@@ -328,18 +355,23 @@ class Quaternion(object):
 
         return self.multByScalar(-1)
 
-    def multByQuater(self, another):
+    def multByQuater(self, another: 'Quaternion') -> 'Quaternion':
         """
         Quaternion multiplication.
         Examples are taken from Kuipers, 2002, chp. 5.
 
-        :param another: Quaternion instance .
-        :return: Quaternion instance.
+        :param another: quaternion multiplier.
+        :type another: Quaternion
+        :return: multiplied quaternion.
+        :type: Quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion(3, 1, -2, 1).multByQuater(Quaternion(2, -1, 2, 3))
           Quaternion(8.00000, -9.00000, -2.00000, 11.00000)
         """
+        
+        if not isinstance(another, Quaternion):
+            raise QuaternionInputException("Multiplier must be of Quaternion type")
         
         a = + (self.q[0] * another.q[0]) \
             - (self.q[1] * another.q[1]) \
@@ -363,25 +395,34 @@ class Quaternion(object):
                 
         return Quaternion(a, b, c, d)
 
-    def multByVect(self, vect):
+    def multByVect(self, vect: Vect) -> 'Quaternion':
         """
         Quaternion multiplication by a Vect.
 
-        :param vect: Vect instance .
-        :return: Quaternion instance.
+        :param vect: vector multiplier.
+        :type: Vect.
+        :return: quaternion multiplied by vector
+        :rtype: Quaternion instance.
+        
+        Examples:
         """
+
+        if not isinstance(vect, Vect):
+            raise QuaternionInputException("Multiplier must be of Vect type")
 
         return self.multByQuater(Quaternion.fromVect(vect))
 
-    def __mul__(self, another):
+    def __mul__(self, another: [int, float, Vect, 'Quaternion']) -> 'Quaternion':
         """
         Wrapper for quaternion multiplication.
         Some examples are taken from Kuipers, 2002, chp. 5.
 
-        :param another: Quaternion or Float/Integer
-        :return: Quaternion instance
+        :param another: multiplier.
+        :type another: integer, float, Vect or Quaternion.
+        :return: multiplied quaternion.
+        :rtype: Quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion(1, 1, 3, 0) * 3
           Quaternion(3.00000, 3.00000, 9.00000, 0.00000)
           >>> Quaternion(3, 1, -2, 1) * Quaternion(2, -1, 2, 3)
@@ -392,7 +433,7 @@ class Quaternion(object):
           Quaternion(0.00000, 1.00000, 3.00000, 2.00000)
         """
 
-        if isinstance(another, (float, int)):
+        if isinstance(another, (int, float)):
             return self.multByScalar(another)
         elif isinstance(another, Vect):
             return self.multByVect(another)
@@ -402,13 +443,14 @@ class Quaternion(object):
             raise QuaternionCalculationException("Multiplicand is not number or quaternion")
 
     @property
-    def conjugate(self):
+    def conjugate(self) -> 'Quaternion':
         """
         Quaternion conjugate.
 
-        :return: Quaternion instance.
+        :return: conjugate quaternion.
+        :rtype: Quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion(1, 1, 3, 0).conjugate
           Quaternion(1.00000, -1.00000, -3.00000, -0.00000)
           >>> Quaternion(2.0, 0.0, -3.3, 17.09).conjugate
@@ -424,13 +466,14 @@ class Quaternion(object):
 
         return Quaternion(a, b, c, d)
 
-    def sqrdNorm(self):
+    def sqrdNorm(self) -> float:
         """
         Squared norm of a quaternion.
 
-        :return: Float value
+        :return: quaternion squared norm.
+        :rtype: float.
 
-        Example:
+        Examples:
           >>> Quaternion(1, 0, 0, 0).sqrdNorm()
           1.0
           >>> Quaternion(1, 1, 0, 2).sqrdNorm()
@@ -443,13 +486,14 @@ class Quaternion(object):
 
         return self.q[0]**2 + self.q[1]**2 + self.q[2]**2 + self.q[3]**2
 
-    def __abs__(self):
+    def __abs__(self) -> float:
         """
         Quaternion absolute value.
 
-        :return: Float value
+        :return: absolute value (magnitude) of the quaternion.
+        :rtype: float.
 
-        Example:
+        Examples:
           >>> abs(Quaternion(1, 0, 0, 0))
           1.0
           >>> areClose(abs(Quaternion(2, -1, 2, 3)), sqrt(18.0))
@@ -459,14 +503,15 @@ class Quaternion(object):
         return sqrt(self.sqrdNorm())
 
     @property
-    def norm(self):
+    def norm(self) -> float:
         """
         The norm of the quaternion.
         Equivalent to its absolute value.
 
-        :return: Float value
+        :return: absolute value (magnitude) of the quaternion.
+        :rtype: float.
 
-        Example:
+        Examples:
           >>> Quaternion(1, 0, 0, 0).norm
           1.0
         """
@@ -474,13 +519,14 @@ class Quaternion(object):
         return abs(self)
 
     @property
-    def inverse(self):
+    def inverse(self) -> 'Quaternion':
         """
         Quaternion inverse.
 
-        :return: Quaternion instance.
+        :return: quaternion inverse.
+        :rtype: Quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion(0, 1, 0, 0).inverse
           Quaternion(0.00000, -1.00000, -0.00000, -0.00000)
           >>> Quaternion(3.2, 2.4, 7.18, 4.3).inverse * Quaternion(3.2, 2.4, 7.18, 4.3)
@@ -489,13 +535,14 @@ class Quaternion(object):
 
         return self.conjugate / self.sqrdNorm()
 
-    def isNormalized(self):
+    def isNormalized(self) -> bool:
         """
         Check if a quaternion is unitary.
 
-        :return: Boolean
+        :return: True or False.
+        :rtype: bool
 
-        Example:
+        Examples:
           >>> Quaternion(0, 1, 0, 0).isNormalized()
           True
           >>> Quaternion(1, 4, 0, -4).isNormalized()
@@ -504,14 +551,16 @@ class Quaternion(object):
 
         return abs(1.0 - sqrt(self.sqrdNorm())) < quat_normaliz_tolerance
 
-    def divByScalar(self, denominator):
+    def divByScalar(self, denominator: [int, float]) -> 'Quaternion':
         """
         Division of a quaternion by a scalar.
 
-        :param denominator: Float value
-        :return: Quaternion instance.
+        :param denominator: divisor.
+        :type denominator: int, float
+        :return: division result.
+        :rtype: Quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion(1, 1, 3, 0).divByScalar(3)
           Quaternion(0.33333, 0.33333, 1.00000, 0.00000)
           >>> Quaternion(1, 1, 3, 0).divByScalar(1e-11)
@@ -520,27 +569,41 @@ class Quaternion(object):
           pygsf.exceptions.mathematics.QuaternionCalculationException: Quaternion division by almost zero value
         """
 
-        if abs(denominator) < quat_division_tolerance:
+        if not isinstance(denominator, (int, float)):
+            raise QuaternionCalculationException("Quaternion divisor must be integer or float")
+        elif abs(denominator) < quat_division_tolerance:
             raise QuaternionCalculationException("Quaternion division by almost zero value")
         else:
             return Quaternion.fromArray(self.q / denominator)
 
-    def divByQuater(self, another):
+    def divByQuater(self, another: 'Quaternion') -> 'Quaternion':
         """
         Quaternion division by another quaternion.
 
-        :param another: Quaternion instance
-        :return: Quaternion instance
+        :param another: divisor
+        :type: Quaternion
+        :return: division result
+        :rtype: Quaternion
+
+        Examples:
         """
 
-        return self * another.conjugate / another.sqrdNorm()
+        if not isinstance(another, Quaternion):
+            raise QuaternionInputException("Multiplier must be of Quaternion type")
 
-    def __truediv__(self, another):
+        return self * (another.conjugate.divByScalar(another.sqrdNorm()))
+
+    def __truediv__(self, another: [int, float, 'Quaternion']) -> 'Quaternion':
         """
         Wrapper for quaternion division.
         This is only compatible with Python 3.
 
-        Example:
+        :param another: divisor.
+        :type another: Quaternion
+        :return: division result.
+        :rtype: Quaternion
+
+        Examples:
           >>> Quaternion(1, 1, 3, 0) / 3
           Quaternion(0.33333, 0.33333, 1.00000, 0.00000)
           >>> Quaternion(1, 1, 3, 0) / Quaternion(1, 1, 3, 0)
@@ -554,13 +617,14 @@ class Quaternion(object):
         else:
             raise QuaternionCalculationException("Denominator is not number or quaternion")
 
-    def normalize(self):
+    def normalize(self) -> Optional['Quaternion']:
         """
         Normalize a quaternion.
 
-        :return: Quaternion instance.
+        :return: normalized quaternion.
+        :rtype: Quaternion.
 
-        Example:
+        Examples:
           >>> Quaternion(0, 4, 0, 0).normalize()
           Quaternion(0.00000, 1.00000, 0.00000, 0.00000)
           >>> Quaternion(0, 4, 0, 8).normalize()
@@ -571,20 +635,29 @@ class Quaternion(object):
           Quaternion(0.69580, 0.32191, -0.15196, 0.62382)
         """
 
-        return self / sqrt(self.sqrdNorm())
+        if areClose(self.norm, 0.0):
+            raise QuaternionCalculationException("Quaternion is null or near null")
+        else:
+            return self / sqrt(self.sqrdNorm())
 
-    def isCloseTo(self, another, rtol=1e-012, atol=1e-12, equal_nan=False, equal_inf=False):
+    def isCloseTo(self, another: 'Quaternion', rtol: float=1e-012, atol:float=1e-12, equal_nan: bool=False, equal_inf: bool=False):
         """
         Check for quaternion equivalence.
 
-        :param another: Quaternion instance
-        :param rtol: relative tolerance (float)
-        :param atol: absolute tolerance (float)
-        :param equal_nan: nan values are considered equal to themselves (boolean)
-        :param equal_inf: inf values are considered equal to themselves (boolean)
-        :return: Boolean.
+        :param another: Quaternion instance.
+        :type another: Quaternion.
+        :param rtol: relative tolerance
+        :type rtol: float.
+        :param atol: absolute tolerance
+        :type atol: float.
+        :param equal_nan: nan values are considered equal to themselves.
+        :type equal_nan: bool.
+        :param equal_inf: inf values are considered equal to themselves
+        :type equal_inf: bool.
+        :return: True if the two quaternions are close enough, false otherwise.
+        :rtype: bool.
 
-        Example:
+        Examples:
           >>> Quaternion(1, 2, 3, 4).isCloseTo(Quaternion(1, 2, 3, 4))
           True
           >>> Quaternion(1, 2, 3, 4).isCloseTo(Quaternion(1, 2.01, 3, 4))
@@ -595,7 +668,7 @@ class Quaternion(object):
           True
         """
 
-        return arrays_are_close(self.q, another.q, rtol, atol, equal_nan, equal_inf)
+        return arraysAreClose(self.q, another.q, rtol, atol, equal_nan, equal_inf)
 
     def rotAngle(self):
         """
