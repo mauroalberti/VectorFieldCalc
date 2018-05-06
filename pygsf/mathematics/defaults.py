@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from math import isnan, isinf, sqrt, degrees, acos
-from .arrays import *
+from math import isnan, isinf, sqrt, degrees, acos, ceil, floor # they are used in importing files
+from math import radians, sin, cos, tan, pi, atan2 # they are used in importing files
 
+import numpy as np
+
+array = np.array
 isfinite = np.isfinite
 
 """

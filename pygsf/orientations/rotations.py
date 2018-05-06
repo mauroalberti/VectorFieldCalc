@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import List
-
 from pygsf.mathematics.quaternions import *
 from .orientations import *
 

@@ -3,7 +3,7 @@
 
 from numpy import *  # general import for compatibility with formula input
 
-from pygsf.spatial.exceptions import *
+from .exceptions import *
 
 
 def formula_to_grid(array_range, array_size, formula):

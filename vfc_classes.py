@@ -50,7 +50,7 @@ class Point:
         return Point( self.x + sx , self.y + sy, self.z + sz )        
 
 
-# GDAL raster parameters 
+# GDAL rasters parameters
 class GDALParameters:
 
     # class constructor
@@ -170,11 +170,11 @@ class GDALParameters:
         
         # check if pixel size can be considered the same in the two axis directions
         if abs(abs(self.pixsizeEW) - abs(self.pixsizeNS))/abs(self.pixsizeNS) > tolerance :
-            return False, 'Pixel sizes in x and y directions are different in raster' 
+            return False, 'Pixel sizes in x and y directions are different in rasters'
             
         # check for the absence of axis rotations
         if abs(self.rotationA) > tolerance or abs(self.rotationB) > tolerance:
-            raise False, 'There should be no axis rotation in raster' 
+            raise False, 'There should be no axis rotation in rasters'
         
         return True, 'OK'
 
@@ -193,7 +193,7 @@ class GDALParameters:
             return True
             
             
-# exception for raster parameters
+# exception for rasters parameters
 class Raster_Parameters_Errors(Exception):
     pass  
 

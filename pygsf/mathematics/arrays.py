@@ -1,13 +1,10 @@
 # -*- coding: utf-8 -*-
 
 
-from ..defaults.mathematics import *
-from ..defaults.typing import *
-
 from .scalars import *
 
 
-def arrToTuple(arr1D: 'array[Numbers]') -> Tuple[float, ...]:
+def arrToTuple(arr1D: 'array[Number]') -> Tuple[float, ...]:
     """
     Modified from: https://stackoverflow.com/questions/10016352/convert-numpy-array-to-tuple
     Works just for 1D arrays
@@ -26,7 +23,7 @@ def arrToTuple(arr1D: 'array[Numbers]') -> Tuple[float, ...]:
     return tuple(map(float, arr1D))
 
 
-def toFloats(iterable_obj: Sequence[Numbers]) -> List[float]:
+def toFloats(iterable_obj: Sequence[Number]) -> List[float]:
     """
     Converts an iterable object storing float-compatible values to a list of floats.
 
@@ -43,8 +40,8 @@ def toFloats(iterable_obj: Sequence[Numbers]) -> List[float]:
     return [float(item) for item in iterable_obj]
 
 
-def arraysAreClose(a_array: 'array[Numbers]', b_array: 'array[Numbers]',
-    rtol: float=1e-012, atol: float=1e-12, equal_nan: bool=False, equal_inf: bool=False) -> bool:
+def arraysAreClose(a_array: 'array[Number]', b_array: 'array[Number]',
+                   rtol: float=1e-012, atol: float=1e-12, equal_nan: bool=False, equal_inf: bool=False) -> bool:
     """
     Check for equivalence between two numpy arrays.
 
@@ -85,7 +82,7 @@ def arraysAreClose(a_array: 'array[Numbers]', b_array: 'array[Numbers]',
     return all(are_equal)
 
 
-def pointSolution(a_array: 'array[Numbers]', b_array: 'array[Numbers]'):
+def pointSolution(a_array: 'array[Number]', b_array: 'array[Number]'):
     """
     Finds a non-unique solution for a set of linear equations.
 

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-from ..defaults.mathematics import *
 from ..defaults.typing import *
+
+from .defaults import *
 
 
 def areClose(a: float, b: float,
@@ -64,7 +65,7 @@ def areClose(a: float, b: float,
     return abs(a - b) <= max(rtol * max(abs(a), abs(b)), atol)
 
 
-def apprFloat(val: Numbers, ndec: int=1) -> float:
+def apprFloat(val: Number, ndec: int=1) -> float:
     """
     Rounds a numeric value to ndec.
 

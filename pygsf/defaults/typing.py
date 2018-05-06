@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Sequence, List, Tuple, TypeVar, Optional
+from typing import Sequence, List, Tuple, TypeVar, Optional, Dict
 
-Numbers = TypeVar('Numbers', int, float)
+Number = TypeVar('Number', int, float)
 

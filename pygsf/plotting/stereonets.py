@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import mplstereonet as ms
 
 
-from pygsf.orientations.type_checks import *
+from ..orientations.type_checks import *
 from ..utils.dicts import *
 
 

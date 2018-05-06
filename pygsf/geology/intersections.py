@@ -5,9 +5,12 @@ from math import *
 
 import numpy as np
 
-from .vectorial import Point, Axis, Segment, ParamLine3D
+from ..spatial.vectorial.vectorial import Point, Segment, ParamLine3D
+from ..spatial.vectorial.exceptions import *
+
+from ..orientations.orientations import Axis
+
 from .profile import PlaneAttitude
-from pygsf.spatial.exceptions import *
 
 
 def calculate_distance_with_sign(projected_point, section_init_pt, section_vector):
@@ -235,14 +238,14 @@ class Intersections(object):
         # filling array with values
 
         curr_ndx = 0
-        for i in xrange((self.xcoords_x.shape)[0]):
-            for j in xrange(self.xcoords_x.shape[1]):
+        for i in range((self.xcoords_x.shape)[0]):
+            for j in range(self.xcoords_x.shape[1]):
                 if not isnan(self.xcoords_x[i, j]):
                     links[curr_ndx] = (curr_ndx + 1, i, j, 'x', 0, 0, False)
                     curr_ndx += 1
 
-        for i in xrange(self.ycoords_y.shape[0]):
-            for j in xrange(self.ycoords_y.shape[1]):
+        for i in range(self.ycoords_y.shape[0]):
+            for j in range(self.ycoords_y.shape[1]):
                 if not isnan(self.ycoords_y[i, j]):
                     links[curr_ndx] = (curr_ndx + 1, i, j, 'y', 0, 0, False)
                     curr_ndx += 1
@@ -262,7 +265,7 @@ class Intersections(object):
         neighbours = {}
 
         # search and connect intersection points   
-        for curr_ndx in xrange(self.links.shape[0]):
+        for curr_ndx in range(self.links.shape[0]):
 
             # get current point location (i, j) and direction type (pi_dir)
             curr_id = self.links[curr_ndx]['id']
@@ -512,7 +515,7 @@ class Intersections(object):
         """
 
         # simple networks starting from border
-        for ndx in xrange(self.links.shape[0]):
+        for ndx in range(self.links.shape[0]):
 
             if len(self.neighbours[ndx + 1]) != 1 or \
                             self.links[ndx]['conn_from'] > 0 or \
@@ -526,7 +529,7 @@ class Intersections(object):
 
         # inner, simple networks
 
-        for ndx in xrange(self.links.shape[0]):
+        for ndx in range(self.links.shape[0]):
 
             if len(self.neighbours[ndx + 1]) != 2 or \
                             self.links[ndx]['conn_to'] > 0 or \
@@ -541,7 +544,7 @@ class Intersections(object):
 
         # inner, simple networks, connection of FROM
 
-        for ndx in xrange(self.links.shape[0]):
+        for ndx in range(self.links.shape[0]):
 
             if len(self.neighbours[ndx + 1]) == 2 and \
                             self.links[ndx]['conn_from'] == 0:
@@ -560,7 +563,7 @@ class Intersections(object):
         networks = {}
 
         # open, simple networks
-        for ndx in xrange(self.links.shape[0]):
+        for ndx in range(self.links.shape[0]):
 
             if len(self.neighbours[ndx + 1]) != 1: continue
 
@@ -579,7 +582,7 @@ class Intersections(object):
                 networks[pid] = network_list
 
         # closed, simple networks
-        for ndx in xrange(self.links.shape[0]):
+        for ndx in range(self.links.shape[0]):
 
             if len(self.neighbours[ndx + 1]) != 2 or \
                             self.links[ndx]['start'] == False:

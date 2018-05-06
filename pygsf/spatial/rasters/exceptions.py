@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 
 
-class IntersectionConnectionException(Exception):
+class RasterIOExceptions(Exception):
     """
-    Exception for intersection points connection
+    Class for rasters IO exception
+    """
+
+    pass
+
+
+class RasterParametersExceptions(Exception):
+    """
+    Class for rasters IO exception
     """
 
     pass

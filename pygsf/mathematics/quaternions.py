@@ -3,7 +3,7 @@
 
 from .vectors import *
 
-from .exceptions import QuaternionInputException
+from .exceptions import *
 
 
 class Quaternion(object):
@@ -319,7 +319,7 @@ class Quaternion(object):
 
         return Quaternion.fromArray(self.q - another.q)
 
-    def multByScalar(self, val: Numbers) -> 'Quaternion':
+    def multByScalar(self, val: Number) -> 'Quaternion':
         """
         Multiplication of a quaternion by a scalar value.
 
@@ -550,7 +550,7 @@ class Quaternion(object):
 
         return abs(1.0 - sqrt(self.sqrdNorm())) < quat_normaliz_tolerance
 
-    def divByScalar(self, denominator: Numbers) -> 'Quaternion':
+    def divByScalar(self, denominator: Number) -> 'Quaternion':
         """
         Division of a quaternion by a scalar.
 

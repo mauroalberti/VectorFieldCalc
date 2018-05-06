@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
-from pygsf.geology.exceptions import *
+from .defaults import *
+from .exceptions import *
 from ..orientations.orientations import *
 
 

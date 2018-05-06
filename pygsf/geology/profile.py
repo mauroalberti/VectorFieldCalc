@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
+from ..mathematics.defaults import *
+
 import copy
 import xml.dom.minidom
 
-from .vectorial import Line, xytuple_l2_to_MultiLine
-
-#from .qgs_tools import *
-
-from .geodetic import TrackPointGPX
-
-#from .errors import GPXIOException
+from ..spatial.vectorial.vectorial import *
+from ..spatial.vectorial.geodetic import *
 
 
 class GeoProfilesSet(object):

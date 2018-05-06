@@ -3,8 +3,8 @@
 
 from .vectors import Vect
 
-from pygsf.mathematics.exceptions import *
-from .scalars import areClose
+from .exceptions import *
+from .scalars import *
 
 
 class RefFrame(object):

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-
 from .exceptions import *
 from .arrays import *
 
 
-def normXYZ(x: Numbers, y: Numbers, z: Numbers) -> Tuple:
+def normXYZ(x: Number, y: Number, z: Number) -> Tuple:
     """
     Normalize numeric values.
 
@@ -41,7 +40,7 @@ class Vect(object):
     z axis -> Up
     """
 
-    def __init__(self, x: Numbers, y: Numbers, z: Numbers):
+    def __init__(self, x: Number, y: Number, z: Number):
         """
         Vect constructor.
 
@@ -295,7 +294,7 @@ class Vect(object):
         else:
             return another.z - self.z
 
-    def scale(self, scale_factor: Numbers) -> 'Vect':
+    def scale(self, scale_factor: Number) -> 'Vect':
         """
         Create a scaled object.
 

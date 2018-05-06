@@ -75,7 +75,7 @@ class QGisRasterParameters(object):
 
     def geogr2raster(self, point):
         """
-        Convert from geographic to raster-based coordinates.
+        Convert from geographic to rasters-based coordinates.
         Assume grid has no rotation.
 
         :param point: qProf.gsf.geometry.Point
@@ -89,7 +89,7 @@ class QGisRasterParameters(object):
 
     def raster2geogr(self, array_dict):
         """
-        Convert from raster-based to geographic coordinates.
+        Convert from rasters-based to geographic coordinates.
         Assume grid has no rotation.
 
         :param array_dict: dict
@@ -146,7 +146,7 @@ def vector_type(layer):
 
 def loaded_layers():
     """
-    Returns the layers, raster and vectorial, loaded in the map.
+    Returns the layers, rasters and vectorial, loaded in the map.
 
     :return:
     """
@@ -200,7 +200,7 @@ def loaded_point_layers():
 
 def loaded_raster_layers():
     """
-    Returns the raster layers loaded in the map.
+    Returns the rasters layers loaded in the map.
 
     :return:
     """
@@ -211,7 +211,7 @@ def loaded_raster_layers():
 
 def loaded_monoband_raster_layers():
     """
-    Returns the single-band raster layers loaded in the map.
+    Returns the single-band rasters layers loaded in the map.
 
     :return:
     """
@@ -406,7 +406,7 @@ def vect_attrs(layer, field_list):
 
 def raster_qgis_params(raster_layer):
     """
-    Extracts parameters for a given raster layer.
+    Extracts parameters for a given rasters layer.
 
     :param raster_layer:
     :return:

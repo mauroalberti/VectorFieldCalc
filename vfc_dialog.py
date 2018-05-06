@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import *
 
 from qgis.core import *
 
-from pygsf.spatial.raster.gdal_utils import *
+from pygsf.spatial.rasters.gdal_utils import *
 from pygsf.spatial.vectorial.vectorial import Point
 
 from libs_utils.qt.filesystem import *
@@ -49,7 +49,7 @@ class VfcDialog(QDialog):
         self.qcmbbxInRasterY = QComboBox()
         qfrmlytInRaster.addRow(QLabel("Y-axis components"), self.qcmbbxInRasterY)
                 
-        # append loaded raster layers to combo boxes
+        # append loaded rasters layers to combo boxes
         self.qmapLayersMap = QgsMapLayerRegistry.instance().mapLayers()
         for name, layer in self.qmapLayersMap.iteritems():
             if layer.type() == QgsMapLayer.RasterLayer: 
@@ -417,14 +417,14 @@ class VfcDialog(QDialog):
         # get x- and y-axis component data
         success, result = self.get_raster_data(inraster_x)
         if not success:
-            QMessageBox.critical(self, "Input x-component raster", msg)
+            QMessageBox.critical(self, "Input x-component rasters", msg)
             return   
         else:
             comp_x_params, comp_x_array = result
                      
         success, result = self.get_raster_data(inraster_y)
         if not success:
-            QMessageBox.critical(self, "Input y-component raster", msg)
+            QMessageBox.critical(self, "Input y-component rasters", msg)
             return   
         else:
             comp_y_params, comp_y_array = result        
@@ -502,14 +502,14 @@ class VfcDialog(QDialog):
         # get x- and y-axis component data
         success, result = self.get_raster_data(inraster_x)
         if not success:
-            QMessageBox.critical(self, "Input x-component raster", msg)
+            QMessageBox.critical(self, "Input x-component rasters", msg)
             return   
         else:
             comp_x_params, comp_x_array = result
                      
         success, result = self.get_raster_data(inraster_y)
         if not success:
-            QMessageBox.critical(self, "Input y-component raster", msg)
+            QMessageBox.critical(self, "Input y-component rasters", msg)
             return   
         else:
             comp_y_params, comp_y_array = result        
@@ -583,14 +583,14 @@ class VfcDialog(QDialog):
         # get x- and y-axis component data
         success, result = self.get_raster_data(inraster_x)
         if not success:
-            QMessageBox.critical(self, "Input x-component raster", msg)
+            QMessageBox.critical(self, "Input x-component rasters", msg)
             return   
         else:
             comp_x_params, comp_x_array = result
                      
         success, result = self.get_raster_data(inraster_y)
         if not success:
-            QMessageBox.critical(self, "Input y-component raster", msg)
+            QMessageBox.critical(self, "Input y-component rasters", msg)
             return   
         else:
             comp_y_params, comp_y_array = result        

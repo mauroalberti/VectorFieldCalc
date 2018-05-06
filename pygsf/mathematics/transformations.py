@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from math import radians, sin, cos, tan
-
-import numpy as np
-
-
-#from pygsf.orientations.rotations import RotationAxis
+from .defaults import *
 
 
 def matrScaling(scale_factor_x, scale_factor_y, scale_factor_z):
@@ -15,7 +10,9 @@ def matrScaling(scale_factor_x, scale_factor_y, scale_factor_z):
     :param scale_factor_x: 
     :param scale_factor_y: 
     :param scale_factor_z: 
-    :return: 
+    :return:
+
+    Examples:
     """
 
     return np.array([(scale_factor_x, 0.0, 0.0),
@@ -28,7 +25,9 @@ def matrHorizSimpleShear(phi_angle_degr, alpha_angle_degr):
     
     :param phi_angle_degr: 
     :param alpha_angle_degr: 
-    :return: 
+    :return:
+
+    Examples:
     """
 
     phi_angle_rad = radians(phi_angle_degr)
@@ -48,7 +47,9 @@ def matrVertSimpleShear(phi_angle_degr, alpha_angle_degr):
     
     :param phi_angle_degr: 
     :param alpha_angle_degr: 
-    :return: 
+    :return:
+
+    Examples:
     """
 
     phi_angle_rad = radians(phi_angle_degr)
@@ -67,7 +68,9 @@ def deformMatrices(deform_params):
     """
     
     :param deform_params: 
-    :return: 
+    :return:
+
+    Examples:
     """
 
     deform_matrix = []

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-import numpy as np
+from ...mathematics.defaults import *
 
 
 def get_statistics(array):

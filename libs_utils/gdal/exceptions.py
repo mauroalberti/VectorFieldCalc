@@ -3,14 +3,14 @@
 
 class RasterIOException(Exception):
     """
-    Exception for raster IO.
+    Exception for rasters IO.
     """
     pass
 
 
 class RasterParametersException(Exception):
     """
-    Exception for raster parameters.
+    Exception for rasters parameters.
     """
     pass
 

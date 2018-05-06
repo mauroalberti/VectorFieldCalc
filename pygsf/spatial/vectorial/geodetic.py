@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from math import sqrt, radians, sin, cos
+from ...mathematics.defaults import *
 
 
 from ...utils.time import *

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from ...defaults.orientations import *
+from ...orientations.defaults import *
 from ...mathematics.vectors import *
 
 

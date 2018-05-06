@@ -34,9 +34,9 @@ class GDALParameters(object):
 
     def s_noDataValue(self, nodataval):
         """
-        Set raster no data value.
+        Set rasters no data value.
 
-        @param  nodataval:  the raster no-data value.
+        @param  nodataval:  the rasters no-data value.
         @type  nodataval:  None, otherwise number or string convertible to float.
 
         @return:  self.
@@ -49,7 +49,7 @@ class GDALParameters(object):
 
     def g_noDataValue(self):
         """
-        Get raster no-data value.
+        Get rasters no-data value.
 
         @return:  no-data value - float.
         """
@@ -61,7 +61,7 @@ class GDALParameters(object):
 
     def s_topLeftX(self, topleftX):
         """
-        Set top-left corner x value of the raster.
+        Set top-left corner x value of the rasters.
 
         @param  topleftX:  the top-left corner x value, according to GDAL convention.
         @type  topleftX:  number or string convertible to float.
@@ -72,7 +72,7 @@ class GDALParameters(object):
 
     def g_topLeftX(self):
         """
-        Get top-left corner x value of the raster.
+        Get top-left corner x value of the rasters.
 
         @return:  the top-left corner x value, according to GDAL convention - float.
         """
@@ -83,7 +83,7 @@ class GDALParameters(object):
 
     def s_topLeftY(self, topleftY):
         """
-        Set top-left corner y value of the raster.
+        Set top-left corner y value of the rasters.
 
         @param  topleftY:  the top-left corner y value, according to GDAL convention.
         @type  topleftY:  number or string convertible to float.
@@ -94,7 +94,7 @@ class GDALParameters(object):
 
     def g_topLeftY(self):
         """
-        Get top-left corner y value of the raster.
+        Get top-left corner y value of the rasters.
 
         @return:  the top-left corner y value, according to GDAL convention - float.
         """
@@ -105,7 +105,7 @@ class GDALParameters(object):
 
     def s_pixSizeEW(self, pixsizeEW):
         """
-        Set East-West size of the raster cell.
+        Set East-West size of the rasters cell.
 
         @param  pixsizeEW:  the top-left y value, according to GDAL convention.
         @type  pixsizeEW:  number or string convertible to float.
@@ -116,9 +116,9 @@ class GDALParameters(object):
 
     def g_pixSizeEW(self):
         """
-        Get East-West size of the raster cell.
+        Get East-West size of the rasters cell.
 
-        @return:  the East-West size of the raster cell - float.
+        @return:  the East-West size of the rasters cell - float.
         """
         return self._pixsizeEW
 
@@ -129,9 +129,9 @@ class GDALParameters(object):
 
     def s_pixSizeNS(self, pixsizeNS):
         """
-        Set North-South size of the raster cell.
+        Set North-South size of the rasters cell.
 
-        @param  pixsizeNS:  the North-South size of the raster cell.
+        @param  pixsizeNS:  the North-South size of the rasters cell.
         @type  pixsizeNS:  number or string convertible to float.
 
         @return:  self.
@@ -140,9 +140,9 @@ class GDALParameters(object):
 
     def g_pixSizeNS(self):
         """
-        Get North-South size of the raster cell.
+        Get North-South size of the rasters cell.
 
-        @return:  the North-South size of the raster cell - float.
+        @return:  the North-South size of the rasters cell - float.
         """
         return self._pixsizeNS
 
@@ -153,7 +153,7 @@ class GDALParameters(object):
         """
         Set row number.
 
-        @param  rows:  the raster row number.
+        @param  rows:  the rasters row number.
         @type  rows:  number or string convertible to int.
 
         @return:  self.
@@ -164,7 +164,7 @@ class GDALParameters(object):
         """
         Get row number.
 
-        @return:  the raster row number - int.
+        @return:  the rasters row number - int.
         """
         return self._rows
 
@@ -175,7 +175,7 @@ class GDALParameters(object):
         """
         Set column number.
 
-        @param  cols:  the raster column number.
+        @param  cols:  the rasters column number.
         @type  cols:  number or string convertible to int.
 
         @return:  self.
@@ -186,7 +186,7 @@ class GDALParameters(object):
         """
         Get column number.
 
-        @return:  the raster column number - int.
+        @return:  the rasters column number - int.
         """
         return self._cols
 
@@ -197,7 +197,7 @@ class GDALParameters(object):
         """
         Set rotation GT(2) (see GDAL documentation).
 
-        @param  rotation_GT_2:  the raster rotation value GT(2).
+        @param  rotation_GT_2:  the rasters rotation value GT(2).
         @type  rotation_GT_2:  number or string convertible to float.
 
         @return:  self.
@@ -208,7 +208,7 @@ class GDALParameters(object):
         """
         Get rotation GT(2) (see GDAL documentation).
 
-        @return:  the raster rotation value GT(2). - float.
+        @return:  the rasters rotation value GT(2). - float.
         """
         return self._rotation_GT_2
 
@@ -219,7 +219,7 @@ class GDALParameters(object):
         """
         Set rotation GT(4) (see GDAL documentation)
 
-        @param  rotation_GT_4:  the raster rotation value GT(4).
+        @param  rotation_GT_4:  the rasters rotation value GT(4).
         @type  rotation_GT_4:  number or string convertible to float.
 
         @return:  self.
@@ -230,7 +230,7 @@ class GDALParameters(object):
         """
         Get rotation GT(4) (see GDAL documentation).
 
-        @return:  the raster rotation value GT(4) - float.
+        @return:  the rasters rotation value GT(4) - float.
         """
         return self._rotation_GT_4
 
@@ -239,28 +239,28 @@ class GDALParameters(object):
 
     def check_params(self, tolerance=1e-06):
         """
-        Check absence of axis rotations or pixel size differences in the raster band.
+        Check absence of axis rotations or pixel size differences in the rasters band.
 
         @param  tolerance:  the maximum threshold for both pixel N-S and E-W difference, or axis rotations.
         @type  tolerance:  float.
 
         @return:  None when successful, RasterParametersException when pixel differences or axis rotations.
 
-        @raise: RasterParametersException - raster geometry incompatible with this module (i.e. different cell sizes or axis rotations).
+        @raise: RasterParametersException - rasters geometry incompatible with this module (i.e. different cell sizes or axis rotations).
         """
         # check if pixel size can be considered the same in the two axis directions
         if abs(abs(self._pixsizeEW) - abs(self._pixsizeNS)) / abs(self._pixsizeNS) > tolerance:
-            raise RasterParametersException("Pixel sizes in x and y directions are different in raster")
+            raise RasterParametersException("Pixel sizes in x and y directions are different in rasters")
 
             # check for the absence of axis rotations
         if abs(self._rotation_GT_2) > tolerance or abs(self._rotation_GT_4) > tolerance:
-            raise RasterParametersException("There should be no axis rotation in raster")
+            raise RasterParametersException("There should be no axis rotation in rasters")
 
         return
 
     def llcorner(self):
         """
-        Creates a point tuple (x, y) representing the lower-left corner of the raster.
+        Creates a point tuple (x, y) representing the lower-left corner of the rasters.
 
         @return:  new Point instance.
         """
@@ -268,7 +268,7 @@ class GDALParameters(object):
 
     def trcorner(self):
         """
-        Create a point tuple (x, y) representing the top-right corner of the raster.
+        Create a point tuple (x, y) representing the top-right corner of the rasters.
 
         @return:  new Point instance.
         """
@@ -300,16 +300,16 @@ class GDALParameters(object):
 
 def read_raster_band(raster_name, raster_params):
     """
-    Read data and metadata of a raster band.
+    Read data and metadata of a rasters band.
 
     :param raster_name:
     :param raster_params:
     :return:
     """
 
-    # read input raster band based on GDAL
+    # read input rasters band based on GDAL
 
-    # open raster file and check operation success
+    # open rasters file and check operation success
     raster_data = gdal.Open(str(raster_name), GA_ReadOnly)
     if raster_data is None:
         raise RasterIOException("No input data open")
@@ -328,12 +328,12 @@ def read_raster_band(raster_name, raster_params):
     # get no data value for current band
     raster_params.set_noDataValue(band.GetNoDataValue())
     if raster_params.get_noDataValue() is None:
-        raise RasterIOException("Unable to get no data value from input raster. Try change input format\n(e.g., ESRI ascii grids generally work)")
+        raise RasterIOException("Unable to get no data value from input rasters. Try change input format\n(e.g., ESRI ascii grids generally work)")
 
         # read data from band
     grid_values = band.ReadAsArray(0, 0, raster_params.get_cols(), raster_params.get_rows())
     if grid_values is None:
-        raise RasterIOException("Unable to read data from raster")
+        raise RasterIOException("Unable to read data from rasters")
 
     # transform data into numpy array
     data = np.asarray(grid_values)
@@ -355,23 +355,23 @@ def read_raster_layer(raster_name, layermap_items):
 
     # verify input parameters
     if raster_name is None or raster_name == '':
-        raise RasterParametersException("No name defined for raster")
+        raise RasterParametersException("No name defined for rasters")
 
-    # get raster input file
+    # get rasters input file
     raster_layer = None
     for (name, layer) in layermap_items:
         if layer.name() == raster_name:
             raster_layer = layer
             break
     if raster_layer is None:
-        raise RasterParametersException("Unable to get raster name")
+        raise RasterParametersException("Unable to get rasters name")
 
     try:
         raster_source = raster_layer.source()
     except:
-        raise RasterParametersException("Unable to get raster file")
+        raise RasterParametersException("Unable to get rasters file")
 
-    # get raster parameters and data
+    # get rasters parameters and data
     try:
         raster_params, raster_array = read_raster_band(raster_source)
     except Exception as e:
