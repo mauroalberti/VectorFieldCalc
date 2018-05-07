@@ -8,13 +8,6 @@ class RasterIOException(Exception):
     pass
 
 
-class RasterParametersException(Exception):
-    """
-    Exception for rasters parameters.
-    """
-    pass
-
-
 class OGRIOException(Exception):
     """
     Exception for OGR IO parameters.

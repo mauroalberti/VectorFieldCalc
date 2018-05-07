@@ -74,10 +74,10 @@ class ArrCoord(object):
 
     j = property(g_j, s_j)
 
-    def grid2geogcoord(self, currGeoGrid : 'Grid') -> Tuple[float, float]:
+    def grid2geogcoord(self, currGeoGrid : 'Raster') -> Tuple[float, float]:
         """
         
-        :param currGeoGrid: a Grid instance.
+        :param currGeoGrid: a Raster instance.
         :return: the x and y locations.
         :rtype: tuple with two floats.
         """
@@ -132,16 +132,16 @@ class GridParams(object):
         self.crs = inCrs
 
 
-class Grid(object):
+class Raster(object):
     """
-    Grid class.
+    Raster class.
     Stores and manages the most of data and processing.
 
     """
 
     def __init__(self, inGridParams: GridParams, inLevels: List['array']) -> None:
         """
-        Grid class constructor.
+        Raster class constructor.
 
         :param  inGridParams:  the geo-parameters of the grid.
         :type  inGridParams:  GridParams.
@@ -165,13 +165,13 @@ class Grid(object):
         if inLevels is not None:
             self._grid_levels = inLevels
         else:
-            self._grid_levels = None
+            self._grid_levels = []
 
     def s_domain(self, domain: RectangularDomain) -> None:
         """
         Set spatial domain.
 
-        :param  domain:  Spatial domain to be attributed to the current Grid instance.
+        :param  domain:  Spatial domain to be attributed to the current Raster instance.
         :type  domain: RectangularDomain.
 
         :return: None
@@ -186,7 +186,7 @@ class Grid(object):
         """
         Get spatial domain.
 
-        :return: the spatial domain of the current Grid instance
+        :return: the spatial domain of the current Raster instance
         ;:type: RectangularDomain.
 
         Examples:
@@ -196,7 +196,7 @@ class Grid(object):
 
     def d_domain(self) -> None:
         """
-        Delete current spatial domain of the Grid instance.
+        Delete current spatial domain of the Raster instance.
 
         :return: None
 
@@ -434,9 +434,9 @@ class Grid(object):
         :rtype: int
 
         Examples:
-          >>> Grid(grid_data=array([[1, 2], [3, 4]])).levels_num
+          >>> Raster(grid_data=array([[1, 2], [3, 4]])).levels_num
           1
-          >>> Grid(grid_data=np.ones((4, 3, 2)))
+          >>> Raster(grid_data=np.ones((4, 3, 2)))
           2
         """
 
@@ -447,7 +447,7 @@ class Grid(object):
         """
         Return an array representing the forward gradient in the y direction (top-wards), with values scaled by cell size.
 
-        :return: array with same shape as current Grid instance
+        :return: array with same shape as current Raster instance
         :rtype: numpy.array
 
         Examples:
@@ -462,7 +462,7 @@ class Grid(object):
         """
         Return an array representing the forward gradient in the x direction (right-wards), with values scaled by cell size.
 
-        :return: array with same shape as current Grid instance
+        :return: array with same shape as current Raster instance
         :rtype: numpy.array
 
         Examples:
@@ -520,7 +520,7 @@ class Grid(object):
 
         magnitude = np.sqrt(vx ** 2 + vy ** 2)
 
-        magnitude_fld = Grid()
+        magnitude_fld = Raster()
         magnitude_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         magnitude_fld.set_grid_data(magnitude)
 
@@ -537,7 +537,7 @@ class Grid(object):
         orientations = np.degrees(np.arctan2(vx, vy))
         orientations = np.where(orientations < 0.0, orientations + 360.0, orientations)
 
-        orientations_fld = Grid()
+        orientations_fld = Raster()
         orientations_fld.set_grid_domain(self.get_grid_domain().get_start_point(),
                                          self.get_grid_domain().get_end_point())
         orientations_fld.set_grid_data(orientations)
@@ -553,7 +553,7 @@ class Grid(object):
         dvx_dx = np.gradient(self.grid_data[:, :, 0])[1]
         dvy_dy = -(np.gradient(self.grid_data[:, :, 1])[0])
 
-        divergence_fld = Grid()
+        divergence_fld = Raster()
         divergence_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         divergence_fld.set_grid_data((dvx_dx + dvy_dy) / self.get_cellsize_horiz_mean())
 
@@ -568,7 +568,7 @@ class Grid(object):
         dvy_dx = np.gradient(self.grid_data[:, :, 1])[1]
         dvx_dy = -(np.gradient(self.grid_data[:, :, 0])[0])
 
-        curl_fld = Grid()
+        curl_fld = Raster()
         curl_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         curl_fld.set_grid_data((dvy_dx - dvx_dy) / self.get_cellsize_horiz_mean())
 
@@ -587,7 +587,7 @@ class Grid(object):
         vect_magn = np.sqrt(vx ** 2 + vy ** 2)
         dm_dy, dm_dx = np.gradient(vect_magn)
 
-        vect_xgrad_fld = Grid()
+        vect_xgrad_fld = Raster()
         vect_xgrad_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         vect_xgrad_fld.set_grid_data(dm_dx / self.get_cellsize_horiz_mean())
 
@@ -607,7 +607,7 @@ class Grid(object):
         dm_dy, dm_dx = np.gradient(vect_magn)
         dm_dy = - dm_dy
 
-        vect_ygrad_fld = Grid()
+        vect_ygrad_fld = Raster()
         vect_ygrad_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         vect_ygrad_fld.set_grid_data(dm_dy / self.get_cellsize_horiz_mean())
 
@@ -629,7 +629,7 @@ class Grid(object):
 
         velocity_gradient = dm_dx * np.sin(dir_array) + dm_dy * np.cos(dir_array)
 
-        vect_magn_grad_fld = Grid()
+        vect_magn_grad_fld = Raster()
         vect_magn_grad_fld.set_grid_domain(self.get_grid_domain().get_start_point(),
                                            self.get_grid_domain().get_end_point())
         vect_magn_grad_fld.set_grid_data(velocity_gradient / self.get_cellsize_horiz_mean())
@@ -645,7 +645,7 @@ class Grid(object):
             v_01 = self.get_grid_data(level)[ceil(curr_Pt_gridcoord.i - 0.5), floor(curr_Pt_gridcoord.j - 0.5)]
             v_11 = self.get_grid_data(level)[ceil(curr_Pt_gridcoord.i - 0.5), ceil(curr_Pt_gridcoord.j - 0.5)]
         except:
-            raise RasterParametersExceptions('Error in get_grid_data() function')
+            raise RasterParametersException('Error in get_grid_data() function')
 
         delta_j_grid = curr_Pt_gridcoord.j - int(curr_Pt_gridcoord.j)
 

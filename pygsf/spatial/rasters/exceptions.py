@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-class RasterIOExceptions(Exception):
-    """
-    Class for rasters IO exception
-    """
-
-    pass
-
-
-class RasterParametersExceptions(Exception):
+class RasterParametersException(Exception):
     """
     Class for rasters IO exception
     """
