@@ -2,9 +2,7 @@
 
 import numpy as np
 
-
 from ...defaults.typing import *
-from .exceptions import *
 
 
 class GeoTransform(object):
@@ -15,98 +13,142 @@ class GeoTransform(object):
     """
 
     # class constructor 
-    def __init__(self, topLeftX: Number, topLeftY: Number, pixWidth: Number, pixHeight: Number, rotGT2: Number, rotGT4: Number) -> None:
+    def __init__(self, inTopLeftX: Number, inTopLeftY: Number, inPixWidth: Number, inPixHeight: Number, inRotRow: Number=0.0, inRotColumn: Number=0.0) -> None:
         """
         Class constructor.
 
-        :param topLeftX: top left corner of the top left pixel of the raster - x coord
-        :type topLeftX: Number
-        :param topLeftY:: top left corner of the top left pixel of the raster - y coord
-        :type topLeftY: Number
-        :param pixWidth: pixel width
-        :type pixWidth: Number
-        :param pixHeight: pixel height
-        :type pixHeight: Number
-        :param rotGT2: rotation
-        :type rotGT2: Number
-        :param rotGT4: rotation
-        :type rotGT4: Number
+        :param inTopLeftX: top left corner of the top left pixel of the raster - x coord
+        :type inTopLeftX: Number
+        :param inTopLeftY:: top left corner of the top left pixel of the raster - y coord
+        :type inTopLeftY: Number
+        :param inPixWidth: pixel width
+        :type inPixWidth: Number
+        :param inPixHeight: pixel height
+        :type inPixHeight: Number
+        :param inRotRow: rotation
+        :type inRotRow: Number
+        :param inRotColumn: rotation
+        :type inRotColumn: Number
 
         :return: None
-        """
+
+        Examples:
+          >>> GeoTransform(1500, 3000, 10, 10)
+          GeoTransform(inTopLeftX: 1500.00, inTopLeftY: 3000.00, inPixWidth: 10.00, inPixHeight: 10.00, inRotRow: 0.00, inRotColumn: 0.00)
+          """
 
         self.gt = np.array([
-            topLeftX,   # GT(0) - top left corner of the top left pixel of the raster
-            pixWidth,   # GT(1) - pixel width
-            rotGT2,     # GT(2) - rotation
-            topLeftY,   # GT(3) - top left corner of the top left pixel of the raster
-            rotGT4,     # GT(4) - rotation
-            pixHeight   # GT(5) - pixel height
-        ])
+            inTopLeftX,   # GT(0) - top left corner of the top left pixel of the raster
+            inPixWidth,   # GT(1) - pixel width
+            inRotRow,     # GT(2) - row rotation
+            inTopLeftY,   # GT(3) - top left corner of the top left pixel of the raster
+            inRotColumn,     # GT(4) - column rotation
+            inPixHeight   # GT(5) - pixel height
+        ], dtype=float)
+
+    def __repr__(self) -> str:
+
+        return "GeoTransform(topLeftX: {:.2f}, topLeftY: {:.2f}, pixWidth: {:.2f}, pixHeight: {:.2f}, rotRow: {:.2f}, rotColumn: {:.2f})".format(
+            self.topLeftX,
+            self.topLeftY,
+            self.pixWidth,
+            self.pixHeight,
+            self.rotRow,
+            self.rotColumn)
 
     @property
-    def topLeftX(self):
+    def topLeftX(self) -> float:
         """
         Get top-left corner x value of the rasters.
 
-        @return:  the top-left corner x value, according to GDAL convention - float.
+        :return: the top-left corner x value, according to GDAL convention
+        :rtype: float.
+
+        Examples:
+          >>> GeoTransform(1500, 3000, 10, 10, 0, 0).topLeftX
+          1500.0
         """
 
         return self.gt[0]
 
     @property
-    def topLeftY(self):
+    def topLeftY(self) -> float:
         """
         Get top-left corner y value of the rasters.
 
-        @return:  the top-left corner y value, according to GDAL convention - float.
-        """
+        :return:  the top-left corner y value, according to GDAL convention.
+        :rtype: float.
+
+        Examples:
+          >>> GeoTransform(1500, 3000, 10, 10, 0, 0).topLeftY
+          3000.0
+          """
 
         return self.gt[3]
 
     @property
-    def pixWidth(self):
+    def pixWidth(self) -> float:
         """
         Get East-West size of the rasters cell.
 
-        @return:  the East-West size of the rasters cell - float.
+        :return:  the East-West size of the rasters cell
+        :rtype: float.
+
+        Examples:
+          >>> GeoTransform(1500, 3000, 10, 10, 0, 0).pixWidth
+          10.0
         """
 
         return self.gt[1]
 
     @property
-    def pixHeight(self):
+    def pixHeight(self) -> float:
         """
         Get North-South size of the rasters cell.
 
-        @return:  the North-South size of the rasters cell - float.
+        :return:  the North-South size of the rasters cell.
+        :rtype: float.
+
+        Examples:
+          >>> GeoTransform(1500, 3000, 10, 10, 0, 0).pixHeight
+          10.0
         """
 
         return self.gt[5]
 
     @property
-    def rotGT2(self):
+    def rotRow(self) -> float:
         """
-        Get rotation GT(2) (see GDAL documentation).
+        Get row rotation GT(2) (see GDAL documentation).
 
-        @return:  the rasters rotation value GT(2). - float.
+        :return:  the rasters rotation value GT(2).
+        :rtype: float.
+
+        Examples:
+          >>> GeoTransform(1500, 3000, 10, 10, 0, 0).rotRow
+          0.0
         """
 
         return self.gt[2]
 
     @property
-    def rotGT4(self):
+    def rotColumn(self) -> float:
         """
-        Get rotation GT(4) (see GDAL documentation).
+        Get column rotation GT(4) (see GDAL documentation).
 
-        @return:  the rasters rotation value GT(4) - float.
+        :return:  the rasters rotation value GT(4).
+        :rtype: float.
+
+        Examples:
+          >>> GeoTransform(1500, 3000, 10, 10, 0, 0).rotColumn
+          0.0
         """
 
         return self.gt[4]
 
-    def projectXY(self, xPixel: Number, yLine: Number) -> Tuple[float, float]:
+    def pixToGeogr(self, xPixel: Number, yLine: Number) -> Tuple[float, float]:
         """
-        Transforms from raster to geographic coordinates.
+        Transforms from pixel to geographic coordinates.
 
         See: http://www.gdal.org/gdal_datamodel.html
         "Note that the pixel/line coordinates in the above are from (0.0,0.0)
@@ -115,9 +157,14 @@ class GeoTransform(object):
         The pixel/line location of the center of the top left pixel would
         therefore be (0.5,0.5)."
 
-        :param xPixel:
-        :param yLine:
-        :return: tuple storing geographic x - y pair
+        :param xPixel: the  pixel x coordinate.
+        :type xPixel: Number.
+        :param yLine: the pixel y coordinate.
+        :type yLine: Number
+        :return: tuple storing geographic x-y pair
+        :rtype: tuple of two floats.
+
+        Examples:
         """
 
         Xgeo = self.gt[0] + xPixel * self.gt[1] + yLine * self.gt[2]
@@ -125,64 +172,9 @@ class GeoTransform(object):
 
         return Xgeo, Ygeo
 
-    def check_params(self, tolerance=1e-06):
-        """]
-        Check absence of axis rotations or pixel size differences in the rasters band.
 
-        @param  tolerance:  the maximum threshold for both pixel N-S and E-W difference, or axis rotations.
-        @type  tolerance:  float.
+if __name__ == "__main__":
 
-        @return:  None when successful, RasterParametersException when pixel differences or axis rotations.
-
-        @raise: RasterParametersException - rasters geometry incompatible with this module (i.e. different cell sizes or axis rotations).
-        """
-        
-        # check if pixel size can be considered the same in the two axis directions
-        if abs(abs(self._pixWidth) - abs(self._pixHeight)) / abs(self._pixHeight) > tolerance:
-            raise RasterParametersException("Pixel sizes in x and y directions are different in rasters")
-
-            # check for the absence of axis rotations
-        if abs(self._rotation_GT_2) > tolerance or abs(self._rotation_GT_4) > tolerance:
-            raise RasterParametersException("There should be no axis rotation in rasters")
-
-        return
-
-    def llcorner(self):
-        """
-        Creates a point tuple (x, y) representing the lower-left corner of the rasters.
-
-        @return:  new Point instance.
-        """
-        return self.topLeftX, self.topLeftY - abs(self.pixSizeNS) * self.rows
-
-    def trcorner(self):
-        """
-        Create a point tuple (x, y) representing the top-right corner of the rasters.
-
-        @return:  new Point instance.
-        """
-        return self.topLeftX + abs(self.pixSizeEW) * self.cols, self.topLeftY
-
-    def geo_equiv(self, other, tolerance=1.0e-6):
-        """
-        Checks if two rasters are geographically equivalent.
-
-        @param  other:  a grid to be compared with self.
-        @type  other:  Raster instance.
-        @param  tolerance:  the maximum threshold for pixel sizes, topLeftX or topLeftY differences.
-        @type  tolerance:  float.
-
-        @return:  Boolean.
-        """
-        if 2 * (self.topLeftX - other.topLeftX) / (self.topLeftX + other.topLeftX) > tolerance or \
-                                        2 * (self.topLeftY - other.topLeftY) / (
-                                    self.topLeftY + other.topLeftY) > tolerance or \
-                                        2 * (abs(self.pixSizeEW) - abs(other.pixSizeEW)) / (
-                                    abs(self.pixSizeEW) + abs(other.pixSizeEW)) > tolerance or \
-                                        2 * (abs(self.pixSizeNS) - abs(other.pixSizeNS)) / (
-                                    abs(self.pixSizeNS) + abs(other.pixSizeNS)) > tolerance or \
-                        self.rows != other.rows or self.cols != other.cols or self.projection != other.projection:
-            return False
-        else:
-            return True
+    import doctest
+    doctest.testmod()
 

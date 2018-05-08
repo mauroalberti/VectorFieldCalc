@@ -13,18 +13,19 @@ from .exceptions import *
 from pygsf.spatial.rasters.geotransform import GeoTransform
 
 
-def read_raster_band(raster_name: str, raster_params):
+def read_raster(raster_path: str):
     """
-    Read data and metadata of a rasters band based on GDAL.
+    Read a raster layer.
 
-    :param raster_name:
-    :param raster_params:
+    :param raster_path:
     :return:
+
+    Examples:
     """
 
-    # open rasters file and check operation success
+    # open raster file and check operation success
 
-    raster_data = gdal.Open(str(raster_name), GA_ReadOnly)
+    raster_data = gdal.Open(str(raster_path), GA_ReadOnly)
     if raster_data is None:
         raise RasterIOException("No input data open")
 
@@ -36,6 +37,17 @@ def read_raster_band(raster_name: str, raster_params):
     raster_params.set_topLeftY(raster_data.GetGeoTransform()[3])
     raster_params.set_rotationB(raster_data.GetGeoTransform()[4])
     raster_params.set_pixSizeNS(raster_data.GetGeoTransform()[5])
+
+
+
+def read_raster_band(raster_name: str, bnd_ndx: int=1):
+    """
+    Read data and metadata of a rasters band based on GDAL.
+
+    :param raster_name:
+    :param raster_params:
+    :return:
+    """
 
     # get single band
 
