@@ -57,6 +57,16 @@ class GeoTransform(object):
             self.rotColumn)
 
     @property
+    def components(self):
+        """
+        Returns the Geotransform components as a tuple.
+
+        :return:
+        """
+
+        return self.gt[0], self.gt[1], self.gt[2], self.gt[3], self.gt[4], self.gt[5]
+
+    @property
     def topLeftX(self) -> float:
         """
         Get top-left corner x value of the rasters.
@@ -171,6 +181,46 @@ class GeoTransform(object):
         Ygeo = self.gt[3] + xPixel * self.gt[4] + yLine * self.gt[5]
 
         return Xgeo, Ygeo
+
+    def geoToPixel(self, x: Number, y: Number) -> Tuple[float, float]:
+        """
+        x = g0 + p * g1 + l * g2
+        y = g3 + p * g4 + l * g5
+
+        x - g0 - l* g2 = p * g1
+        p = (x - g0 - l*g2) / g1
+        p = (y - g3 - l*g5) / g4
+
+        g1 * y - g1 * g3 - l * g5 * g1 = g4 * x - g0 * g4 - l * g2 * g4
+        l * (g2g4 -g1g5) = -g1y + g1g3 + g4x - g0g4
+        l = (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
+
+        (x - g0 - g1p) / g2 =  (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
+
+        g2 * (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5) = x - g0 - g1p
+        """
+
+        g0, g1, g2, g3, g4, g5 = self.components
+
+        l = (g1*g3 - g0*g4 + g4*x - g1*y) / (g2*g4 - g1*g5)
+        p = (x - g0 - l*g2) / g1
+
+        return p, l
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == "__main__":
