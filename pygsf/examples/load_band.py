@@ -1,8 +1,8 @@
 
-from ..gdal import *
+from pygsf.libs_utils.gdal.gdal import *
 
 
-data_path = r"./example_data/vx.asc"
+data_path = r"../example_data/vx.asc"
 
 dataset, geotransform, num_bands, projection = read_raster(data_path)
 

@@ -3,10 +3,10 @@
 
 import unittest
 
-from ..gdal import *
+from pygsf.libs_utils.gdal.gdal import *
 
 
-data_path = r"./example_data/vx.asc"
+data_path = "../example_data/vx.asc"
 
 
 class TestRasterRead(unittest.TestCase):
@@ -31,6 +31,7 @@ class TestRasterRead(unittest.TestCase):
         band = read_band(dataset, 1)
 
         dataset = None
+
 
 if __name__ == '__main__':
 
