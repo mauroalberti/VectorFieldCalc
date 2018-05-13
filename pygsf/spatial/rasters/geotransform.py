@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+
 import numpy as np
 
 from ...defaults.typing import *
@@ -12,7 +13,6 @@ class GeoTransform(object):
     See: http://www.gdal.org/gdal_datamodel.html
     """
 
-    # class constructor 
     def __init__(self, inTopLeftX: Number, inTopLeftY: Number, inPixWidth: Number, inPixHeight: Number, inRotRow: Number=0.0, inRotColumn: Number=0.0) -> None:
         """
         Class constructor.
@@ -34,7 +34,7 @@ class GeoTransform(object):
 
         Examples:
           >>> GeoTransform(1500, 3000, 10, 10)
-          GeoTransform(inTopLeftX: 1500.00, inTopLeftY: 3000.00, inPixWidth: 10.00, inPixHeight: 10.00, inRotRow: 0.00, inRotColumn: 0.00)
+          GeoTransform(topLeftX: 1500.00, topLeftY: 3000.00, pixWidth: 10.00, pixHeight: 10.00, rotRow: 0.00, rotColumn: 0.00)
           """
 
         self.gt = np.array([
@@ -42,9 +42,26 @@ class GeoTransform(object):
             inPixWidth,   # GT(1) - pixel width
             inRotRow,     # GT(2) - row rotation
             inTopLeftY,   # GT(3) - top left corner of the top left pixel of the raster
-            inRotColumn,     # GT(4) - column rotation
+            inRotColumn,  # GT(4) - column rotation
             inPixHeight   # GT(5) - pixel height
         ], dtype=float)
+
+    @classmethod
+    def fromGdalGt(cls, gdal_gt: Tuple[float, float, float, float, float, float]):
+        """
+        Creates a Geotransform from a GDAL-convetion tuple.
+
+        :param gdal_gt: tuple with GDAL geotransform parameters
+        :return: None
+        """
+
+        return cls(
+            gdal_gt[0],
+            gdal_gt[3],
+            gdal_gt[1],
+            gdal_gt[5],
+            gdal_gt[2],
+            gdal_gt[4])
 
     def __repr__(self) -> str:
 
@@ -175,6 +192,9 @@ class GeoTransform(object):
         :rtype: tuple of two floats.
 
         Examples:
+          >>> gt1 = GeoTransform(1500, 3000, 10, 10)
+          >>> gt1.pixToGeogr(10, 10)
+          (1600.0, 3100.0)
         """
 
         Xgeo = self.gt[0] + xPixel * self.gt[1] + yLine * self.gt[2]
@@ -182,8 +202,17 @@ class GeoTransform(object):
 
         return Xgeo, Ygeo
 
-    def geoToPixel(self, x: Number, y: Number) -> Tuple[float, float]:
+    def geogrToPix(self, x: Number, y: Number) -> Tuple[float, float]:
         """
+        Transforms from geographic to pixel coordinates.
+
+        See: http://www.gdal.org/gdal_datamodel.html
+        "Note that the pixel/line coordinates in the above are from (0.0,0.0)
+        at the top left corner of the top left pixel to (width_in_pixels,
+        height_in_pixels) at the bottom right corner of the bottom right pixel.
+        The pixel/line location of the center of the top left pixel would
+        therefore be (0.5,0.5)."
+
         x = g0 + p * g1 + l * g2
         y = g3 + p * g4 + l * g5
 
@@ -198,6 +227,19 @@ class GeoTransform(object):
         (x - g0 - g1p) / g2 =  (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
 
         g2 * (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5) = x - g0 - g1p
+
+
+        :param x: the  geographic x coordinate.
+        :type x: Number.
+        :param y: the geographic y coordinate.
+        :type y: Number
+        :return: tuple storing pixel x-y pair
+        :rtype: tuple of two floats.
+
+        Examples:
+          >>> gt1 = GeoTransform(1500, 3000, 10, 10)
+          >>> gt1.geogrToPix(1600, 3100)
+          (10.0, 10.0)
         """
 
         g0, g1, g2, g3, g4, g5 = self.components
@@ -206,21 +248,6 @@ class GeoTransform(object):
         p = (x - g0 - l*g2) / g1
 
         return p, l
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":

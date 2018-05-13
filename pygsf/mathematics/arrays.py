@@ -75,11 +75,11 @@ def arraysAreClose(a_array: 'array[Number]', b_array: 'array[Number]',
     if a_array.shape != b_array.shape:
         return False
 
-    are_equal = []
+    are_close = []
     for a, b in np.nditer([a_array, b_array]):
-        are_equal.append(areClose(a.item(0), b.item(0), rtol=rtol, atol=atol, equal_nan=equal_nan, equal_inf=equal_inf))
+        are_close.append(areClose(a.item(0), b.item(0), rtol=rtol, atol=atol, equal_nan=equal_nan, equal_inf=equal_inf))
 
-    return all(are_equal)
+    return all(are_close)
 
 
 def pointSolution(a_array: 'array[Number]', b_array: 'array[Number]'):
