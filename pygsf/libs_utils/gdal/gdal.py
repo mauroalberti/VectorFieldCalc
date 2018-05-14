@@ -47,14 +47,17 @@ def read_raster(file_ref: Any) -> Tuple[gdal.Dataset, Optional[GeoTransform], in
     return dataset, geotransform, num_bands, projection
 
 
-def read_band(dataset: gdal.Dataset, bnd_ndx: int=1):
+def read_band(dataset: gdal.Dataset, bnd_ndx: int=1) -> Tuple[dict, 'np.array']:
     """
     Read data and metadata of a rasters band based on GDAL.
 
-    :param raster_dataset: the source raster dataset
-    :type raster_dataset: gdal.Dataset
-    :param raster_params:
-    :return:
+    :param dataset: the source raster dataset
+    :type dataset: gdal.Dataset
+    :param bnd_ndx: the index of the band (starts from 1)
+    :type bnd_ndx: int
+    :return: the band parameters and the data values
+    :rtype: dict of data parameters and values as a numpy.array
+    :raises: RasterIOException
 
     Examples:
 
