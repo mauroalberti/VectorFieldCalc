@@ -8,308 +8,35 @@ from ...defaults.typing import *
 
 from .exceptions import *
 
-from ..generics.general import RectangularDomain
+from .geotransform import GeoTransform
 
 
-class ArrCoord(object):
+class GeoArray(object):
     """
-    2D Array coordinates.
-    Manages coordinates in the rasters (array) space.
-    """
-
-    def __init__(self, ival: float=0.0, jval:float=0.0) -> None:
-        """
-        :param  ival:  the i (-y) array coordinate of the point.
-        :type  ival:  number or string convertible to float.
-        :param  jval:  the j (x) array coordinate of the point.
-        :type  jval:  number or string convertible to float.
-
-        :return:  self.
-        """
-        self._i = float(ival)
-        self._j = float(jval)
-
-    def g_i(self) -> float:
-        """
-        Get i (row) coordinate value.
-
-        :return:  the i (-y) array coordinate of the point - float.
-        """
-        return self._i
-
-    def s_i(self, ival) -> None:
-        """
-        Set i (row) coordinate value.
-
-        :param  ival:  the i (-y) array coordinate of the point.
-        :type  ival:  number or string convertible to float.
-
-        :return:  self.
-        """
-        self._i = float(ival)
-
-    # set property for i
-    i = property(g_i, s_i)
-
-    def g_j(self) -> float:
-        """
-        Get j (column) coordinate value.
-
-        :return:  the j (x) array coordinate of the point - float.
-        """
-        
-        return self._j
-
-    def s_j(self, jval) -> None:
-        """
-        Set j (column) coordinate value.
-
-        :param  jval:  the j (x) array coordinate of the point.
-        :type  jval:  number or string convertible to float.
-
-        :return:  self.
-        """
-        
-        self._j = jval
-
-    j = property(g_j, s_j)
-
-    def grid2geogcoord(self, currGeoGrid : 'Raster') -> Tuple[float, float]:
-        """
-        
-        :param currGeoGrid: a Raster instance.
-        :return: the x and y locations.
-        :rtype: tuple with two floats.
-        """
-        
-        currPt_geogr_y = currGeoGrid.domain.trcorner.y - self.i * currGeoGrid.cellsize_y
-        currPt_geogr_x = currGeoGrid.domain.llcorner.x + self.j * currGeoGrid.cellsize_x
-
-        return currPt_geogr_x, currPt_geogr_y
-
-
-def arr_check(curr_array):
-    """
-    Check array input.
-
-    :param curr_array:
-    :return:
-    """
-    if len(curr_array.shape) != 3 and \
-            curr_array.shape[2] != 2:
-        return False
-    return True
-
-
-class GridParams(object):
-    """
-    Class storing the grid parameters.
-    """
-
-    def __init__(
-            self,
-            inLlxy: Tuple[Number, Number],
-            inUrxy: Optional[Tuple[Number, Number]]=None,
-            inCellSizeX: Optional[Number]=None,
-            inCellSizeY: Optional[Number]=None,
-            inNumRows: Optional[int]=None,
-            inNumCols: Optional[int]=None,
-            inRotX: Optional[Number]=None,
-            inRotY: Optional[Number]=None,
-            inCrs: Optional[str]=None):
-        """
-        Creates the grid parameters instance.
-        """
-
-        self.llxy = inLlxy
-        self.urxy = inUrxy
-        self.cellsize_x = inCellSizeX
-        self.cellsize_y = inCellSizeY
-        self.num_rows = inNumRows
-        self.num_cols = inNumCols
-        self.rot_x = inRotX
-        self.rot_y = inRotY
-        self.crs = inCrs
-
-
-class Raster(object):
-    """
-    Raster class.
+    GeoArray class.
     Stores and manages the most of data and processing.
 
     """
 
-    def __init__(self, inGridParams: GridParams, inLevels: List['array']) -> None:
+    def __init__(self, inGeotransform: GeoTransform, inProjection: str, inArray: 'array') -> None:
         """
-        Raster class constructor.
+        GeoArray class constructor.
 
-        :param  inGridParams:  the geo-parameters of the grid.
-        :type  inGridParams:  GridParams.
-        :param  inLevels:  the list sotring the array levels.
-        :type  inLevels:  list of 2D np.array.
+        :param  inGeotransform:  the geotransform
+        :type  inGeotransform:  GeoTransform.
+        :param inProjection: the projection
+        :type inProjection: str
+        :param  inArray:  the nd-array storing the data.
+        :type  inArray:  np.array.
 
         :return:  None.
 
         Examples:
         """
 
-        if inGridParams is not None:
-            pt_llc = inGridParams.llcorner
-            pt_trc = inGridParams.trcorner
-        else:
-            pt_llc = None
-            pt_trc = None
-
-        self._grid_domain = RectangularDomain(pt_llc, pt_trc)
-
-        if inLevels is not None:
-            self._grid_levels = inLevels
-        else:
-            self._grid_levels = []
-
-    def s_domain(self, domain: RectangularDomain) -> None:
-        """
-        Set spatial domain.
-
-        :param  domain:  Spatial domain to be attributed to the current Raster instance.
-        :type  domain: RectangularDomain.
-
-        :return: None
-
-        Examples:
-        """
-
-        del self._grid_domain
-        self._grid_domain = copy.deepcopy(domain)
-
-    def g_domain(self) -> RectangularDomain:
-        """
-        Get spatial domain.
-
-        :return: the spatial domain of the current Raster instance
-        ;:type: RectangularDomain.
-
-        Examples:
-        """
-
-        return self._grid_domain
-
-    def d_domain(self) -> None:
-        """
-        Delete current spatial domain of the Raster instance.
-
-        :return: None
-
-        Examples:
-        """
-
-        del self._grid_domain
-
-    # set property for spatial domain
-    domain = property(g_domain, s_domain, d_domain)
-
-    def s_grid_data(self, data_array: 'array') -> None:
-        """
-        Set grid data array.
-
-        :param data_array: numpy.array of data values.
-        :param type: 2D numpy.array.
-
-        :return: None
-
-        Examples:
-        """
-
-        if self._grid_levels is not None:
-            del self._grid_levels
-
-        self._grid_levels = data_array.copy()
-
-    def g_grid_data(self) -> 'array':
-        """
-        Get grid data array.
-
-        :return: 2D array.
-        :type: numpy.array
-
-        Examples:
-        """
-
-        return self._grid_levels
-
-    def d_grid_data(self) -> None:
-        """
-        Delete grid data array.
-
-        :return: None.
-
-        Examples:
-        """
-
-        del self._grid_levels
-
-    data = property(g_grid_data, s_grid_data, d_grid_data)
-
-    def grid_extent(self) -> Dict[str, float]:
-        """
-        Return the xmin, xmax and ymin, ymax values as a dictionary.
-
-        :return: dictionary of values.
-        :rtype: dictionary.
-        """
-
-        return dict(xmin=self.domain.llcorner.x,
-                    xmax=self.domain.trcorner.x,
-                    ymin=self.domain.llcorner.y,
-                    ymax=self.domain.trcorner.y)
-
-    @property
-    def xmin(self) -> float:
-        """
-        Returns the x minimum value.
-
-        :return:
-
-        Examples:
-        """
-
-        return self.grid_extent()["xmin"]
-
-    @property
-    def xmax(self) -> float:
-        """
-        Returns the x maximum value.
-
-        :return:
-
-        Examples:
-        """
-
-        return self.grid_extent()["xmax"]
-
-    @property
-    def ymin(self) -> float:
-        """
-        Returns the y minimum value.
-
-        :return:
-
-        Examples:
-        """
-
-        return self.grid_extent()["ymin"]
-
-    @property
-    def ymax(self) -> float:
-        """
-        Returns the y maximum value.
-
-        :return:
-
-        Examples:
-        """
-
-        return self.grid_extent()["ymax"]
+        self.gt = inGeotransform
+        self.prj = inProjection
+        self.arr = inArray
 
     @property
     def row_num(self) -> int:
@@ -322,7 +49,7 @@ class Raster(object):
         Examples:
         """
 
-        return np.shape(self.data)[0]
+        return np.shape(self.arr)[0]
 
     @property
     def col_num(self) -> int:
@@ -335,7 +62,7 @@ class Raster(object):
         Examples:
         """
 
-        return np.shape(self.data)[1]
+        return np.shape(self.arr)[1]
 
     @property
     def cellsize_x(self) -> float:
@@ -348,7 +75,7 @@ class Raster(object):
         Examples:
         """
 
-        return self.domain.xrange / float(self.col_num)
+        return abs(self.gt.pixWidth)
 
     @property
     def cellsize_y(self) -> float:
@@ -361,7 +88,7 @@ class Raster(object):
         Examples:
         """
 
-        return self.domain.yrange / float(self.row_num)
+        return abs(self.gt.pixHeight)
 
     @property
     def cellsize_h(self) -> float:
@@ -376,7 +103,7 @@ class Raster(object):
 
         return (self.cellsize_x + self.cellsize_y) / 2.0
 
-    def geog2array_coord(self, x: float, y: float) -> ArrCoord:
+    def geog2array_coord(self, x: float, y: float) -> Tuple[float, float]:
         """
         Converts from geographic to rasters (array) coordinates.
 
@@ -390,10 +117,7 @@ class Raster(object):
         Examples:
         """
 
-        currArrCoord_grid_i = (self.domain.trcorner.y - y) / self.cellsize_y
-        currArrCoord_grid_j = (x - self.domain.llcorner.x) / self.cellsize_x
-
-        return ArrCoord(currArrCoord_grid_i, currArrCoord_grid_j)
+        return self.gt.geogrToPix(x, y)
 
     def x(self) -> 'array':
         """
@@ -434,27 +158,26 @@ class Raster(object):
         :rtype: int
 
         Examples:
-          >>> Raster(grid_data=array([[1, 2], [3, 4]])).levels_num
+          >>> GeoArray(grid_data=array([[1, 2], [3, 4]])).levels_num
           1
-          >>> Raster(grid_data=np.ones((4, 3, 2)))
+          >>> GeoArray(grid_data=np.ones((4, 3, 2)))
           2
         """
 
-        print(type(self.data))
-        return self.data.ndim
+        return self.arr.ndim
 
     def grad_forward_y(self) -> 'array':
         """
         Return an array representing the forward gradient in the y direction (top-wards), with values scaled by cell size.
 
-        :return: array with same shape as current Raster instance
+        :return: array with same shape as current GeoArray instance
         :rtype: numpy.array
 
         Examples:
         """
 
-        gf = np.zeros(np.shape(self.data)) * np.NaN
-        gf[1:, :] = self.data[:-1, :] - self.data[1:, :]
+        gf = np.zeros(np.shape(self.arr)) * np.NaN
+        gf[1:, :] = self.arr[:-1, :] - self.arr[1:, :]
 
         return gf / float(self.cellsize_y)
 
@@ -462,14 +185,14 @@ class Raster(object):
         """
         Return an array representing the forward gradient in the x direction (right-wards), with values scaled by cell size.
 
-        :return: array with same shape as current Raster instance
+        :return: array with same shape as current GeoArray instance
         :rtype: numpy.array
 
         Examples:
         """
 
-        gf = np.zeros(np.shape(self.data), ) * np.NaN
-        gf[:, :-1] = self.data[:, 1:] - self.data[:, :-1]
+        gf = np.zeros(np.shape(self.arr), ) * np.NaN
+        gf[:, :-1] = self.arr[:, 1:] - self.arr[:, :-1]
 
         return gf / float(self.cellsize_x)
 
@@ -490,10 +213,10 @@ class Raster(object):
 
         assert loc_cellcenter_i > 0, loc_cellcenter_j > 0
 
-        grid_val_00 = self.data[int(floor(loc_cellcenter_i)), int(floor(loc_cellcenter_j))]
-        grid_val_01 = self.data[int(floor(loc_cellcenter_i)), int(ceil(loc_cellcenter_j))]
-        grid_val_10 = self.data[int(ceil(loc_cellcenter_i)), int(floor(loc_cellcenter_j))]
-        grid_val_11 = self.data[int(ceil(loc_cellcenter_i)), int(ceil(loc_cellcenter_j))]
+        grid_val_00 = self.arr[int(floor(loc_cellcenter_i)), int(floor(loc_cellcenter_j))]
+        grid_val_01 = self.arr[int(floor(loc_cellcenter_i)), int(ceil(loc_cellcenter_j))]
+        grid_val_10 = self.arr[int(ceil(loc_cellcenter_i)), int(floor(loc_cellcenter_j))]
+        grid_val_11 = self.arr[int(ceil(loc_cellcenter_i)), int(ceil(loc_cellcenter_j))]
 
         delta_i = loc_cellcenter_i - floor(loc_cellcenter_i)
         delta_j = loc_cellcenter_j - floor(loc_cellcenter_j)
@@ -520,7 +243,7 @@ class Raster(object):
 
         magnitude = np.sqrt(vx ** 2 + vy ** 2)
 
-        magnitude_fld = Raster()
+        magnitude_fld = GeoArray()
         magnitude_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         magnitude_fld.set_grid_data(magnitude)
 
@@ -537,7 +260,7 @@ class Raster(object):
         orientations = np.degrees(np.arctan2(vx, vy))
         orientations = np.where(orientations < 0.0, orientations + 360.0, orientations)
 
-        orientations_fld = Raster()
+        orientations_fld = GeoArray()
         orientations_fld.set_grid_domain(self.get_grid_domain().get_start_point(),
                                          self.get_grid_domain().get_end_point())
         orientations_fld.set_grid_data(orientations)
@@ -553,7 +276,7 @@ class Raster(object):
         dvx_dx = np.gradient(self.grid_data[:, :, 0])[1]
         dvy_dy = -(np.gradient(self.grid_data[:, :, 1])[0])
 
-        divergence_fld = Raster()
+        divergence_fld = GeoArray()
         divergence_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         divergence_fld.set_grid_data((dvx_dx + dvy_dy) / self.get_cellsize_horiz_mean())
 
@@ -568,7 +291,7 @@ class Raster(object):
         dvy_dx = np.gradient(self.grid_data[:, :, 1])[1]
         dvx_dy = -(np.gradient(self.grid_data[:, :, 0])[0])
 
-        curl_fld = Raster()
+        curl_fld = GeoArray()
         curl_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         curl_fld.set_grid_data((dvy_dx - dvx_dy) / self.get_cellsize_horiz_mean())
 
@@ -587,7 +310,7 @@ class Raster(object):
         vect_magn = np.sqrt(vx ** 2 + vy ** 2)
         dm_dy, dm_dx = np.gradient(vect_magn)
 
-        vect_xgrad_fld = Raster()
+        vect_xgrad_fld = GeoArray()
         vect_xgrad_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         vect_xgrad_fld.set_grid_data(dm_dx / self.get_cellsize_horiz_mean())
 
@@ -607,7 +330,7 @@ class Raster(object):
         dm_dy, dm_dx = np.gradient(vect_magn)
         dm_dy = - dm_dy
 
-        vect_ygrad_fld = Raster()
+        vect_ygrad_fld = GeoArray()
         vect_ygrad_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         vect_ygrad_fld.set_grid_data(dm_dy / self.get_cellsize_horiz_mean())
 
@@ -629,7 +352,7 @@ class Raster(object):
 
         velocity_gradient = dm_dx * np.sin(dir_array) + dm_dy * np.cos(dir_array)
 
-        vect_magn_grad_fld = Raster()
+        vect_magn_grad_fld = GeoArray()
         vect_magn_grad_fld.set_grid_domain(self.get_grid_domain().get_start_point(),
                                            self.get_grid_domain().get_end_point())
         vect_magn_grad_fld.set_grid_data(velocity_gradient / self.get_cellsize_horiz_mean())
@@ -645,7 +368,7 @@ class Raster(object):
             v_01 = self.get_grid_data(level)[ceil(curr_Pt_gridcoord.i - 0.5), floor(curr_Pt_gridcoord.j - 0.5)]
             v_11 = self.get_grid_data(level)[ceil(curr_Pt_gridcoord.i - 0.5), ceil(curr_Pt_gridcoord.j - 0.5)]
         except:
-            raise RasterParametersException('Error in get_grid_data() function')
+            raise GeoArrayIOException('Error in get_grid_data() function')
 
         delta_j_grid = curr_Pt_gridcoord.j - int(curr_Pt_gridcoord.j)
 

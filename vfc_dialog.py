@@ -431,7 +431,7 @@ class VfcDialog(QDialog):
             
         # check geometric and geographic equivalence of the two components rasters
         if not comp_x_params.geo_equiv(comp_y_params):
-            QMessageBox.critical(self, "Raster component grids", "The two rasters have different geographic extent and/or cell sizes")   
+            QMessageBox.critical(self, "GeoArray component grids", "The two rasters have different geographic extent and/or cell sizes")   
             return 
         
         # pre-processes vector field parameters            
@@ -516,7 +516,7 @@ class VfcDialog(QDialog):
             
         # check geometric and geographic equivalence of the two components rasters
         if not comp_x_params.geo_equiv(comp_y_params):
-            QMessageBox.critical(self, "Raster component grids", "The two rasters have different geographic extent and/or cell sizes")   
+            QMessageBox.critical(self, "GeoArray component grids", "The two rasters have different geographic extent and/or cell sizes")   
             return 
         
         # pre-processes gradients parameters            
@@ -597,7 +597,7 @@ class VfcDialog(QDialog):
             
         # check geometric and geographic equivalence of the two components rasters
         if not comp_x_params.geo_equiv(comp_y_params):
-            QMessageBox.critical(self, "Raster component grids", "The two rasters have different geographic extent and/or cell sizes")   
+            QMessageBox.critical(self, "GeoArray component grids", "The two rasters have different geographic extent and/or cell sizes")   
             return 
 
         # verify input parameters                

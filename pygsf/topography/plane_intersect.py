@@ -5,13 +5,13 @@ from ..defaults.typing import Tuple
 
 from ..mathematics.defaults import *
 
-from ..spatial.rasters.raster import Raster
+from ..spatial.rasters.geoarray import GeoArray
 from ..spatial.vectorial.vectorial import Point
 
 from ..orientations.orientations import Plane
 
 
-def topo_plane_intersection(grid: Raster, srcPt: Point, srcPlaneAttitude: Plane) -> Tuple['array', 'array', 'array', 'array']:
+def topo_plane_intersection(grid: GeoArray, srcPt: Point, srcPlaneAttitude: Plane) -> Tuple['array', 'array', 'array', 'array']:
     """
     Calculates the intersections (as points) between the grid and a planar analytical surface.
 

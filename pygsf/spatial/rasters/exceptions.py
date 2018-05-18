@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-class RasterParametersException(Exception):
+class GeoArrayIOException(Exception):
     """
-    Class for rasters IO exception
+    Class for geoarray IO exception
     """
 
     pass
