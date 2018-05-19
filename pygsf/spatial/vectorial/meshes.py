@@ -3,18 +3,43 @@
 
 from math import radians, sin, cos
 import json
-import numpy as np
-from osgeo import ogr
 
-from pygsf.spatial.vectorial.exceptions import AnaliticSurfaceIOException, AnaliticSurfaceCalcException
-from ..rasters.utils import formula_to_grid
+from numpy import *  # general import for compatibility with formula input
+
+from .exceptions import *
+from .vectorial import Segment
 from ...mathematics.scalars import areClose
 from ...mathematics.transformations import deformMatrices
-#from ..gsf.array_utils import almost_zero
+from ...libs_utils.gdal.ogr import *
 
-from .vectorial import Segment
-#from .gdal_utils import shapefile_create, ogr_write_point_result
 
+def formula_to_grid(array_range, array_size, formula):
+    """
+    Todo: check usages and correctness
+
+    :param array_range:
+    :param array_size:
+    :param formula:
+    :return: three lists of float values
+    """
+
+    a_min, a_max, b_max, b_min = array_range  # note: b range reversed for conventional j order in arrays
+    array_rows, array_cols = array_size
+
+    a_array = linspace(a_min, a_max, num=array_cols)
+    b_array = linspace(b_max, b_min, num=array_rows)  # note: reversed for conventional j order in arrays
+
+    try:
+        a_list, b_list = [a for a in a_array for _ in b_array], [b for _ in a_array for b in b_array]
+    except:
+        raise AnaliticSurfaceCalcException("Error in a-b values")
+
+    try:
+        z_list = [eval(formula) for a in a_array for b in b_array]
+    except:
+        raise AnaliticSurfaceCalcException("Error in applying formula to a and b array values")
+
+    return a_list, b_list, z_list
 
 
 class TriangBeam(object):

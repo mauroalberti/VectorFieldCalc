@@ -436,9 +436,9 @@ class VfcDialog(QDialog):
         
         # pre-processes vector field parameters            
         params_choices = (magnitude_calc_choice, orientations_calc_choice, divergence_calc_choice, curlmodule_calc_choice)     
-        params_names = ('magnitude','orientation','divergence','curl module')                      
+        params_names = ('magnitude','orientation','divergence_2D','curl module')
         params_savefiles = (magnitude_outraster_path, orientations_outraster_path, divergence_outraster_path, curlmodule_outraster_path)
-        params_functions = ('magnitude', 'orientations', 'divergence', 'curl_module')
+        params_functions = ('magnitude', 'orientations', 'divergence_2D', 'curl_module')
     
         # verify input choices for vector field parameters            
         for vfp_name, vfp_choice, vfp_savefile in zip(params_names, params_choices, params_savefiles):
@@ -835,7 +835,7 @@ class VfcDialog(QDialog):
         """
             <p>VectorFieldCalc version 1.3<br />License: GPL v. 3</p>
             <p>M. Alberti, <a href="http://www.malg.eu">www.malg.eu</a></p> 
-            <p>This application calculates vector field parameters (e.g., divergence, curl module, gradients)
+            <p>This application calculates vector field parameters (e.g., divergence_2D, curl module, gradients)
             and pathlines.            
             </p>
              <p>Please report any bug to <a href="mailto:alberti.m65@gmail.com">alberti.m65@gmail.com</a></p>

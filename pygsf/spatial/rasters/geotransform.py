@@ -6,16 +6,16 @@ import numpy as np
 from ...defaults.typing import *
 
 
-class GeoTransform(object):
+class GeoTransform(np.ndarray):
     """
     Manage geotransform parameters for rasters.
     It is based on the GDAL GeoTransform concept.
     See: http://www.gdal.org/gdal_datamodel.html
     """
 
-    def __init__(self, inTopLeftX: Number, inTopLeftY: Number, inPixWidth: Number, inPixHeight: Number, inRotRow: Number=0.0, inRotColumn: Number=0.0) -> None:
+    def __new__(cls, inTopLeftX: Number, inTopLeftY: Number, inPixWidth: Number, inPixHeight: Number, inRotRow: Number=0.0, inRotColumn: Number=0.0) -> None:
         """
-        Class constructor.
+        Instance creator.
 
         :param inTopLeftX: top left corner of the top left pixel of the raster - x coord
         :type inTopLeftX: Number
@@ -37,14 +37,14 @@ class GeoTransform(object):
           GeoTransform(topLeftX: 1500.00, topLeftY: 3000.00, pixWidth: 10.00, pixHeight: 10.00, rotRow: 0.00, rotColumn: 0.00)
           """
 
-        self.gt = np.array([
-            inTopLeftX,   # GT(0) - top left corner of the top left pixel of the raster
-            inPixWidth,   # GT(1) - pixel width
-            inRotRow,     # GT(2) - row rotation
-            inTopLeftY,   # GT(3) - top left corner of the top left pixel of the raster
+        return np.array([
+            inTopLeftX,  # GT(0) - top left corner of the top left pixel of the raster
+            inPixWidth,  # GT(1) - pixel width
+            inRotRow,  # GT(2) - row rotation
+            inTopLeftY,  # GT(3) - top left corner of the top left pixel of the raster
             inRotColumn,  # GT(4) - column rotation
-            inPixHeight   # GT(5) - pixel height
-        ], dtype=float)
+            inPixHeight  # GT(5) - pixel height
+        ], dtype=float).view(cls)
 
     @classmethod
     def fromGdalGt(cls, gdal_gt: Tuple[float, float, float, float, float, float]):
@@ -81,7 +81,7 @@ class GeoTransform(object):
         :return:
         """
 
-        return self.gt[0], self.gt[1], self.gt[2], self.gt[3], self.gt[4], self.gt[5]
+        return self[0], self[1], self[2], self[3], self[4], self[5]
 
     @property
     def topLeftX(self) -> float:
@@ -96,7 +96,7 @@ class GeoTransform(object):
           1500.0
         """
 
-        return self.gt[0]
+        return self[0]
 
     @property
     def topLeftY(self) -> float:
@@ -111,7 +111,7 @@ class GeoTransform(object):
           3000.0
           """
 
-        return self.gt[3]
+        return self[3]
 
     @property
     def pixWidth(self) -> float:
@@ -126,7 +126,7 @@ class GeoTransform(object):
           10.0
         """
 
-        return self.gt[1]
+        return self[1]
 
     @property
     def pixHeight(self) -> float:
@@ -141,7 +141,7 @@ class GeoTransform(object):
           10.0
         """
 
-        return self.gt[5]
+        return self[5]
 
     @property
     def rotRow(self) -> float:
@@ -156,7 +156,7 @@ class GeoTransform(object):
           0.0
         """
 
-        return self.gt[2]
+        return self[2]
 
     @property
     def rotColumn(self) -> float:
@@ -171,83 +171,88 @@ class GeoTransform(object):
           0.0
         """
 
-        return self.gt[4]
-
-    def pixToGeogr(self, xPixel: Number, yLine: Number) -> Tuple[float, float]:
-        """
-        Transforms from pixel to geographic coordinates.
-
-        See: http://www.gdal.org/gdal_datamodel.html
-        "Note that the pixel/line coordinates in the above are from (0.0,0.0)
-        at the top left corner of the top left pixel to (width_in_pixels,
-        height_in_pixels) at the bottom right corner of the bottom right pixel.
-        The pixel/line location of the center of the top left pixel would
-        therefore be (0.5,0.5)."
-
-        :param xPixel: the  pixel x coordinate.
-        :type xPixel: Number.
-        :param yLine: the pixel y coordinate.
-        :type yLine: Number
-        :return: tuple storing geographic x-y pair
-        :rtype: tuple of two floats.
-
-        Examples:
-          >>> gt1 = GeoTransform(1500, 3000, 10, 10)
-          >>> gt1.pixToGeogr(10, 10)
-          (1600.0, 3100.0)
-        """
-
-        Xgeo = self.gt[0] + xPixel * self.gt[1] + yLine * self.gt[2]
-        Ygeo = self.gt[3] + xPixel * self.gt[4] + yLine * self.gt[5]
-
-        return Xgeo, Ygeo
-
-    def geogrToPix(self, x: Number, y: Number) -> Tuple[float, float]:
-        """
-        Transforms from geographic to pixel coordinates.
-
-        See: http://www.gdal.org/gdal_datamodel.html
-        "Note that the pixel/line coordinates in the above are from (0.0,0.0)
-        at the top left corner of the top left pixel to (width_in_pixels,
-        height_in_pixels) at the bottom right corner of the bottom right pixel.
-        The pixel/line location of the center of the top left pixel would
-        therefore be (0.5,0.5)."
-
-        x = g0 + p * g1 + l * g2
-        y = g3 + p * g4 + l * g5
-
-        x - g0 - l* g2 = p * g1
-        p = (x - g0 - l*g2) / g1
-        p = (y - g3 - l*g5) / g4
-
-        g1 * y - g1 * g3 - l * g5 * g1 = g4 * x - g0 * g4 - l * g2 * g4
-        l * (g2g4 -g1g5) = -g1y + g1g3 + g4x - g0g4
-        l = (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
-
-        (x - g0 - g1p) / g2 =  (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
-
-        g2 * (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5) = x - g0 - g1p
+        return self[4]
 
 
-        :param x: the  geographic x coordinate.
-        :type x: Number.
-        :param y: the geographic y coordinate.
-        :type y: Number
-        :return: tuple storing pixel x-y pair
-        :rtype: tuple of two floats.
+def pixToGeogr(geotransform: GeoTransform, xPixel: Number, yLine: Number) -> Tuple[float, float]:
+    """
+    Transforms from pixel to geographic coordinates.
 
-        Examples:
-          >>> gt1 = GeoTransform(1500, 3000, 10, 10)
-          >>> gt1.geogrToPix(1600, 3100)
-          (10.0, 10.0)
-        """
+    See: http://www.gdal.org/gdal_datamodel.html
+    "Note that the pixel/line coordinates in the above are from (0.0,0.0)
+    at the top left corner of the top left pixel to (width_in_pixels,
+    height_in_pixels) at the bottom right corner of the bottom right pixel.
+    The pixel/line location of the center of the top left pixel would
+    therefore be (0.5,0.5)."
 
-        g0, g1, g2, g3, g4, g5 = self.components
+    :param xPixel: the  pixel x coordinate.
+    :type xPixel: Number.
+    :param yLine: the pixel y coordinate.
+    :type yLine: Number
+    :return: tuple storing geographic x-y pair
+    :rtype: tuple of two floats.
 
-        l = (g1*g3 - g0*g4 + g4*x - g1*y) / (g2*g4 - g1*g5)
-        p = (x - g0 - l*g2) / g1
+    Examples:
+      >>> gt1 = GeoTransform(1500, 3000, 10, 10)
+      >>> pixToGeogr(gt1, 10, 10)
+      (1600.0, 3100.0)
+    """
 
-        return p, l
+    Xgeo = geotransform[0] + xPixel * geotransform[1] + yLine * geotransform[2]
+    Ygeo = geotransform[3] + xPixel * geotransform[4] + yLine * geotransform[5]
+
+    return Xgeo, Ygeo
+
+
+def geogrToPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float, float]:
+    """
+    Transforms from geographic to pixel coordinates.
+
+    See: http://www.gdal.org/gdal_datamodel.html
+    "Note that the pixel/line coordinates in the above are from (0.0,0.0)
+    at the top left corner of the top left pixel to (width_in_pixels,
+    height_in_pixels) at the bottom right corner of the bottom right pixel.
+    The pixel/line location of the center of the top left pixel would
+    therefore be (0.5,0.5)."
+
+    Formula derivation
+    ------------------
+
+    x = g0 + p * g1 + l * g2
+    y = g3 + p * g4 + l * g5
+
+    x - g0 - l* g2 = p * g1
+    p = (x - g0 - l*g2) / g1
+    p = (y - g3 - l*g5) / g4
+
+    g1 * y - g1 * g3 - l * g5 * g1 = g4 * x - g0 * g4 - l * g2 * g4
+    l * (g2g4 -g1g5) = -g1y + g1g3 + g4x - g0g4
+    l = (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
+
+    (x - g0 - g1p) / g2 =  (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
+
+    g2 * (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5) = x - g0 - g1p
+
+
+    :param x: the  geographic x coordinate.
+    :type x: Number.
+    :param y: the geographic y coordinate.
+    :type y: Number
+    :return: tuple storing pixel x-y pair
+    :rtype: tuple of two floats.
+
+    Examples:
+      >>> gt1 = GeoTransform(1500, 3000, 10, 10)
+      >>> geogrToPix(gt1, 1600, 3100)
+      (10.0, 10.0)
+    """
+
+    g0, g1, g2, g3, g4, g5 = geotransform.components
+
+    l = (g1*g3 - g0*g4 + g4*x - g1*y) / (g2*g4 - g1*g5)
+    p = (x - g0 - l*g2) / g1
+
+    return p, l
 
 
 if __name__ == "__main__":

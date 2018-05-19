@@ -378,7 +378,7 @@ class Grid:
         return orientations_fld
         
         
-    # calculates divergence 
+    # calculates divergence_2D
     def divergence(self):        
 
         if not arr_check(self.grid_data):

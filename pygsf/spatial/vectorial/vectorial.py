@@ -602,7 +602,7 @@ class CPlane(object):
         Check that two Plane are sub-parallel
 
         :param another: a Plane instance
-        :param angle_tolerance: the maximum allowed divergence angle (in degrees)
+        :param angle_tolerance: the maximum allowed divergence_2D angle (in degrees)
         :return: Boolean
 
          Examples:

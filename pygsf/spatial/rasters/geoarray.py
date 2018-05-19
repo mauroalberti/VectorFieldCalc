@@ -14,7 +14,7 @@ from .geotransform import GeoTransform
 class GeoArray(object):
     """
     GeoArray class.
-    Stores and manages the most of data and processing.
+    Stores and process georeferenced raster data.
 
     """
 
@@ -267,7 +267,7 @@ class GeoArray(object):
 
         return orientations_fld
 
-    # calculates divergence
+    # calculates divergence_2D
     def divergence(self):
 
         if not arr_check(self.grid_data):
