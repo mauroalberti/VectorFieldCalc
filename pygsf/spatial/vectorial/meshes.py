@@ -262,7 +262,7 @@ class AnalyticGeosurface(object):
             raise AnaliticSurfaceIOException("Input a and b value error")
 
         if grid_cols <= 0 or grid_rows <= 0:
-            raise AnaliticSurfaceIOException("GeoArray column/row value error")
+            raise AnaliticSurfaceIOException("Raster column/row value error")
 
         if formula == '':
             raise AnaliticSurfaceIOException("Input analytical formula error")

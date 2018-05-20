@@ -125,7 +125,7 @@ def xyzSvd(xyz_array) -> dict:
     return dict(result=result)
 
 
-def divergence_2D(fld_x: 'array', fld_y: 'array') -> 'array':
+def divergence_2D(fld_x: 'array', fld_y: 'array', cell_size_x: Number, cell_size_y: Number) -> 'array':
     """
     Calculates the divergence from two 2D arrays:
     the first represents the vector field x component, the second the vector field y component.
@@ -140,8 +140,11 @@ def divergence_2D(fld_x: 'array', fld_y: 'array') -> 'array':
     Examples:
     """
 
-    dfx_dx = np.gradient(fld_x, axis=1)
-    dfy_dy = np.gradient(fld_y, axis=0)
+    grad_x = np.gradient(fld_x, edge_order=2, axis=1)
+    grad_y = np.gradient(fld_y, edge_order=2, axis=0)
+
+    dfx_dx = grad_x / cell_size_x
+    dfy_dy = grad_y / cell_size_y
 
     return dfx_dx - dfy_dy
 

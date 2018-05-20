@@ -16,6 +16,7 @@ class GeoTransform(np.ndarray):
     def __new__(cls, inTopLeftX: Number, inTopLeftY: Number, inPixWidth: Number, inPixHeight: Number, inRotRow: Number=0.0, inRotColumn: Number=0.0) -> None:
         """
         Instance creator.
+        Note: pixel height input is positive.
 
         :param inTopLeftX: top left corner of the top left pixel of the raster - x coord
         :type inTopLeftX: Number
@@ -43,7 +44,7 @@ class GeoTransform(np.ndarray):
             inRotRow,  # GT(2) - row rotation
             inTopLeftY,  # GT(3) - top left corner of the top left pixel of the raster
             inRotColumn,  # GT(4) - column rotation
-            inPixHeight  # GT(5) - pixel height
+            -inPixHeight  # GT(5) - pixel height
         ], dtype=float).view(cls)
 
     @classmethod
@@ -141,7 +142,7 @@ class GeoTransform(np.ndarray):
           10.0
         """
 
-        return self[5]
+        return -self[5]
 
     @property
     def rotRow(self) -> float:
@@ -174,7 +175,7 @@ class GeoTransform(np.ndarray):
         return self[4]
 
 
-def pixToGeogr(geotransform: GeoTransform, xPixel: Number, yLine: Number) -> Tuple[float, float]:
+def pixToGeogr(geotransform: GeoTransform, i: Number, j: Number) -> Tuple[float, float]:
     """
     Transforms from pixel to geographic coordinates.
 
@@ -195,11 +196,13 @@ def pixToGeogr(geotransform: GeoTransform, xPixel: Number, yLine: Number) -> Tup
     Examples:
       >>> gt1 = GeoTransform(1500, 3000, 10, 10)
       >>> pixToGeogr(gt1, 10, 10)
-      (1600.0, 3100.0)
+      (1600.0, 2900.0)
+      >>> pixToGeogr(gt1, 2, 1)
+      (1510.0, 2980.0)
     """
 
-    Xgeo = geotransform[0] + xPixel * geotransform[1] + yLine * geotransform[2]
-    Ygeo = geotransform[3] + xPixel * geotransform[4] + yLine * geotransform[5]
+    Xgeo = geotransform[0] + j * geotransform[1] + i * geotransform[2]
+    Ygeo = geotransform[3] + j * geotransform[4] + i * geotransform[5]
 
     return Xgeo, Ygeo
 
@@ -243,7 +246,7 @@ def geogrToPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float,
 
     Examples:
       >>> gt1 = GeoTransform(1500, 3000, 10, 10)
-      >>> geogrToPix(gt1, 1600, 3100)
+      >>> geogrToPix(gt1, 1600, 2900)
       (10.0, 10.0)
     """
 

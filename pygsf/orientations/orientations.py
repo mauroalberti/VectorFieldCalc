@@ -867,7 +867,7 @@ class Direct(object):
         Check that two Direct instances are sub-parallel,
 
         :param another: an Direct instance
-        :param angle_tolerance: the maximum allowed divergence_2D angle (in degrees)
+        :param angle_tolerance: the maximum allowed divergence angle (in degrees)
         :return: Boolean
 
         Examples:
@@ -897,7 +897,7 @@ class Direct(object):
         Check that two Vect instances are almost anti-parallel,
 
         :param another: a Vect instance
-        :param angle_tolerance: the maximum allowed divergence_2D angle (in degrees)
+        :param angle_tolerance: the maximum allowed divergence angle (in degrees)
         :return: Boolean
 
         Examples:
@@ -920,7 +920,7 @@ class Direct(object):
         Check that two Direct instance are sub-orthogonal
 
         :param another: a Direct instance
-        :param angle_tolerance: the maximum allowed divergence_2D angle (in degrees) from orthogonality
+        :param angle_tolerance: the maximum allowed divergence angle (in degrees) from orthogonality
         :return: Boolean
 
          Examples:
@@ -1503,7 +1503,7 @@ class Plane(object):
         Check that two GPlanes are sub-parallel
 
         :param another: a Plane instance
-        :param angle_tolerance: the maximum allowed divergence_2D angle (in degrees)
+        :param angle_tolerance: the maximum allowed divergence angle (in degrees)
         :return: Boolean
 
          Examples:
@@ -1547,7 +1547,7 @@ class Plane(object):
         Check that two GPlanes are sub-orthogonal.
 
         :param another: a Plane instance
-        :param angle_tolerance: the maximum allowed divergence_2D angle (in degrees)
+        :param angle_tolerance: the maximum allowed divergence angle (in degrees)
         :return: Boolean
 
          Examples:
