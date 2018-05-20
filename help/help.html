@@ -8,7 +8,7 @@
 	<h2>VectorFieldCalc v. 1.3</h2>
 	<p>see: <a href="http://www.malg.eu/vectorparameters.php">www.malg.eu/vectorparameters.php</a>
 	<p>
-		This plugin for Quantum GIS allows to calculate physical parameters (e.g., divergence_2D, curl module, pathlines), given a 2D, steady vector field,
+		This plugin for Quantum GIS allows to calculate physical parameters (e.g., divergence, curl module, pathlines), given a 2D, steady vector field,
 		such as the velocity field of glacial flows.
 	</p>
 
@@ -32,7 +32,7 @@
 		<td></td>
 		</tr>
 		<tr>
-		<td>divergence_2D</td>
+		<td>divergence</td>
 		<td>along flowlines</td>
 		<td></td>
 		</tr>
@@ -79,14 +79,14 @@ The orientations of the vectors are calculated as decimal degrees (0-360&deg;) f
 	<h4>Divergence</h4>
 
 	<p>
-		The divergence_2D is a scalar value derived from the scalar product of nabla and the vector field in the
+		The divergence is a scalar value derived from the scalar product of nabla and the vector field in the
 		neighborhood of a point (<i>x, y, z</i>):
 	</p>
 	
 	<img src="ims/vf1_eq_2_small.png">
 
 	<p>
-		The divergence_2D indicates the tendency of a flow to diverge (positive values) or converge (negative) at each individual cell.
+		The divergence indicates the tendency of a flow to diverge (positive values) or converge (negative) at each individual cell.
 	</p>
 	
 	<h4>Curl magnitude</h4>

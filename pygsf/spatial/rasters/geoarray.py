@@ -8,6 +8,7 @@ from ...defaults.typing import *
 
 from .exceptions import *
 
+from ...mathematics.arrays import divergence_2D
 from .geotransform import GeoTransform
 
 
@@ -18,7 +19,7 @@ class GeoArray(object):
 
     """
 
-    def __init__(self, inGeotransform: GeoTransform, inProjection: str, inArray: 'array') -> None:
+    def __init__(self, inGeotransform: GeoTransform, inProjection: str, inLevels: Optional[List['np.array']]=None) -> None:
         """
         GeoArray class constructor.
 
@@ -26,8 +27,8 @@ class GeoArray(object):
         :type  inGeotransform:  GeoTransform.
         :param inProjection: the projection
         :type inProjection: str
-        :param  inArray:  the nd-array storing the data.
-        :type  inArray:  np.array.
+        :param  inLevels:  the nd-array storing the data.
+        :type  inLevels:  np.array.
 
         :return:  None.
 
@@ -36,33 +37,10 @@ class GeoArray(object):
 
         self.gt = inGeotransform
         self.prj = inProjection
-        self.arr = inArray
-
-    @property
-    def row_num(self) -> int:
-        """
-        Get row number of the grid domain.
-
-        :return: number of rows of data array.
-        :rtype: int.
-
-        Examples:
-        """
-
-        return np.shape(self.arr)[0]
-
-    @property
-    def col_num(self) -> int:
-        """
-        Get column number of the grid domain.
-
-        :return: number of columns of data array
-        :rtype: int.
-
-        Examples:
-        """
-
-        return np.shape(self.arr)[1]
+        if inLevels is None:
+            self.levels = []
+        else:
+            self.levels = inLevels
 
     @property
     def cellsize_x(self) -> float:
@@ -91,33 +69,21 @@ class GeoArray(object):
         return abs(self.gt.pixHeight)
 
     @property
-    def cellsize_h(self) -> float:
+    def levels_num(self) -> int:
         """
-        Get the mean horizontal cell size.
+        Returns the number of levels (dimensions) of the grid.
 
-        :return: mean horizontal cell size
-        :rtype: float.
+        :return: number of levels
+        :rtype: int
 
         Examples:
+          >>> GeoArray(grid_data=array([[1, 2], [3, 4]])).levels_num
+          1
+          >>> GeoArray(grid_data=np.ones((4, 3, 2)))
+          2
         """
 
-        return (self.cellsize_x + self.cellsize_y) / 2.0
-
-    def geog2array_coord(self, x: float, y: float) -> Tuple[float, float]:
-        """
-        Converts from geographic to rasters (array) coordinates.
-
-        :param x: x coordinate of point to sample.
-        :type x: float.
-        :param y: ycoordinate of point to sample.
-        :type y: float.
-        :return: point coordinates in rasters (array) frame
-        :rtype: ArrCoord.
-
-        Examples:
-        """
-
-        return self.gt.geogrToPix(x, y)
+        return len(self.levels)
 
     def x(self) -> 'array':
         """
@@ -149,22 +115,6 @@ class GeoArray(object):
 
         return y_values[:, np.newaxis]
 
-    @property
-    def levels_num(self) -> int:
-        """
-        Returns the number of levels (dimensions) of the grid.
-
-        :return: number of levels
-        :rtype: int
-
-        Examples:
-          >>> GeoArray(grid_data=array([[1, 2], [3, 4]])).levels_num
-          1
-          >>> GeoArray(grid_data=np.ones((4, 3, 2)))
-          2
-        """
-
-        return self.arr.ndim
 
     def grad_forward_y(self) -> 'array':
         """
@@ -176,8 +126,8 @@ class GeoArray(object):
         Examples:
         """
 
-        gf = np.zeros(np.shape(self.arr)) * np.NaN
-        gf[1:, :] = self.arr[:-1, :] - self.arr[1:, :]
+        gf = np.zeros(np.shape(self.levels)) * np.NaN
+        gf[1:, :] = self.levels[:-1, :] - self.levels[1:, :]
 
         return gf / float(self.cellsize_y)
 
@@ -191,8 +141,8 @@ class GeoArray(object):
         Examples:
         """
 
-        gf = np.zeros(np.shape(self.arr), ) * np.NaN
-        gf[:, :-1] = self.arr[:, 1:] - self.arr[:, :-1]
+        gf = np.zeros(np.shape(self.levels), ) * np.NaN
+        gf[:, :-1] = self.levels[:, 1:] - self.levels[:, :-1]
 
         return gf / float(self.cellsize_x)
 
@@ -213,10 +163,10 @@ class GeoArray(object):
 
         assert loc_cellcenter_i > 0, loc_cellcenter_j > 0
 
-        grid_val_00 = self.arr[int(floor(loc_cellcenter_i)), int(floor(loc_cellcenter_j))]
-        grid_val_01 = self.arr[int(floor(loc_cellcenter_i)), int(ceil(loc_cellcenter_j))]
-        grid_val_10 = self.arr[int(ceil(loc_cellcenter_i)), int(floor(loc_cellcenter_j))]
-        grid_val_11 = self.arr[int(ceil(loc_cellcenter_i)), int(ceil(loc_cellcenter_j))]
+        grid_val_00 = self.levels[int(floor(loc_cellcenter_i)), int(floor(loc_cellcenter_j))]
+        grid_val_01 = self.levels[int(floor(loc_cellcenter_i)), int(ceil(loc_cellcenter_j))]
+        grid_val_10 = self.levels[int(ceil(loc_cellcenter_i)), int(floor(loc_cellcenter_j))]
+        grid_val_11 = self.levels[int(ceil(loc_cellcenter_i)), int(ceil(loc_cellcenter_j))]
 
         delta_i = loc_cellcenter_i - floor(loc_cellcenter_i)
         delta_j = loc_cellcenter_j - floor(loc_cellcenter_j)
@@ -267,20 +217,20 @@ class GeoArray(object):
 
         return orientations_fld
 
-    # calculates divergence_2D
-    def divergence(self):
+    def divergence_2D(self):
+        """
+        Calculates divergence of a 2D field.
 
-        if not arr_check(self.grid_data):
-            raise RasterIOExceptions("input requires data array with three dimensions and 2-level third dimension")
+        :return: a GeoArray storing the divergence field
+        """
 
-        dvx_dx = np.gradient(self.grid_data[:, :, 0])[1]
-        dvy_dy = -(np.gradient(self.grid_data[:, :, 1])[0])
-
-        divergence_fld = GeoArray()
-        divergence_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
-        divergence_fld.set_grid_data((dvx_dx + dvy_dy) / self.get_cellsize_horiz_mean())
-
-        return divergence_fld
+        fld_x, fld_y = self.levels
+        div = divergence_2D(fld_x, fld_y, self.cellsize_x, self.cellsize_y)
+        return GeoArray(
+            inGeotransform=self.gt,
+            inProjection=self.prj,
+            inLevels=[div]
+        )
 
     # calculates curl module
     def curl_module(self):

@@ -15,8 +15,8 @@ def arrToTuple(arr1D: 'array[Number]') -> Tuple[float, ...]:
     :rtype: tuple of float
 
     Examples:
-      >>> arr = array([1,2,3,4,5])
-      >>> arrToTuple(arr)
+      >>> levels = array([1,2,3,4,5])
+      >>> arrToTuple(levels)
       (1.0, 2.0, 3.0, 4.0, 5.0)
     """
 

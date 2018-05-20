@@ -376,23 +376,7 @@ class Grid:
         orientations_fld.set_grid_data(orientations)
         
         return orientations_fld
-        
-        
-    # calculates divergence_2D
-    def divergence(self):        
 
-        if not arr_check(self.grid_data):
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
-                      
-        dvx_dx = np.gradient(self.grid_data[:,:,0])[1]
-        dvy_dy = -(np.gradient(self.grid_data[:,:,1])[0])		
-
-        divergence_fld = Grid()
-        divergence_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
-        divergence_fld.set_grid_data((dvx_dx + dvy_dy)/self.get_cellsize_horiz_mean())
-        
-        return divergence_fld
-            
 
     # calculates curl module
     def curl_module(self):

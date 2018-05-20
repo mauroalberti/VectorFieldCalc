@@ -17,7 +17,7 @@ changelog=
     2.0: - ported to QGIS 3
 
 ; tags are in comma separated value format, spaces are allowed
-tags=raster,vector field, curl, divergence_2D, flow, gradient, magnitude
+tags=raster,vector field, curl, divergence, flow, gradient, magnitude
 
 homepage=https://bitbucket.org/mauroalberti/vectorfieldcalc
 tracker=https://bitbucket.org/mauroalberti/vectorfieldcalc/issues
