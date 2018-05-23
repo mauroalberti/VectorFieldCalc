@@ -5,7 +5,7 @@ from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 
-import resources
+from .resources import *
 
 from .vfc_dialog import vfc_dialog
 
