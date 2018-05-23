@@ -6,4 +6,4 @@ VectorFieldCalc is a QGIS plugin for calculating physical parameters (e.g., dive
 
 Contacts:
 
-Mauro Aberti - alberti.m65@gmail.com
+Mauro Alberti - alberti.m65@gmail.com

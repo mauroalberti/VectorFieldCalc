@@ -1,6 +1,5 @@
 
-
-import os, sys, string
+import os
 from math import *
 import numpy as np
 import gdal
@@ -8,15 +7,19 @@ from gdalconst import *
 
 
 # check if number:
+
 def is_number(s):
+    
     try:
         float(s)
         return True
     except:
         return False
+    
         
 # 2D Array coordinates 
-class ArrCoord:
+
+class ArrCoord(object):
     
     # class constructor
     def __init__(self, ival, jval):
@@ -33,7 +36,8 @@ class ArrCoord:
         
         
 # 3D point class
-class Point:
+
+class Point(object):
     
     # class constructor
     def __init__(self, x, y, z=0.0):
@@ -47,11 +51,11 @@ class Point:
     
     # create a new point shifted by given amount
     def movedby(self, sx, sy, sz=0.0):
-        return Point( self.x + sx , self.y + sy, self.z + sz )        
+        return Point(self.x + sx , self.y + sy, self.z + sz)        
 
 
 # GDAL raster parameters 
-class GDALParameters:
+class GDALParameters(object):
 
     # class constructor
     def __init__(self): 
@@ -163,8 +167,7 @@ class GDALParameters:
     # get rotationB value
     def get_rotationB(self):
         return self.rotationB
-     
-     
+
     # check absence of axis rotations or pixel size differences
     def check_params(self, tolerance = 1e-06):
         
@@ -174,10 +177,9 @@ class GDALParameters:
             
         # check for the absence of axis rotations
         if abs(self.rotationA) > tolerance or abs(self.rotationB) > tolerance:
-            raise False, 'There should be no axis rotation in raster' 
+            return False, 'There should be no axis rotation in raster'
         
         return True, 'OK'
-
 
     # checks equivalence between the geographical parameters of two grids
     def geo_equiv(self, other, tolerance=1.0e-6): 
@@ -187,15 +189,16 @@ class GDALParameters:
             2*(abs(self.get_pixSizeEW()) - abs(other.get_pixSizeEW()))/(abs(self.get_pixSizeEW()) + abs(other.get_pixSizeEW())) > tolerance or \
             2*(abs(self.get_pixSizeNS()) - abs(other.get_pixSizeNS()))/(abs(self.get_pixSizeNS()) + abs(other.get_pixSizeNS())) > tolerance or \
             self.get_rows() != other.get_rows() or self.get_cols() != other.get_cols() or \
-            self.get_projection() != other.get_projection():    
+            self.get_projection() != other.get_projection():
             return False
         else:
             return True
-            
-            
+
+
 # exception for raster parameters
 class Raster_Parameters_Errors(Exception):
     pass  
+
 
 # exception for function input errors
 class FunInp_Err(Exception):
@@ -208,7 +211,7 @@ class Output_Errors(Exception):
    
     
 # Rectangular spatial domain class
-class SpatialDomain:
+class SpatialDomain(object):
     
     # class constructor
     def __init__(self, pt_init, pt_end): 
@@ -249,33 +252,30 @@ def arr_check(curr_array):
 
 
 # Module principal class
-class Grid:
+class Grid(object):
 
     # alternative class constructor
     def __init__(self, grid_params = None, grid_data = None): 
                 
         if grid_params is not None:
             # define lower-left corner as initial point
-            pt_init = Point( grid_params.get_topLeftX(), grid_params.get_topLeftY() - abs(grid_params.get_pixSizeNS())*grid_params.get_rows() )             
+            pt_init = Point(grid_params.get_topLeftX(), grid_params.get_topLeftY() - abs(grid_params.get_pixSizeNS())*grid_params.get_rows())             
             # define top-right corner as end point
-            pt_end = Point( grid_params.get_topLeftX() + abs(grid_params.get_pixSizeEW())*grid_params.get_cols(), grid_params.get_topLeftY() )  
+            pt_end = Point(grid_params.get_topLeftX() + abs(grid_params.get_pixSizeEW())*grid_params.get_cols(), grid_params.get_topLeftY())  
                     
             self.grid_domain = SpatialDomain(pt_init, pt_end)
         else:
             self.grid_domain = None
             
         self.grid_data = grid_data
-        
-        
+
     # set grid domain
     def set_grid_domain(self, pt_init, pt_end):
         self.grid_domain = SpatialDomain(pt_init, pt_end)
 
-
     # get grid domain
     def get_grid_domain(self):
         return self.grid_domain
-        
         
     # set grid data
     def set_grid_data(self, data_array, level=None):
@@ -285,11 +285,10 @@ class Grid:
             elif level == 0 or level == 1:
                 self.grid_data[:,:, level] = data_array
             else:
-                raise Raster_Parameters_Errors, 'Provided level for data array must be 0 or 1'
+                raise Raster_Parameters_Errors('Provided level for data array must be 0 or 1')
         except:
-            raise Raster_Parameters_Errors, 'Unable to set grid data (function set_grid_data error)'
-       
-       
+            raise Raster_Parameters_Errors('Unable to set grid data (function set_grid_data error)')
+
     # get grid data
     def get_grid_data(self, level=None):        
         try:
@@ -298,58 +297,50 @@ class Grid:
             elif level == 0 or level == 1:
                 return self.grid_data[:,:, level]
             else:
-                raise Raster_Parameters_Errors, 'Provided level for data array extraction must be 0 or 1'
+                raise Raster_Parameters_Errors('Provided level for data array extraction must be 0 or 1')
         except:
-            raise Raster_Parameters_Errors, 'Unable to extract grid data (function get_grid_data error)'            
-        
-        
+            raise Raster_Parameters_Errors('Unable to extract grid data (function get_grid_data error)')
+
     # get row number of the grid domain
     def get_ylines_num(self):
         return np.shape(self.grid_data)[0]		
 
-
     # column number of the grid domain 		
     def get_xlines_num(self):
         return np.shape(self.grid_data)[1]		
-            
-            
+
     # returns the cell size of the gridded dataset in the x direction 
     def get_cellsize_x(self):
         return self.grid_domain.get_xrange()/float(self.get_xlines_num())
 
-
     # returns the cell size of the gridded dataset in the y direction 
     def get_cellsize_y(self):
         return self.grid_domain.get_yrange()/float(self.get_ylines_num())
-            
-            
+
     # returns the mean horizontal cell size 
     def get_cellsize_horiz_mean(self):
         return (self.get_cellsize_x()+self.get_cellsize_y())/2.0
   
-  
     # converts from geographic to grid coordinates
     def geog2gridcoord(self, curr_Pt):
-        currArrCoord_grid_i = (self.get_grid_domain().get_end_point().y - curr_Pt.y )/self.get_cellsize_y()
+        currArrCoord_grid_i = (self.get_grid_domain().get_end_point().y - curr_Pt.y)/self.get_cellsize_y()
         currArrCoord_grid_j = (curr_Pt.x - self.get_grid_domain().get_start_point().x)/self.get_cellsize_x()
         return ArrCoord(currArrCoord_grid_i, currArrCoord_grid_j)
-
 
     # converts from grid to geographic coordinates
     def grid2geogcoord(self, currArrCoord):
         currPt_geogr_y = self.get_grid_domain().get_end_point().y - currArrCoord.i*self.get_cellsize_y()
         currPt_geogr_x = self.get_grid_domain().get_start_point().x + currArrCoord.j*self.get_cellsize_x()
         return Point(currPt_geogr_x, currPt_geogr_y)
-        
-      
+
     # calculates magnitude 
     def magnitude(self):
 
         if not arr_check(self.grid_data):
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
+            raise FunInp_Err('input requires data array with three dimensions and 2-level third dimension')
             
-        vx = self.grid_data[:,:,0]
-        vy = self.grid_data[:,:,1]
+        vx = self.grid_data[:, :, 0]
+        vy = self.grid_data[:, :, 1]
 
         magnitude = np.sqrt(vx**2 + vy**2)
 
@@ -359,14 +350,13 @@ class Grid:
         
         return magnitude_fld
 
-
     # calculates orientations 
     def orientations(self):        
 
         if not arr_check(self.grid_data):
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
+            raise FunInp_Err('input requires data array with three dimensions and 2-level third dimension')
                      
-        vx, vy = self.grid_data[:,:,0], self.grid_data[:,:,1]
+        vx, vy = self.grid_data[:, :, 0], self.grid_data[:, :, 1]
 
         orientations = np.degrees(np.arctan2(vx, vy))
         orientations = np.where(orientations < 0.0, orientations + 360.0, orientations)
@@ -376,32 +366,30 @@ class Grid:
         orientations_fld.set_grid_data(orientations)
         
         return orientations_fld
-        
-        
+
     # calculates divergence 
     def divergence(self):        
 
         if not arr_check(self.grid_data):
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
+            raise FunInp_Err('input requires data array with three dimensions and 2-level third dimension')
                       
-        dvx_dx = np.gradient(self.grid_data[:,:,0])[1]
-        dvy_dy = -(np.gradient(self.grid_data[:,:,1])[0])		
+        dvx_dx = np.gradient(self.grid_data[:, :, 0])[1]
+        dvy_dy = -(np.gradient(self.grid_data[:, :, 1])[0])		
 
         divergence_fld = Grid()
         divergence_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
         divergence_fld.set_grid_data((dvx_dx + dvy_dy)/self.get_cellsize_horiz_mean())
         
         return divergence_fld
-            
 
     # calculates curl module
     def curl_module(self):
 
         if not arr_check(self.grid_data):
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
+            raise FunInp_Err('input requires data array with three dimensions and 2-level third dimension')
                      
-        dvy_dx = np.gradient(self.grid_data[:,:,1])[1]
-        dvx_dy = -(np.gradient(self.grid_data[:,:,0])[0])
+        dvy_dx = np.gradient(self.grid_data[:, :, 1])[1]
+        dvx_dy = -(np.gradient(self.grid_data[:, :, 0])[0])
         
         curl_fld = Grid()
         curl_fld.set_grid_domain(self.get_grid_domain().get_start_point(), self.get_grid_domain().get_end_point())
@@ -409,17 +397,14 @@ class Grid:
         
         return curl_fld
 
-
     # calculates magnitude gradient along x axis
     def grad_xaxis(self):	
 
         if not arr_check(self.grid_data):
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
+            raise FunInp_Err('input requires data array with three dimensions and 2-level third dimension')
                       
-        vx, vy = self.grid_data[:,:,0], self.grid_data[:,:,1]
-        
-        dir_array = np.arctan2(vx, vy)
-        
+        vx, vy = self.grid_data[:, :, 0], self.grid_data[:, :, 1]
+
         vect_magn = np.sqrt(vx**2 + vy**2)
         dm_dy, dm_dx = np.gradient(vect_magn)
         
@@ -428,17 +413,14 @@ class Grid:
         vect_xgrad_fld.set_grid_data(dm_dx/self.get_cellsize_horiz_mean())
         
         return vect_xgrad_fld
-        
- 
+
     # calculates magnitude gradient along y axis
     def grad_yaxis(self):	
 
         if not arr_check(self.grid_data):
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
+            raise FunInp_Err('input requires data array with three dimensions and 2-level third dimension')
                       
-        vx, vy = self.grid_data[:,:,0], self.grid_data[:,:,1]
-        
-        dir_array = np.arctan2(vx, vy)
+        vx, vy = self.grid_data[:, :, 0], self.grid_data[:, :, 1]
         
         vect_magn = np.sqrt(vx**2 + vy**2)
         dm_dy, dm_dx = np.gradient(vect_magn)
@@ -449,15 +431,14 @@ class Grid:
         vect_ygrad_fld.set_grid_data(dm_dy/self.get_cellsize_horiz_mean())
         
         return vect_ygrad_fld
-        
 
     # calculates gradient along flow lines
     def grad_flowlines(self):	
 
         if not arr_check(self.grid_data):
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
+            raise FunInp_Err('input requires data array with three dimensions and 2-level third dimension')
                       
-        vx, vy = self.grid_data[:,:,0], self.grid_data[:,:,1]
+        vx, vy = self.grid_data[:, :, 0], self.grid_data[:, :, 1]
         
         dir_array = np.arctan2(vx, vy)
         
@@ -472,8 +453,7 @@ class Grid:
         vect_magn_grad_fld.set_grid_data(velocity_gradient/self.get_cellsize_horiz_mean())
         
         return vect_magn_grad_fld
- 
- 
+
     # returns the velocity components interpolated using the bilinear interpolation		
     def interpolate_level_bilinear(self, level, curr_Pt_gridcoord):
  
@@ -483,11 +463,12 @@ class Grid:
             v_01 = self.get_grid_data(level)[ceil(curr_Pt_gridcoord.i - 0.5), floor(curr_Pt_gridcoord.j - 0.5)]    
             v_11 = self.get_grid_data(level)[ceil(curr_Pt_gridcoord.i - 0.5), ceil(curr_Pt_gridcoord.j - 0.5)]
         except:
-            raise Raster_Parameters_Errors, 'Error in get_grid_data() function'
+            raise Raster_Parameters_Errors('Error in get_grid_data() function')
             
         delta_j_grid = curr_Pt_gridcoord.j - int(curr_Pt_gridcoord.j)
         
-        assert delta_j_grid >= 0 and delta_j_grid < 1
+        if not (0 <= delta_j_grid < 1):
+            raise Raster_Parameters_Errors('Delta j grid value must be between 0 and 1')
         
         if delta_j_grid >= 0.5:
             delta_j_grid = delta_j_grid - 0.5
@@ -496,11 +477,11 @@ class Grid:
         
         v_y0 = v_00 + (v_10-v_00)*delta_j_grid
         v_y1 = v_01 + (v_11-v_01)*delta_j_grid
-        
 
         delta_i_grid = curr_Pt_gridcoord.i - int(curr_Pt_gridcoord.i)
-        
-        assert delta_i_grid >= 0 and delta_i_grid < 1
+
+        if not (0 <= delta_i_grid < 1):
+            raise Raster_Parameters_Errors('Delta i grid value must be between 0 and 1')
         
         if delta_i_grid >= 0.5:
             delta_i_grid = delta_i_grid - 0.5
@@ -510,7 +491,6 @@ class Grid:
         interp_v = v_y0 + (v_y1-v_y0)*delta_i_grid
                 
         return interp_v  
-
 
     # check if a point pathline can be evaluated
     def include_point_location(self, currPoint): 
@@ -522,8 +502,8 @@ class Grid:
             return False
  
         if len(self.grid_data.shape) != 3 and \
-            self.grid_data.shape[2] != 2:
-            raise FunInp_Err, 'input requires data array with three dimensions and 2-level third dimension'
+           self.grid_data.shape[2] != 2:
+            raise FunInp_Err('input requires data array with three dimensions and 2-level third dimension')
                     
         for n in range(2):
             if np.isnan(self.get_grid_data(n)[floor(curr_Pt_gridcoord.i - 0.5), floor(curr_Pt_gridcoord.j - 0.5)]) or \
@@ -533,29 +513,27 @@ class Grid:
                 return False
                 
         return True
- 
 
-    def point_velocity( self, currpoint ):
+    def point_velocity(self, currpoint):
         """
         return the velocity components of a point in a velocity field
         """
         
-        if not self.include_point_location( currpoint ): 
+        if not self.include_point_location(currpoint): 
             return None, None 
             
-        currpoint_gridcoord = self.geog2gridcoord( currpoint )            
-        currpoint_vx = self.interpolate_level_bilinear( 0, currpoint_gridcoord )
-        currpoint_vy = self.interpolate_level_bilinear( 1, currpoint_gridcoord )
+        currpoint_gridcoord = self.geog2gridcoord(currpoint)            
+        currpoint_vx = self.interpolate_level_bilinear(0, currpoint_gridcoord)
+        currpoint_vy = self.interpolate_level_bilinear(1, currpoint_gridcoord)
         
         return currpoint_vx, currpoint_vy
-        
- 
-    def interpolate_RKF( self, delta_time, curr_Pt ):
+
+    def interpolate_RKF(self, delta_time, curr_Pt):
         """
         interpolate points according to RKF method
         """
  
-        K1_vx, K1_vy = self.point_velocity( curr_Pt )
+        K1_vx, K1_vy = self.point_velocity(curr_Pt)
         if K1_vx is None or K1_vy is None:
             return None, None
         
@@ -599,24 +577,23 @@ class Grid:
         interp_PT_error_estimate = interp_Pt.distance(temp_Pt)
         
         return interp_Pt, interp_PT_error_estimate
-        
-         
+
     # writes ESRI ascii grid
-    def write_esrigrid(self, outgrid_fn, esri_nullvalue = -99999, level = 0):
+    def write_esrigrid(self, outgrid_fn, esri_nullvalue=-99999, level=0):
 
         outgrid_fn = str(outgrid_fn)
         
         # checking existence of output slope grid
         if os.path.exists(outgrid_fn):
-            raise Output_Errors, "Output grid '%s' already exists" % outgrid_fn
+            raise Output_Errors("Output grid '%s' already exists" % outgrid_fn)
 
         try:
             outputgrid = open(outgrid_fn, 'w') #create the output ascii file
         except:
-            raise Output_Errors, "Unable to create output grid '%s'" % outgrid_fn
+            raise Output_Errors("Unable to create output grid '%s'" % outgrid_fn)
        
         if outputgrid is None:
-            raise Output_Errors, "Unable to create output grid '%s'" % outgrid_fn
+            raise Output_Errors("Unable to create output grid '%s'" % outgrid_fn)
 
         # writes header of grid ascii file
         outputgrid.write('NCOLS %d\n' % self.get_xlines_num())
@@ -628,7 +605,7 @@ class Grid:
 
         esrigrid_outvalues = np.where(np.isnan(self.grid_data), esri_nullvalue, self.grid_data)
         
-        #output of results
+        # output of results
         if len(self.grid_data.shape) == 3:
             for i in range(0, self.get_ylines_num()):
                     for j in range(0, self.get_xlines_num()):
@@ -649,9 +626,9 @@ def read_raster_band(raster_name):
     # read input raster band based on GDAL
     
     # open raster file and check operation success 
-    raster_data = gdal.Open(str(raster_name), GA_ReadOnly )    
+    raster_data = gdal.Open(str(raster_name), GA_ReadOnly)    
     if raster_data is None:
-        raise IOError, 'Unable to open raster' 
+        raise IOError('Unable to open raster')
 
     # initialize DEM parameters
     raster_params = GDALParameters()
@@ -669,7 +646,7 @@ def read_raster_band(raster_name):
     # get and check number of raster bands - it must be one
     raster_bands = raster_data.RasterCount
     if raster_bands > 1:
-        raise TypeError, 'More than one raster band in raster' 
+        raise TypeError('More than one raster band in raster')
     
     # set critical grid values from geotransform array
     raster_params.set_topLeftX(raster_data.GetGeoTransform()[0])
@@ -685,12 +662,12 @@ def read_raster_band(raster_name):
     # get no data value for current band 
     raster_params.set_noDataValue(band.GetNoDataValue())
     if raster_params.get_noDataValue() is None:
-        raise IOError, 'Unable to get no data value from input raster. Try change input format\n(e.g., ESRI ascii grids generally work)'    
+        raise IOError('Unable to get no data value from input raster. Try change input format\n(e.g., ESRI ascii grids generally work)')
 
     # read data from band 
-    grid_values = band.ReadAsArray(0,0,raster_params.get_cols(),raster_params.get_rows())
+    grid_values = band.ReadAsArray(0, 0, raster_params.get_cols(), raster_params.get_rows())
     if grid_values is None:
-        raise IOError, 'Unable to read data from raster'
+        raise IOError('Unable to read data from raster')
      
     # transform data into numpy array
     data = np.asarray(grid_values) 
@@ -706,7 +683,7 @@ def read_raster_layer(raster_name, layermap_items):
     
     # verify input parameters            
     if raster_name is None or raster_name == '':                           
-        raise Raster_Parameters_Errors, 'No name defined for raster'         
+        raise Raster_Parameters_Errors('No namresourcee defined for raster')
     
     # get raster input file
     raster_layer = None
@@ -715,20 +692,18 @@ def read_raster_layer(raster_name, layermap_items):
             raster_layer = layer
             break 
     if raster_layer is None:
-        raise Raster_Parameters_Errors, 'Unable to get raster name'         
+        raise Raster_Parameters_Errors('Unable to get raster name')
      
     try:
         raster_source = raster_layer.source()
     except:
-        raise Raster_Parameters_Errors, 'Unable to get raster file'         
+        raise Raster_Parameters_Errors('Unable to get raster file')
  
     # get raster parameters and data
     try:
         raster_params, raster_array = read_raster_band(raster_source)
-    except (IOError, TypeError), e:            
-        raise Raster_Parameters_Errors,  str(e) 
+    except (IOError, TypeError) as e:
+        raise Raster_Parameters_Errors(str(e))
 
     return raster_params, raster_array
-    
-    
 

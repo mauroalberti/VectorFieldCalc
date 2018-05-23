@@ -1,26 +1,21 @@
 
-import numpy as np
-
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
 from qgis.core import *
 
-import ogr
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 
 import resources
-from vfc_dialog import vfc_dialog
-from vfc_classes import *
+
+from .vfc_dialog import vfc_dialog
 
 
-
-class VectorFieldCal:
+class VectorFieldCal(object):
 
     def __init__(self, iface):        
         # Save reference to the QGIS interface
         
         self.iface = iface
-
 
     def initGui(self):
         # Create action that will start plugin configuration
@@ -35,13 +30,11 @@ class VectorFieldCal:
         self.iface.addToolBarIcon(self.action)
         self.iface.addPluginToMenu("&VectorFieldCalc", self.action)
 
-
     def unload(self):
         # Remove the plugin menu item and icon
         
-        self.iface.removePluginMenu("&VectorFieldCalc",self.action)
+        self.iface.removePluginMenu("&VectorFieldCalc", self.action)
         self.iface.removeToolBarIcon(self.action)
-
 
     def run(self):
 
@@ -51,8 +44,3 @@ class VectorFieldCal:
         # show the dialog
         dlg.show()        
         dlg.exec_() 
-        
-        
-        
-               
- 

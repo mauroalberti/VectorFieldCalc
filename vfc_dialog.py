@@ -1,236 +1,230 @@
 
-
-import os, webbrowser
+import webbrowser
 from osgeo import ogr
-    
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
 
 from qgis.core import *
 
-from vfc_utils import *
-from vfc_classes import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
+
+from .vfc_utils import *
+from .vfc_classes import *
 
 
-# create the dialog for zoom to point
-class vfc_dialog( QDialog ):
+class vfc_dialog(QDialog):
     
-    def __init__(self):
+    def _init_(self):
         
-        QDialog.__init__(self)
+        QDialog._init_(self)
         self.setup_ui()        
  
-
-    def setup_ui( self ):
+    def setup_ui(self):
 
         self.setWindowTitle("VectorFieldCalc")
         
         self.dialog_layout = QVBoxLayout()
-        self.setLayout( self.dialog_layout )
+        self.setLayout(self.dialog_layout)
         
         self.input_raster_widget = self.setup_input_raster_widget()        
-        self.dialog_layout.addWidget( self.input_raster_widget )
+        self.dialog_layout.addWidget(self.input_raster_widget)
         
         self.calculations_widget = self.setup_calculations_widget()        
-        self.dialog_layout.addWidget( self.calculations_widget )
+        self.dialog_layout.addWidget(self.calculations_widget)
         self.calculations_widget.setCurrentIndex(0)
 
         self.manage_widget = self.setup_manage_widget()
-        self.dialog_layout.addWidget( self.manage_widget )         
+        self.dialog_layout.addWidget(self.manage_widget)         
 
         self.adjustSize()
+ 
+    def setup_input_raster_widget(self):
         
-
-    def setup_input_raster_widget(self):        
-        
-        inraster_groupbox = QGroupBox( "Input rasters")        
+        inraster_groupbox = QGroupBox("Input rasters")        
         inraster_layout = QFormLayout()
 
         self.inraster_x_comboBox = QComboBox()
-        inraster_layout.addRow( QLabel( "X-axis components" ) , self.inraster_x_comboBox )        
+        inraster_layout.addRow(QLabel("X-axis components") , self.inraster_x_comboBox)        
         self.inraster_y_comboBox = QComboBox()
-        inraster_layout.addRow( QLabel( "Y-axis components" ) , self.inraster_y_comboBox ) 
+        inraster_layout.addRow(QLabel("Y-axis components") , self.inraster_y_comboBox) 
                 
         # append loaded raster layers to combo boxes
-        self.layermap = QgsMapLayerRegistry.instance().mapLayers()
-        for ( name, layer ) in self.layermap.iteritems():
+        #self.layermap = QgsMapLayerRegistry.instance().mapLayers()
+        self.layermap = QgsProject.instance().mapLayers()
+        for (name, layer) in list(self.layermap.items()):
             if layer.type() == QgsMapLayer.RasterLayer: 
                 self.inraster_x_comboBox.addItem(layer.name())
                 self.inraster_y_comboBox.addItem(layer.name()) 
  
-        inraster_groupbox.setLayout( inraster_layout )
+        inraster_groupbox.setLayout(inraster_layout)
                
         return inraster_groupbox
-
 
     def setup_vector_operators_widget(self):
 
         vectorfieldoperators_tab = QWidget()
         vectorfieldoperators_layout = QGridLayout()
         
-        self.magnitude_calc_choice_checkBox = QCheckBox( "Magnitude" )
+        self.magnitude_calc_choice_checkBox = QCheckBox("Magnitude")
         vectorfieldoperators_layout.addWidget(self.magnitude_calc_choice_checkBox, 0, 0, 1, 1)
         
         self.magnitude_outraster_lineEdit = QLineEdit()
         self.magnitude_outraster_lineEdit.setPlaceholderText("magn.asc")
         vectorfieldoperators_layout.addWidget(self.magnitude_outraster_lineEdit, 0, 1, 1, 1)
         
-        self.magnitude_set_outraster = QPushButton( "..." )
-        self.magnitude_set_outraster.clicked.connect( self.select_output_rasterFile )
+        self.magnitude_set_outraster = QPushButton("...")
+        self.magnitude_set_outraster.clicked.connect(self.select_output_rasterFile)
         vectorfieldoperators_layout.addWidget(self.magnitude_set_outraster, 0, 2, 1, 1)
         
-        self.orientations_calc_choice_checkBox = QCheckBox( "Orientations" )
+        self.orientations_calc_choice_checkBox = QCheckBox("Orientations")
         vectorfieldoperators_layout.addWidget(self.orientations_calc_choice_checkBox, 1, 0, 1, 1)
         
         self.orientations_outraster_lineEdit = QLineEdit()
         self.orientations_outraster_lineEdit.setPlaceholderText("orient.asc")
         vectorfieldoperators_layout.addWidget(self.orientations_outraster_lineEdit, 1, 1, 1, 1)
         
-        self.orientations_set_outraster = QPushButton( "..." )
-        self.orientations_set_outraster.clicked.connect( self.select_output_rasterFile )
+        self.orientations_set_outraster = QPushButton("...")
+        self.orientations_set_outraster.clicked.connect(self.select_output_rasterFile)
         vectorfieldoperators_layout.addWidget(self.orientations_set_outraster, 1, 2, 1, 1)
         
-        self.divergence_calc_choice_checkBox = QCheckBox( "Divergence" )
+        self.divergence_calc_choice_checkBox = QCheckBox("Divergence")
         vectorfieldoperators_layout.addWidget(self.divergence_calc_choice_checkBox, 2, 0, 1, 1)
         
         self.divergence_outraster_lineEdit = QLineEdit()
         self.divergence_outraster_lineEdit.setPlaceholderText("div.asc")
         vectorfieldoperators_layout.addWidget(self.divergence_outraster_lineEdit, 2, 1, 1, 1)
         
-        self.divergence_set_outraster = QPushButton( "..." )
-        self.divergence_set_outraster.clicked.connect( self.select_output_rasterFile )
+        self.divergence_set_outraster = QPushButton("...")
+        self.divergence_set_outraster.clicked.connect(self.select_output_rasterFile)
         vectorfieldoperators_layout.addWidget(self.divergence_set_outraster, 2, 2, 1, 1)
         
-        self.curlmodule_calc_choice_checkBox = QCheckBox( "Curl module" )
+        self.curlmodule_calc_choice_checkBox = QCheckBox("Curl module")
         vectorfieldoperators_layout.addWidget(self.curlmodule_calc_choice_checkBox, 3, 0, 1, 1)
         
         self.curlmodule_outraster_lineEdit = QLineEdit()
         self.curlmodule_outraster_lineEdit.setPlaceholderText("curmod.asc")
         vectorfieldoperators_layout.addWidget(self.curlmodule_outraster_lineEdit, 3, 1, 1, 1)
         
-        self.curlmodule_set_outraster = QPushButton( "..." )
-        self.curlmodule_set_outraster.clicked.connect( self.select_output_rasterFile )
+        self.curlmodule_set_outraster = QPushButton("...")
+        self.curlmodule_set_outraster.clicked.connect(self.select_output_rasterFile)
         vectorfieldoperators_layout.addWidget(self.curlmodule_set_outraster, 3, 2, 1, 1)
         
-        self.calculate_results_vfop_pb = QPushButton( "Calculate" )
-        self.calculate_results_vfop_pb.clicked.connect( self.calculate_vectorfieldops )
-        vectorfieldoperators_layout.addWidget( self.calculate_results_vfop_pb, 4, 0, 1, 2)
+        self.calculate_results_vfop_pb = QPushButton("Calculate")
+        self.calculate_results_vfop_pb.clicked.connect(self.calculate_vectorfieldops)
+        vectorfieldoperators_layout.addWidget(self.calculate_results_vfop_pb, 4, 0, 1, 2)
         
-        self.output_vfops_load_choice_checkBox = QCheckBox( "Load output in project" )
-        vectorfieldoperators_layout.addWidget( self.output_vfops_load_choice_checkBox, 4, 2, 1, 1 )
+        self.output_vfops_load_choice_checkBox = QCheckBox("Load output in project")
+        vectorfieldoperators_layout.addWidget(self.output_vfops_load_choice_checkBox, 4, 2, 1, 1)
         
-        vectorfieldoperators_tab.setLayout( vectorfieldoperators_layout )
+        vectorfieldoperators_tab.setLayout(vectorfieldoperators_layout)
         
         return vectorfieldoperators_tab
-
  
-    def setup_magnitude_gradients_widget(self):        
+    def setup_magnitude_gradients_widget(self):
         
         magnitudegradients_tab = QWidget()
         magnitudegradients_layout = QGridLayout() 
         
-        self.gradient_x_calc_choice_checkBox = QCheckBox( "X-axis" )
+        self.gradient_x_calc_choice_checkBox = QCheckBox("X-axis")
         magnitudegradients_layout.addWidget(self.gradient_x_calc_choice_checkBox, 0, 0, 1, 1)
         
         self.gradient_x_outraster_lineEdit = QLineEdit()
         self.gradient_x_outraster_lineEdit.setPlaceholderText("grad_x.asc")
         magnitudegradients_layout.addWidget(self.gradient_x_outraster_lineEdit, 0, 1, 1, 1)
         
-        self.gradient_x_set_outraster = QPushButton( "..." )
-        self.gradient_x_set_outraster.clicked.connect( self.select_output_rasterFile )
+        self.gradient_x_set_outraster = QPushButton("...")
+        self.gradient_x_set_outraster.clicked.connect(self.select_output_rasterFile)
         magnitudegradients_layout.addWidget(self.gradient_x_set_outraster, 0, 2, 1, 1)
         
-        self.gradient_y_calc_choice_checkBox = QCheckBox( "Y-axis" )
+        self.gradient_y_calc_choice_checkBox = QCheckBox("Y-axis")
         magnitudegradients_layout.addWidget(self.gradient_y_calc_choice_checkBox, 1, 0, 1, 1)
         
         self.gradient_y_outraster_lineEdit = QLineEdit()
         self.gradient_y_outraster_lineEdit.setPlaceholderText("grad_y.asc")
         magnitudegradients_layout.addWidget(self.gradient_y_outraster_lineEdit, 1, 1, 1, 1)
         
-        self.gradient_y_set_outraster = QPushButton( "..." )
-        self.gradient_y_set_outraster.clicked.connect( self.select_output_rasterFile )
+        self.gradient_y_set_outraster = QPushButton("...")
+        self.gradient_y_set_outraster.clicked.connect(self.select_output_rasterFile)
         magnitudegradients_layout.addWidget(self.gradient_y_set_outraster, 1, 2, 1, 1)
          
-        self.gradient_flowlines_calc_choice_checkBox = QCheckBox( "Flowlines" )
+        self.gradient_flowlines_calc_choice_checkBox = QCheckBox("Flowlines")
         magnitudegradients_layout.addWidget(self.gradient_flowlines_calc_choice_checkBox, 2, 0, 1, 1)
         
         self.gradient_flowlines_outraster_lineEdit = QLineEdit()
         self.gradient_flowlines_outraster_lineEdit.setPlaceholderText("grad_flw.asc")
         magnitudegradients_layout.addWidget(self.gradient_flowlines_outraster_lineEdit, 2, 1, 1, 1)
         
-        self.gradient_flowlines_set_outraster = QPushButton( "..." )
-        self.gradient_flowlines_set_outraster.clicked.connect( self.select_output_rasterFile )
+        self.gradient_flowlines_set_outraster = QPushButton("...")
+        self.gradient_flowlines_set_outraster.clicked.connect(self.select_output_rasterFile)
         magnitudegradients_layout.addWidget(self.gradient_flowlines_set_outraster, 2, 2, 1, 1)
         
-        self.calculate_results_grad_pb = QPushButton( "Calculate" )
-        self.calculate_results_grad_pb.clicked.connect( self.calculate_vectorfieldgrads )
-        magnitudegradients_layout.addWidget( self.calculate_results_grad_pb, 4, 0, 1, 2)
+        self.calculate_results_grad_pb = QPushButton("Calculate")
+        self.calculate_results_grad_pb.clicked.connect(self.calculate_vectorfieldgrads)
+        magnitudegradients_layout.addWidget(self.calculate_results_grad_pb, 4, 0, 1, 2)
         
-        self.output_grads_load_choice_checkBox = QCheckBox( "Load output in project" )
-        magnitudegradients_layout.addWidget( self.output_grads_load_choice_checkBox, 4, 2, 1, 1 )
+        self.output_grads_load_choice_checkBox = QCheckBox("Load output in project")
+        magnitudegradients_layout.addWidget(self.output_grads_load_choice_checkBox, 4, 2, 1, 1)
      
-        magnitudegradients_tab.setLayout( magnitudegradients_layout )
+        magnitudegradients_tab.setLayout(magnitudegradients_layout)
         
-        return magnitudegradients_tab
-               
+        return magnitudegradients_tab              
  
-    def setup_pathline_calculation_widget(self): 
+    def setup_pathline_calculation_widget(self):
 
         pathline_tab = QWidget()
         pathline_layout = QGridLayout()
 
-        pathline_layout.addWidget( QLabel( "Input shapefile" ), 0, 0, 1, 2)
+        pathline_layout.addWidget(QLabel("Input shapefile"), 0, 0, 1, 2)
         
         self.pathlines_inshapefile_input = QLineEdit()
         self.pathlines_inshapefile_input.setPlaceholderText("in_points.shp")
         pathline_layout.addWidget(self.pathlines_inshapefile_input, 0, 2, 1, 4)
         
-        self.calc_pathlines_set_inshape = QPushButton( "..." )
-        self.calc_pathlines_set_inshape.clicked.connect( self.select_input_vectorFile )
+        self.calc_pathlines_set_inshape = QPushButton("...")
+        self.calc_pathlines_set_inshape.clicked.connect(self.select_input_vectorFile)
         pathline_layout.addWidget(self.calc_pathlines_set_inshape, 0, 6, 1, 1) 
 
-        pathline_layout.addWidget( QLabel( "Time step" ), 1, 0, 1, 1)
+        pathline_layout.addWidget(QLabel("Time step"), 1, 0, 1, 1)
                 
         self.pathlines_timestep_input = QLineEdit()
         self.pathlines_timestep_input.setPlaceholderText("0.1")
         pathline_layout.addWidget(self.pathlines_timestep_input, 1, 1, 1, 2)
 
-        pathline_layout.addWidget( QLabel( "Total time" ), 1, 3, 1, 1)
+        pathline_layout.addWidget(QLabel("Total time"), 1, 3, 1, 1)
         
         self.pathlines_totaltime_input = QLineEdit()
         self.pathlines_totaltime_input.setPlaceholderText("50")
         pathline_layout.addWidget(self.pathlines_totaltime_input, 1, 4, 1, 1)
         
-        pathline_layout.addWidget( QLabel( "Max error" ), 1, 5, 1, 1)
+        pathline_layout.addWidget(QLabel("Max error"), 1, 5, 1, 1)
         
         self.pathlines_stepmaxerror_input = QLineEdit()
         self.pathlines_stepmaxerror_input.setPlaceholderText("1e-6")
         pathline_layout.addWidget(self.pathlines_stepmaxerror_input, 1, 6, 1, 1)        
                 
-        pathline_layout.addWidget( QLabel( "Output shapefile" ), 2, 0, 1, 2)
+        pathline_layout.addWidget(QLabel("Output shapefile"), 2, 0, 1, 2)
         
         self.pathlines_outshapefile_input = QLineEdit()
         self.pathlines_outshapefile_input.setPlaceholderText("pathline.shp")
         pathline_layout.addWidget(self.pathlines_outshapefile_input, 2, 2, 1, 4)
         
-        self.calc_pathlines_set_outshape = QPushButton( "..." )
-        self.calc_pathlines_set_outshape.clicked.connect( self.select_output_vectorFile )
+        self.calc_pathlines_set_outshape = QPushButton("...")
+        self.calc_pathlines_set_outshape.clicked.connect(self.select_output_vectorFile)
         pathline_layout.addWidget(self.calc_pathlines_set_outshape, 2, 6, 1, 1)
 
-        self.calculate_results_pathl_pb = QPushButton( "Calculate" )
-        self.calculate_results_pathl_pb.clicked.connect( self.calculate_vectorfieldpathlines )
-        pathline_layout.addWidget( self.calculate_results_pathl_pb, 3, 0, 1, 6)
+        self.calculate_results_pathl_pb = QPushButton("Calculate")
+        self.calculate_results_pathl_pb.clicked.connect(self.calculate_vectorfieldpathlines)
+        pathline_layout.addWidget(self.calculate_results_pathl_pb, 3, 0, 1, 6)
         
-        self.output_pathl_load_choice_checkBox = QCheckBox( "Load output in project" )
-        pathline_layout.addWidget( self.output_pathl_load_choice_checkBox, 3, 6, 1, 1 )
+        self.output_pathl_load_choice_checkBox = QCheckBox("Load output in project")
+        pathline_layout.addWidget(self.output_pathl_load_choice_checkBox, 3, 6, 1, 1)
         
  
-        pathline_tab.setLayout( pathline_layout )
+        pathline_tab.setLayout(pathline_layout)
         
         return pathline_tab
              
-           
-    def setup_calculations_widget(self):        
+    def setup_calculations_widget(self):
         
         calculations_widget = QTabWidget() 
 
@@ -245,103 +239,95 @@ class vfc_dialog( QDialog ):
 
         return calculations_widget 
          
-
     def setup_manage_widget(self):
         
         manage_window = QWidget()
         manage_layout = QHBoxLayout()
-        manage_window.setLayout( manage_layout )
+        manage_window.setLayout(manage_layout)
         
-        self.help_pb = QPushButton( "Help" )
-        self.help_pb.clicked.connect( self.open_help )
-        manage_layout.addWidget( self.help_pb )
+        self.help_pb = QPushButton("Help")
+        self.help_pb.clicked.connect(self.open_help)
+        manage_layout.addWidget(self.help_pb)
 
-        self.about_pb = QPushButton( "About" )
-        self.about_pb.clicked.connect( self.about )
-        manage_layout.addWidget( self.about_pb )       
+        self.about_pb = QPushButton("About")
+        self.about_pb.clicked.connect(self.about)
+        manage_layout.addWidget(self.about_pb)       
                 
         return manage_window
          
-  
-    def select_input_vectorFile( self ):
+    def select_input_vectorFile(self):
         
         sender = self.sender()
             
-        fileName = QFileDialog.getOpenFileName( self, "Open shapefile", lastUsedDir(), "shp (*.shp *.SHP)" )
+        fileName, _ = QFileDialog.getOpenFileName(self, "Open shapefile", lastUsedDir(), "shp (*.shp *.SHP)")
         if not fileName:
             return
-        setLastUsedDir( fileName )
+        setLastUsedDir(fileName)
     
         if sender == self.calc_pathlines_set_inshape: 
-            self.pathlines_inshapefile_input.setText( fileName )
-       
+            self.pathlines_inshapefile_input.setText(fileName)
     
-    def select_output_rasterFile( self ):
+    def select_output_rasterFile(self):
         # modified after RASTERCALC module by Barry Rowlingson    
             
         sender = self.sender()
             
-        fileName = QFileDialog.getSaveFileName( self, "Save ESRI grid ascii file", lastUsedDir(), "asc (*.asc *.ASC)" )
+        fileName, _ = QFileDialog.getSaveFileName(self, "Save ESRI grid ascii file", lastUsedDir(), "asc (*.asc *.ASC)")
         if not fileName:
             return
           
-        setLastUsedDir( fileName )
+        setLastUsedDir(fileName)
     
         if sender == self.magnitude_set_outraster: 
-            self.magnitude_outraster_lineEdit.setText( fileName )
+            self.magnitude_outraster_lineEdit.setText(fileName)
         elif sender == self.orientations_set_outraster: 
-            self.orientations_outraster_lineEdit.setText( fileName )            
+            self.orientations_outraster_lineEdit.setText(fileName)            
         elif sender == self.divergence_set_outraster: 
-            self.divergence_outraster_lineEdit.setText( fileName )            
+            self.divergence_outraster_lineEdit.setText(fileName)            
         elif sender == self.curlmodule_set_outraster: 
-            self.curlmodule_outraster_lineEdit.setText( fileName ) 
+            self.curlmodule_outraster_lineEdit.setText(fileName) 
         elif sender == self.gradient_x_set_outraster: 
-            self.gradient_x_outraster_lineEdit.setText( fileName )
+            self.gradient_x_outraster_lineEdit.setText(fileName)
         elif sender == self.gradient_y_set_outraster: 
-            self.gradient_y_outraster_lineEdit.setText( fileName )
+            self.gradient_y_outraster_lineEdit.setText(fileName)
         elif sender == self.gradient_flowlines_set_outraster: 
-            self.gradient_flowlines_outraster_lineEdit.setText( fileName )             
+            self.gradient_flowlines_outraster_lineEdit.setText(fileName)             
              
-            
-    def select_output_vectorFile( self ):
+    def select_output_vectorFile(self):
         
         sender = self.sender()
             
-        fileName = QFileDialog.getSaveFileName(self, 
+        fileName, _ = QFileDialog.getSaveFileName(self,
                                                "Save shapefile", 
                                                lastUsedDir(), 
-                                               "shp (*.shp *.SHP)" )
+                                               "shp (*.shp *.SHP)")
         if not fileName:
             return
-        setLastUsedDir( fileName )
+        setLastUsedDir(fileName)
     
         if sender == self.calc_pathlines_set_outshape: 
-            self.pathlines_outshapefile_input.setText( fileName )                
-
+            self.pathlines_outshapefile_input.setText(fileName)                
 
     def get_raster_parameters(self):
         
         return self.inraster_x_comboBox.currentText(), self.inraster_y_comboBox.currentText()
-   
 
     def get_vector_operator_parameters(self):
     
         # vector operator parameters            
-        return ( self.magnitude_calc_choice_checkBox.isChecked(), self.magnitude_outraster_lineEdit.text(),
-                 self.orientations_calc_choice_checkBox.isChecked(), self.orientations_outraster_lineEdit.text(),
-                 self.divergence_calc_choice_checkBox.isChecked(), self.divergence_outraster_lineEdit.text(), 
-                 self.curlmodule_calc_choice_checkBox.isChecked(), self.curlmodule_outraster_lineEdit.text() )
-    
+        return (self.magnitude_calc_choice_checkBox.isChecked(), self.magnitude_outraster_lineEdit.text(),
+                self.orientations_calc_choice_checkBox.isChecked(), self.orientations_outraster_lineEdit.text(),
+                self.divergence_calc_choice_checkBox.isChecked(), self.divergence_outraster_lineEdit.text(),
+                self.curlmodule_calc_choice_checkBox.isChecked(), self.curlmodule_outraster_lineEdit.text())
 
     def get_gradient_parameters(self):
             
         # vector field parameters            
-        return ( self.gradient_x_calc_choice_checkBox.isChecked(), self.gradient_x_outraster_lineEdit.text(),
-                 self.gradient_y_calc_choice_checkBox.isChecked(), self.gradient_y_outraster_lineEdit.text(),
-                 self.gradient_flowlines_calc_choice_checkBox.isChecked(), self.gradient_flowlines_outraster_lineEdit.text() )
-    
-    
-    def check_inrasters_def( self, inraster_x, inraster_y ):
+        return (self.gradient_x_calc_choice_checkBox.isChecked(), self.gradient_x_outraster_lineEdit.text(),
+                self.gradient_y_calc_choice_checkBox.isChecked(), self.gradient_y_outraster_lineEdit.text(),
+                self.gradient_flowlines_calc_choice_checkBox.isChecked(), self.gradient_flowlines_outraster_lineEdit.text())
+
+    def check_inrasters_def(self, inraster_x, inraster_y):
         
         if inraster_x is None or inraster_x == '':  
             return False, "No layer defined for x components" 
@@ -363,20 +349,19 @@ class vfc_dialog( QDialog ):
                 return False, "Redefine x- and y- input rasters"         
 
         return True, "Ok"  
-     
 
-    def get_raster_data( self, inraster_comp ):        
+    def get_raster_data(self, inraster_comp):        
 
-        comp_params, comp_array = read_raster_layer(inraster_comp, 
-                                                    self.layermap.iteritems() )
+        comp_params, comp_array = read_raster_layer(
+            inraster_comp,
+            iter(list(self.layermap.items())))
         params_correct, msg = comp_params.check_params()        
         if params_correct:
             return True, (comp_params, comp_array)
         else:
             return False, msg
 
-
-    def calculate_vectorfieldops( self ):
+    def calculate_vectorfieldops(self):
 
         # input rasters            
         inraster_x, inraster_y = self.get_raster_parameters()
@@ -389,7 +374,6 @@ class vfc_dialog( QDialog ):
 
         # load results                       
         load_output = self.output_vfops_load_choice_checkBox.isChecked()  
- 
 
         ### PRE-PROCESSINGS
         
@@ -399,22 +383,22 @@ class vfc_dialog( QDialog ):
             return
 
         # check input values for vector field rasters
-        success, msg = self.check_inrasters_def( inraster_x, inraster_y )
+        success, msg = self.check_inrasters_def(inraster_x, inraster_y)
         if not success:
-            QMessageBox.critical( self, "Input component rasters", msg )
+            QMessageBox.critical(self, "Input component rasters", msg)
             return
         
         # get x- and y-axis component data
-        success, result = self.get_raster_data( inraster_x )
+        success, result = self.get_raster_data(inraster_x)
         if not success:
-            QMessageBox.critical( self, "Input x-component raster", msg )
+            QMessageBox.critical(self, "Input x-component raster", msg)
             return   
         else:
             comp_x_params, comp_x_array = result
                      
-        success, result = self.get_raster_data( inraster_y )
+        success, result = self.get_raster_data(inraster_y)
         if not success:
-            QMessageBox.critical( self, "Input y-component raster", msg )
+            QMessageBox.critical(self, "Input y-component raster", msg)
             return   
         else:
             comp_y_params, comp_y_array = result        
@@ -441,28 +425,24 @@ class vfc_dialog( QDialog ):
         # create velocity vector field            
         vector_array = np.zeros((comp_x_params.get_rows(), comp_x_params.get_cols(), 2))
         vector_array[:,:,0], vector_array[:,:,1] = comp_x_array, comp_y_array
-        
-        vector_field = Grid(comp_x_params, vector_array)            
-        
+
         # calculates vector field parameters 
         for vfp_name, vfp_choice, vfp_savefile, vfp_function in zip(params_names, params_choices, params_savefiles, params_functions):  
             if vfp_choice:
-                exec "curr_fld = vector_field.%s()" % vfp_function
-                exec "curr_fld.write_esrigrid('%s')" % vfp_savefile
+                exec("curr_fld = vector_field.%s()" % vfp_function)
+                exec("curr_fld.write_esrigrid('%s')" % vfp_savefile)
         
         # add required layer to the map canvas - modified after RasterCalc module                
         if load_output:
-            #vector field parameters
+            # vector field parameters
             for vfc_choice, vfc_savefile in zip(params_choices, params_savefiles):  
                 if vfc_choice:
-                    newLayer = QgsRasterLayer( vfc_savefile, QFileInfo( vfc_savefile ).baseName() )
-                    QgsMapLayerRegistry.instance().addMapLayer( newLayer )
-    
-   
+                    newLayer = QgsRasterLayer(vfc_savefile, QFileInfo(vfc_savefile).baseName())
+                    QgsProject.instance().addMapLayer(newLayer)
+
         # all done
         QMessageBox.information(self, "Vector operators output", "Processings completed.")
-       
- 
+
     def calculate_vectorfieldgrads(self):
         
         # input rasters            
@@ -479,33 +459,33 @@ class vfc_dialog( QDialog ):
         ### PRE-PROCESSINGS
         
         # check if any calculation                   
-        if not ( gradient_x_calc_choice or gradient_y_calc_choice or gradient_flowlines_calc_choice ):
+        if not (gradient_x_calc_choice or gradient_y_calc_choice or gradient_flowlines_calc_choice):
             QMessageBox.critical(self, "Vector field gradient processing", "No parameter to calculate")   
             return
 
         # check input values for vector field rasters
-        success, msg = self.check_inrasters_def( inraster_x, inraster_y )
+        success, msg = self.check_inrasters_def(inraster_x, inraster_y)
         if not success:
-            QMessageBox.critical( self, "Input component rasters", msg )
+            QMessageBox.critical(self, "Input component rasters", msg)
             return
         
         # get x- and y-axis component data
-        success, result = self.get_raster_data( inraster_x )
+        success, result = self.get_raster_data(inraster_x)
         if not success:
-            QMessageBox.critical( self, "Input x-component raster", msg )
+            QMessageBox.critical(self, "Input x-component raster", msg)
             return   
         else:
             comp_x_params, comp_x_array = result
                      
-        success, result = self.get_raster_data( inraster_y )
+        success, result = self.get_raster_data(inraster_y)
         if not success:
-            QMessageBox.critical( self, "Input y-component raster", msg )
+            QMessageBox.critical(self, "Input y-component raster", msg)
             return   
         else:
             comp_y_params, comp_y_array = result        
             
         # check geometric and geographic equivalence of the two components rasters
-        if not comp_x_params.geo_equiv( comp_y_params ):
+        if not comp_x_params.geo_equiv(comp_y_params):
             QMessageBox.critical(self, "Raster component grids", "The two rasters have different geographic extent and/or cell sizes")   
             return 
         
@@ -525,29 +505,26 @@ class vfc_dialog( QDialog ):
         
         # create velocity vector field            
         vector_array = np.zeros((comp_x_params.get_rows(), comp_x_params.get_cols(), 2))
-        vector_array[:,:,0], vector_array[:,:,1] = comp_x_array, comp_y_array
-        
-        vector_field = Grid(comp_x_params, vector_array)            
-        
+        vector_array[:, :, 0], vector_array[:, :, 1] = comp_x_array, comp_y_array
+
         # calculates gradients parameters 
         for vfg_name, vfg_choice, vfg_savefile, vfg_function in zip(vfgrads_names, vfgrads_choices, vfgrads_savefiles, vfgrads_functions):  
             if vfg_choice:
-                exec "curr_fld = vector_field.%s()" % vfg_function
-                exec "curr_fld.write_esrigrid('%s')" % vfg_savefile
+                exec("curr_fld = vector_field.%s()" % vfg_function)
+                exec("curr_fld.write_esrigrid('%s')" % vfg_savefile)
     
         # add required layer to the map canvas - modified after RasterCalc module                
         if load_output:
             # gradient parameters                                              
             for vfg_choice, vfg_savefile in zip(vfgrads_choices, vfgrads_savefiles):  
                 if vfg_choice:
-                    newLayer = QgsRasterLayer( vfg_savefile, QFileInfo( vfg_savefile ).baseName() )
-                    QgsMapLayerRegistry.instance().addMapLayer( newLayer )    
+                    newLayer = QgsRasterLayer(vfg_savefile, QFileInfo(vfg_savefile).baseName())
+                    QgsMapLayerRegistry.instance().addMapLayer(newLayer)    
    
         # all done
         QMessageBox.information(self, "Gradients output", "Processings completed.")
-    
 
-    def calculate_vectorfieldpathlines( self ):
+    def calculate_vectorfieldpathlines(self):
 
         # input rasters            
         inraster_x, inraster_y = self.get_raster_parameters()
@@ -565,22 +542,22 @@ class vfc_dialog( QDialog ):
         ### PRE-PROCESSINGS
         
         # check input values for vector field rasters
-        success, msg = self.check_inrasters_def( inraster_x, inraster_y )
+        success, msg = self.check_inrasters_def(inraster_x, inraster_y)
         if not success:
-            QMessageBox.critical( self, "Input component rasters", msg )
+            QMessageBox.critical(self, "Input component rasters", msg)
             return
         
         # get x- and y-axis component data
-        success, result = self.get_raster_data( inraster_x )
+        success, result = self.get_raster_data(inraster_x)
         if not success:
-            QMessageBox.critical( self, "Input x-component raster", msg )
+            QMessageBox.critical(self, "Input x-component raster", msg)
             return   
         else:
             comp_x_params, comp_x_array = result
                      
-        success, result = self.get_raster_data( inraster_y )
+        success, result = self.get_raster_data(inraster_y)
         if not success:
-            QMessageBox.critical( self, "Input y-component raster", msg )
+            QMessageBox.critical(self, "Input y-component raster", msg)
             return   
         else:
             comp_y_params, comp_y_array = result        
@@ -595,18 +572,18 @@ class vfc_dialog( QDialog ):
             QMessageBox.critical(self, "Pathline calculation", "No input point layer defined")   
             return 
         try:
-            time_step = float( time_step )
-            total_time = float( total_time )
+            time_step = float(time_step)
+            total_time = float(total_time)
             assert time_step * total_time > 0.0
         except:
-            QMessageBox.critical( self, "Pathline calculation", "Time step and total time should be both positive or both negative" )   
+            QMessageBox.critical(self, "Pathline calculation", "Time step and total time should be both positive or both negative")   
             return 
         
         try:
-            error_max_tolerance = float( error_max_tolerance )
+            error_max_tolerance = float(error_max_tolerance)
             assert error_max_tolerance > 0.0
         except:
-            QMessageBox.critical( self, "Pathline calculation", "Max error should be a positive number" )   
+            QMessageBox.critical(self, "Pathline calculation", "Max error should be a positive number")   
             return                        
                        
         if pathlines_output_shapefile is None or pathlines_output_shapefile == '':
@@ -621,32 +598,37 @@ class vfc_dialog( QDialog ):
         
         vector_field = Grid(comp_x_params, vector_array)            
         
-        pathlines_input_shapefile = str( pathlines_input_shapefile )        
-        pathlines_output_shapefile = str( pathlines_output_shapefile )
+        pathlines_input_shapefile = str(pathlines_input_shapefile)        
+        pathlines_output_shapefile = str(pathlines_output_shapefile)
 
         # get input and output shapefiles        
-        driver = ogr.GetDriverByName( 'ESRI Shapefile' ) 
+        driver = ogr.GetDriverByName('ESRI Shapefile') 
       
-        in_shapefile = driver.Open( pathlines_input_shapefile, 0 )                        
+        in_shapefile = driver.Open(pathlines_input_shapefile, 0)                        
         if in_shapefile is None:
-            QMessageBox.critical(self, "Error in pathline calculation", "Unable to get input shapefile")   
+            QMessageBox.critical(
+                self,
+                "Error in pathline calculation",
+                "Unable to get input shapefile")
             return
    
-        if os.path.exists( pathlines_output_shapefile ):
-            driver.DeleteDataSource( pathlines_output_shapefile )
+        if os.path.exists(pathlines_output_shapefile):
+            driver.DeleteDataSource(pathlines_output_shapefile)
     
-        out_shape = driver.CreateDataSource( pathlines_output_shapefile )
+        out_shape = driver.CreateDataSource(pathlines_output_shapefile)
         if out_shape is None:
-            QMessageBox.critical( self, 
-                                 "Pathline calculation", 
-                                 "Unable to create output shapefile: %s" % pathlines_output_shapefile )   
+            QMessageBox.critical(
+                self,
+                "Pathline calculation",
+                "Unable to create output shapefile: %s" % pathlines_output_shapefile)
             return
         
         out_layer = out_shape.CreateLayer('out_pathlines', geom_type=ogr.wkbPoint)
         if out_layer is None:
-            QMessageBox.critical( self, 
-                                 "Pathline calculation", 
-                                 "Unable to create output shapefile: %s" % pathlines_output_shapefile )   
+            QMessageBox.critical(
+                self,
+                "Pathline calculation",
+                "Unable to create output shapefile: %s" % pathlines_output_shapefile)
             return        
     
         # add fields to the output shapefile    
@@ -721,7 +703,7 @@ class vfc_dialog( QDialog ):
                 continue                        
                 
             # pathline cycle
-            while abs( pathline_cumulated_time ) < abs( total_time ):
+            while abs(pathline_cumulated_time) < abs(total_time):
                 
                 if vector_field.include_point_location(curr_Pt):            
                     
@@ -736,7 +718,7 @@ class vfc_dialog( QDialog ):
                     curr_v_magnitude = sqrt(curr_Pt_vx**2 + curr_Pt_vy**2)            
     
                     # update total length
-                    if abs( pathline_cumulated_time ) > 0:
+                    if abs(pathline_cumulated_time) > 0:
                         delta_s = curr_Pt.distance(self.prev_Pt)
                         pathline_cumulated_length += delta_s
     
@@ -795,27 +777,23 @@ class vfc_dialog( QDialog ):
         
         # destroy output geometry
         out_shape.Destroy()
-    
-       
+
         # add required layer to the map canvas - modified after RasterCalc module                
         if load_output:
             pathlines_outshape = QgsVectorLayer(pathlines_output_shapefile, 
                                                 QFileInfo(pathlines_output_shapefile).baseName(), 
                                                 "ogr")                    
-            QgsMapLayerRegistry.instance().addMapLayer( pathlines_outshape )
-    
-   
+            QgsMapLayerRegistry.instance().addMapLayer(pathlines_outshape)
+
         # all done
         QMessageBox.information(self, "Pathline output", "Processings completed.")
-   
-      
+
     def open_help(self):
         # modified after CADTOOLS module   
              
-        help_path = os.path.join(os.path.dirname(__file__), 'help', 'help.html')        
+        help_path = os.path.join(os.path.dirname(_file_), 'help', 'help.html')        
         webbrowser.open(help_path) 
-        
-        
+
     def about(self):
         """
         Visualize an About window.
@@ -823,20 +801,11 @@ class vfc_dialog( QDialog ):
         
         QMessageBox.about(self, "About VectorFieldCalc", 
         """
-            <p>VectorFieldCalc version 1.3<br />License: GPL v. 3</p>
-            <p>M. Alberti, <a href="http://www.malg.eu">www.malg.eu</a></p> 
+            <p>VectorFieldCalc version 1.4<br />License: GPL v. 3</p>
+            <p>Mauro Alberti</p> 
             <p>This application calculates vector field parameters (e.g., divergence, curl module, gradients)
             and pathlines.            
             </p>
              <p>Please report any bug to <a href="mailto:alberti.m65@gmail.com">alberti.m65@gmail.com</a></p>
         """)              
-            
-        
-        
-        
-                    
 
-     
-            
-            
-            
