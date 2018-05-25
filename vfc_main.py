@@ -1,13 +1,20 @@
+from __future__ import absolute_import
 
-from qgis.core import *
+from builtins import object
+import numpy as np
 
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 
-from .resources import *
+from qgis.core import *
 
+import ogr
+
+#from . import resources
 from .vfc_dialog import vfc_dialog
+from .vfc_classes import *
+
 
 
 class VectorFieldCal(object):

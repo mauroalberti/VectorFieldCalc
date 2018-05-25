@@ -1,12 +1,16 @@
+from __future__ import absolute_import
 
-import webbrowser
+
+from builtins import str
+from builtins import zip
+import os, webbrowser
 from osgeo import ogr
-
-from qgis.core import *
 
 from qgis.PyQt.QtCore import *
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
+
+from qgis.core import *
 
 from .vfc_utils import *
 from .vfc_classes import *
@@ -14,9 +18,9 @@ from .vfc_classes import *
 
 class vfc_dialog(QDialog):
     
-    def _init_(self):
+    def __init__(self):
         
-        QDialog._init_(self)
+        QDialog.__init__(self)
         self.setup_ui()        
  
     def setup_ui(self):
@@ -44,9 +48,9 @@ class vfc_dialog(QDialog):
         inraster_layout = QFormLayout()
 
         self.inraster_x_comboBox = QComboBox()
-        inraster_layout.addRow(QLabel("X-axis components") , self.inraster_x_comboBox)        
+        inraster_layout.addRow(QLabel("X-axis components"), self.inraster_x_comboBox)
         self.inraster_y_comboBox = QComboBox()
-        inraster_layout.addRow(QLabel("Y-axis components") , self.inraster_y_comboBox) 
+        inraster_layout.addRow(QLabel("Y-axis components"), self.inraster_y_comboBox)
                 
         # append loaded raster layers to combo boxes
         #self.layermap = QgsMapLayerRegistry.instance().mapLayers()
@@ -791,7 +795,7 @@ class vfc_dialog(QDialog):
     def open_help(self):
         # modified after CADTOOLS module   
              
-        help_path = os.path.join(os.path.dirname(_file_), 'help', 'help.html')        
+        help_path = os.path.join(os.path.dirname(__file__), 'help', 'help.html')
         webbrowser.open(help_path) 
 
     def about(self):

@@ -1,5 +1,9 @@
 
-import os
+
+from builtins import str
+from builtins import range
+from builtins import object
+import os, sys, string
 from math import *
 import numpy as np
 import gdal
@@ -51,7 +55,7 @@ class Point(object):
     
     # create a new point shifted by given amount
     def movedby(self, sx, sy, sz=0.0):
-        return Point(self.x + sx , self.y + sy, self.z + sz)        
+        return Point(self.x + sx, self.y + sy, self.z + sz)
 
 
 # GDAL raster parameters 
@@ -683,7 +687,7 @@ def read_raster_layer(raster_name, layermap_items):
     
     # verify input parameters            
     if raster_name is None or raster_name == '':                           
-        raise Raster_Parameters_Errors('No namresourcee defined for raster')
+        raise Raster_Parameters_Errors('No name defined for raster')
     
     # get raster input file
     raster_layer = None

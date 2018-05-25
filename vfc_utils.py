@@ -1,5 +1,6 @@
 
 
+from builtins import str
 from qgis.PyQt.QtCore import *
 
 from qgis.core import *
