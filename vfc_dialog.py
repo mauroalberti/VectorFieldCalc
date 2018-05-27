@@ -523,7 +523,7 @@ class VfcDialog(QDialog):
         vfgrads_choices = (gradient_x_calc_choice, gradient_y_calc_choice, gradient_flowlines_calc_choice)     
         vfgrads_names = ('gradient along x axis','gradient along y axis','gradient along flow lines')                      
         vfgrads_savefiles = (gradient_x_outraster_path, gradient_y_outraster_path, gradient_flowlines_outraster_path)
-        vfgrads_functions = ('grad_xaxis', 'grad_yaxis', 'grad_flowlines')                     
+        vfgrads_functions = ('magngrad_xaxis', 'magngrad_yaxis', 'gradient_flowlines')
                  
         # verify input choices for gradients parameters            
         for vfg_name, vfg_choice, vfg_savefile in zip(vfgrads_names, vfgrads_choices, vfgrads_savefiles):
