@@ -36,9 +36,9 @@ class GeoArray(object):
         self.gt = inGeotransform
         self.prj = inProjection
         if inLevels is None:
-            self.levels = []
+            self._levels = []
         else:
-            self.levels = inLevels
+            self._levels = inLevels
 
     @property
     def cellsize_x(self) -> float:
@@ -81,7 +81,47 @@ class GeoArray(object):
           2
         """
 
-        return len(self.levels)
+        return len(self._levels)
+
+    def level(self, level_ndx: int=0) -> Optional['GeoArray']:
+        """
+        Return the array corresponding to the requested level
+        if existing else None.
+
+        :param level_ndx: the index of the requested level.
+        :type level_ndx: int.
+        :return: the array or None.
+        :rtype: optional array.
+
+        Examples:
+        """
+
+        if 0 <= level_ndx < self.levels_num:
+            return self._levels[level_ndx]
+        else:
+            return None
+
+    @property
+    def level_shape(self, level_ndx: int=0) -> Optional[Tuple[int, int]]:
+        """
+        Returns the shape (num. rows and num. columns) of the considered level grid.
+
+        :param level_ndx: index of the level (grid) to consider.
+        :type level_ndx: int.
+        :return: number of rows and columns of the specific grid.
+        :rtype: optional tuple of two int values.
+
+        Examples:
+          >>> GeoArray(grid_data=array([[1, 2], [3, 4]])).levels_num
+          1
+          >>> GeoArray(grid_data=np.ones((4, 3, 2)))
+          2
+        """
+
+        if 0 <= level_ndx < self.levels_num:
+            return self._levels[level_ndx].shape
+        else:
+            return None
 
     def xyToij(self, x: Number, y: Number) -> Tuple[Number, Number]:
         """
@@ -132,7 +172,7 @@ class GeoArray(object):
 
         i, j = self.xyToij(x, y)
 
-        return interp_bilinear(self.levels[level_ndx], i, j)
+        return interp_bilinear(self._levels[level_ndx], i, j)
 
     def magnitude_field(self, ndx_fx=0, ndx_fy=1) -> 'GeoArray':
         """
@@ -149,8 +189,8 @@ class GeoArray(object):
         """
 
         magn = magnitude_2D(
-            fld_x=self.levels[ndx_fx],
-            fld_y=self.levels[ndx_fy])
+            fld_x=self._levels[ndx_fx],
+            fld_y=self._levels[ndx_fy])
 
         return GeoArray(
             inGeotransform=self.gt,
@@ -173,8 +213,8 @@ class GeoArray(object):
         """
 
         orient = orientations_degr(
-            fld_x=self.levels[ndx_fx],
-            fld_y=self.levels[ndx_fy])
+            fld_x=self._levels[ndx_fx],
+            fld_y=self._levels[ndx_fy])
 
         return GeoArray(
             inGeotransform=self.gt,
@@ -197,8 +237,8 @@ class GeoArray(object):
         """
 
         div = divergence_2D(
-            fld_x=self.levels[ndx_fx],
-            fld_y=self.levels[ndx_fy],
+            fld_x=self._levels[ndx_fx],
+            fld_y=self._levels[ndx_fy],
             cell_size_x=self.cellsize_x,
             cell_size_y=self.cellsize_y)
 
@@ -223,8 +263,8 @@ class GeoArray(object):
         """
 
         curl_m = curl_mod(
-            fld_x=self.levels[ndx_fx],
-            fld_y=self.levels[ndx_fy],
+            fld_x=self._levels[ndx_fx],
+            fld_y=self._levels[ndx_fy],
             cell_size_x=self.cellsize_x,
             cell_size_y=self.cellsize_y)
 
@@ -260,8 +300,8 @@ class GeoArray(object):
             raise GeoArrayIOException("Axis must be 'x' or 'y. '{}' given".format(axis))
 
         magn_grads = magnitude_gradient(
-            fld_x=self.levels[ndx_fx],
-            fld_y=self.levels[ndx_fy],
+            fld_x=self._levels[ndx_fx],
+            fld_y=self._levels[ndx_fy],
             dir_cell_sizes=cell_sizes,
             axis=axis)
 
@@ -283,8 +323,8 @@ class GeoArray(object):
         """
 
         flowln_grad = gradient_flowlines(
-            fld_x=self.levels[ndx_fx],
-            fld_y=self.levels[ndx_fy],
+            fld_x=self._levels[ndx_fx],
+            fld_y=self._levels[ndx_fy],
             cell_size_x=self.cellsize_x,
             cell_size_y=self.cellsize_y)
 
