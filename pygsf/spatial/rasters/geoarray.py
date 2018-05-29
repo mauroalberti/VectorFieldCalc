@@ -83,7 +83,7 @@ class GeoArray(object):
 
         return len(self._levels)
 
-    def level(self, level_ndx: int=0) -> Optional['GeoArray']:
+    def level(self, level_ndx: int=0) -> Optional['array']:
         """
         Return the array corresponding to the requested level
         if existing else None.
@@ -112,16 +112,36 @@ class GeoArray(object):
         :rtype: optional tuple of two int values.
 
         Examples:
-          >>> GeoArray(grid_data=array([[1, 2], [3, 4]])).levels_num
-          1
+          >>> GeoArray(grid_data=array([[1, 2], [3, 4]])).level_shape
+          2, 2
           >>> GeoArray(grid_data=np.ones((4, 3, 2)))
-          2
+          1
         """
 
         if 0 <= level_ndx < self.levels_num:
             return self._levels[level_ndx].shape
         else:
             return None
+
+    def level_llc(self, level_ndx: int=0) -> Optional[Tuple[int, int]]:
+        """
+        Returns the coordinates of the lower-left corner.
+
+        :param level_ndx: index of the level (grid) to consider.
+        :type level_ndx: int.
+        :return: x and y values of the lower-left corner of the specific grid.
+        :rtype: optional tuple of two int values.
+
+        Examples:
+        """
+
+        shape = self.level_shape(level_ndx)
+        if not shape:
+            return None
+
+        llc_i, llc_j = shape[0], 0
+
+        return self.ijToxy(llc_i, llc_j)
 
     def xyToij(self, x: Number, y: Number) -> Tuple[Number, Number]:
         """
@@ -154,6 +174,19 @@ class GeoArray(object):
         """
 
         return pixToGeogr(self.gt, i, j)
+
+    @property
+    def has_rotation(self) -> bool:
+        """
+        Determines if a geoarray has axis rotations defined.
+
+        :return: true if there are rotations, false otherwise.
+        :rtype: bool.
+
+        Examples:
+        """
+
+        return self.gt.rotRow != 0.0 or self.gt.rotColumn != 0.0
 
     def interpolate_bilinear(self, x: Number, y: Number, level_ndx=0) -> Optional[float]:
         """
@@ -332,6 +365,7 @@ class GeoArray(object):
             inGeotransform=self.gt,
             inProjection=self.prj,
             inLevels=[flowln_grad])
+
 
 if __name__ == "__main__":
 
