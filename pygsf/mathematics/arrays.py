@@ -278,7 +278,7 @@ def divergence_2D(fld_x: 'array', fld_y: 'array', cell_size_x: Number, cell_size
 
 def curl_mod(fld_x: 'array', fld_y: 'array', cell_size_x: Number, cell_size_y: Number) -> 'array':
     """
-    Calculates the curl from two 2D arrays:
+    Calculates the curl module from two 2D arrays:
     the first represents the vector field x component, the second the vector field y component.
 
     :param fld_x: vector field x component.
