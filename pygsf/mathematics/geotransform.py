@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from ...defaults.typing import *
+from ..defaults.typing import *
 
 
 class GeoTransform(np.ndarray):

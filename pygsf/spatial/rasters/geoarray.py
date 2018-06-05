@@ -7,7 +7,7 @@ from ...defaults.typing import *
 from .exceptions import *
 
 from ...mathematics.arrays import orientations_degr, magnitude_2D, magnitude_gradient, divergence_2D, curl_mod, interp_bilinear, gradient_flowlines
-from .geotransform import GeoTransform, geogrToPix, pixToGeogr
+from ...mathematics.geotransform import GeoTransform, geogrToPix, pixToGeogr
 
 
 class GeoArray(object):

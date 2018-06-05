@@ -2,7 +2,38 @@
 
 
 from .scalars import *
+from .mapping import ij_transfer_func
+from .geotransform import GeoTransform
+from ..defaults.typing import *
 from .exceptions import InputValuesException
+
+
+def array_from_function(row_num: int, col_num: int, geotransform: GeoTransform, z_transfer_func: Callable) -> 'np.array':
+    """
+    Creates an array of z values based on functions that map (i,j) indices (to be created)
+    into (x, y) values and then z values.
+
+    :param  row_num:  row number of the array to be created.
+    :type  row_num:  int.
+    :param  col_num:  column number of the array to be created.
+    :type  col_num:  int.
+    :param  geotransform:  geotransform.
+    :type  geotransform:  GeoTransform.
+    :param  z_transfer_func:  function that derives z given a (x, y) point.
+    :type  z_transfer_func:  Function.
+
+    :return:  array of z values
+    :rtype: np.array of float numbers.
+
+    Examples:
+    """
+
+    return np.fromfunction(
+        function=ij_transfer_func,
+        shape=(row_num, col_num),
+        dtype=np.float64,
+        geotransform=geotransform,
+        z_transfer_func=z_transfer_func)
 
 
 def arrToTuple(arr1D: 'array[Number]') -> Tuple[float, ...]:
@@ -129,7 +160,7 @@ def interp_bilinear(arr: 'array', i: Number, j: Number) -> Optional[float]:
     return grid_val_interp
 
 
-def gradient_x(fld: 'array', cell_size_x: Number) -> 'array':
+def gradient_x(fld: 'array', cell_size_x: Number, edge_order=2) -> 'array':
     """
     Calculates the array gradient along the x axis.
 
@@ -143,10 +174,10 @@ def gradient_x(fld: 'array', cell_size_x: Number) -> 'array':
     Examples:
     """
 
-    return np.gradient(fld, edge_order=2, axis=1) / cell_size_x
+    return np.gradient(fld, edge_order=edge_order, axis=1) / cell_size_x
 
 
-def gradient_y(fld: 'array', cell_size_y: Number) -> 'array':
+def gradient_y(fld: 'array', cell_size_y: Number, edge_order=2) -> 'array':
     """
     Calculates the array gradient along the y axis.
 
@@ -160,7 +191,7 @@ def gradient_y(fld: 'array', cell_size_y: Number) -> 'array':
     Examples:
     """
 
-    return np.gradient(fld, edge_order=2, axis=0) / cell_size_y
+    return np.gradient(fld, edge_order=edge_order, axis=0) / cell_size_y
 
 
 def magnitude_2D(fld_x: 'array', fld_y: 'array') -> 'array':
@@ -295,8 +326,8 @@ def curl_mod(fld_x: 'array', fld_y: 'array', cell_size_x: Number, cell_size_y: N
     Examples:
     """
 
-    dfy_dx = gradient_x(fld_y, cell_size_x)
-    dfx_dy = gradient_y(fld_x, cell_size_y)
+    dfx_dy = gradient_y(fld_x, cell_size_y, edge_order=2)
+    dfy_dx = - gradient_x(fld_y, cell_size_x, edge_order=1)
 
     return dfy_dx - dfx_dy
 

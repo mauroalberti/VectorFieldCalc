@@ -11,9 +11,7 @@
 
 import unittest
 
-from pygsf.mathematics.arrays import divergence
-
-from pygsf.spatial.rasters.mapping import *
+from ..mathematics.mapping import *
 
 
 # Z transfer functions
