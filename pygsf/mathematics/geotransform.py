@@ -195,6 +195,8 @@ def pixToGeogr(geotransform: GeoTransform, i: Number, j: Number) -> Tuple[float,
 
     Examples:
       >>> gt1 = GeoTransform(1500, 3000, 10, 10)
+      >>> pixToGeogr(gt1, 0, 0)
+      (1500.0, 3000.0)
       >>> pixToGeogr(gt1, 10, 10)
       (1600.0, 2900.0)
       >>> pixToGeogr(gt1, 2, 1)
@@ -256,6 +258,34 @@ def geogrToPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float,
     p = (x - g0 - l*g2) / g1
 
     return p, l
+
+
+def gtToXY(gt: GeoTransform, num_rows: int, num_cols: int) -> Tuple['array', 'array']:
+    """
+    Create two arrays that represent the X and Y geographic coordinates of
+    the cells CENTERS (not corners) given the geotransform.
+
+    :param gt: the source geotransform.
+    :type gt: GeoTransform
+    :param num_rows: the number of rows.
+    :type num_rows: int.
+    :param num_cols: the number of the columns.
+    :type num_cols: int.
+    :return: the two Numpy arrays representing the geographic X and Y coordinates.
+    :rtype: Numpy array of float64.
+
+    Examples:
+    """
+
+    X = np.zeros((num_rows, num_cols), dtype=np.float64)
+    Y = np.zeros((num_rows, num_cols), dtype=np.float64)
+    for i in range(num_rows):
+        for j in range(num_cols):
+            x, y = pixToGeogr(gt, i+0.5, j+0.5)
+            X[i, j] = x
+            Y[i, j] = y
+
+    return X, Y
 
 
 if __name__ == "__main__":
