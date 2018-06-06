@@ -191,7 +191,7 @@ def gradient_y(fld: 'array', cell_size_y: Number, edge_order=2) -> 'array':
     Examples:
     """
 
-    return np.gradient(fld, edge_order=edge_order, axis=0) / cell_size_y
+    return - np.gradient(fld, edge_order=edge_order, axis=0) / cell_size_y
 
 
 def magnitude_2D(fld_x: 'array', fld_y: 'array') -> 'array':
@@ -214,7 +214,7 @@ def magnitude_2D(fld_x: 'array', fld_y: 'array') -> 'array':
 
 def magnitude_gradient(fld_x: 'array', fld_y: 'array', dir_cell_sizes: List[Number], axis: str='') -> List['array']:
     """
-    Calculates the magnitude gradient along the x-direction, given two 2D arrays:
+    Calculates the magnitude gradient along the given direction, based on the field two 2D arrays:
     the first represents the vector field x component, the second the vector field y component.
 
     :param fld_x: vector field x component.
@@ -304,7 +304,7 @@ def divergence_2D(fld_x: 'array', fld_y: 'array', cell_size_x: Number, cell_size
     dfx_dx = gradient_x(fld_x, cell_size_x)
     dfy_dy = gradient_y(fld_y, cell_size_y)
 
-    return dfx_dx - dfy_dy
+    return dfx_dx + dfy_dy
 
 
 def curl_mod(fld_x: 'array', fld_y: 'array', cell_size_x: Number, cell_size_y: Number) -> 'array':
@@ -327,7 +327,7 @@ def curl_mod(fld_x: 'array', fld_y: 'array', cell_size_x: Number, cell_size_y: N
     """
 
     dfx_dy = gradient_y(fld_x, cell_size_y, edge_order=2)
-    dfy_dx = - gradient_x(fld_y, cell_size_x, edge_order=1)
+    dfy_dx = gradient_x(fld_y, cell_size_x, edge_order=1)
 
     return dfy_dx - dfx_dy
 
