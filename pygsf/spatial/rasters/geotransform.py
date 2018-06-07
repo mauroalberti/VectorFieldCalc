@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-import numpy as np
-
-from ..defaults.typing import *
+from ...mathematics.scalars import *
 
 
 class GeoTransform(np.ndarray):
@@ -186,10 +184,12 @@ def pixToGeogr(geotransform: GeoTransform, i: Number, j: Number) -> Tuple[float,
     The pixel/line location of the center of the top left pixel would
     therefore be (0.5,0.5)."
 
-    :param xPixel: the  pixel x coordinate.
-    :type xPixel: Number.
-    :param yLine: the pixel y coordinate.
-    :type yLine: Number
+    :param geotransform: the used geotransform.
+    :type geotransform: GeoTransform.
+    :param i: the pixel i coordinate.
+    :type i: Number.
+    :param j: the pixel i coordinate.
+    :type i:j Number.
     :return: tuple storing geographic x-y pair
     :rtype: tuple of two floats.
 
@@ -292,4 +292,3 @@ if __name__ == "__main__":
 
     import doctest
     doctest.testmod()
-

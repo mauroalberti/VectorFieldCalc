@@ -9,7 +9,7 @@ import gdal
 
 from .exceptions import *
 
-from ...mathematics.geotransform import GeoTransform
+from ...spatial.rasters.geotransform import GeoTransform
 
 
 def read_raster(file_ref: Any) -> Tuple[gdal.Dataset, Optional[GeoTransform], int, str]:

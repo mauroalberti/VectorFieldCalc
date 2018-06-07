@@ -11,7 +11,7 @@
 
 import unittest
 
-from ..mathematics.mapping import *
+from ..spatial.rasters.fields import *
 
 
 # Z transfer functions
@@ -69,7 +69,7 @@ class TestDivergence(unittest.TestCase):
 
         # Divergence as resulting from pygsf calculation:
 
-        div_pygsf = divergence_2D(fx, fy, 10, 10)
+        div_pygsf = divergence(fx, fy, 10, 10)
 
         assert np.allclose(div_theor, div_pygsf)
 

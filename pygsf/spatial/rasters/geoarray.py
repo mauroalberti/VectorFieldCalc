@@ -6,8 +6,10 @@ from ...defaults.typing import *
 
 from .exceptions import *
 
-from ...mathematics.arrays import orientations_degr, magnitude_2D, magnitude_gradient, divergence_2D, curl_mod, interp_bilinear, gradient_flowlines
-from ...mathematics.geotransform import GeoTransform, geogrToPix, pixToGeogr
+from ...mathematics.arrays import interp_bilinear
+from pygsf.spatial.rasters.geotransform import GeoTransform, geogrToPix, pixToGeogr
+
+from .fields import orients_d, magnitude, magn_grads, divergence, curl_module, magn_grad_along_flowlines
 
 
 class GeoArray(object):
@@ -101,7 +103,6 @@ class GeoArray(object):
         else:
             return None
 
-    @property
     def level_shape(self, level_ndx: int=0) -> Optional[Tuple[int, int]]:
         """
         Returns the shape (num. rows and num. columns) of the considered level grid.
@@ -197,6 +198,8 @@ class GeoArray(object):
         :type x: Number.
         :param y: y geographic coordinate.
         :type y: Number.
+        :param level_ndx: the index of the used array.
+        :type level_ndx: int.
         :return: a geoarray storing the interpolated z value
         :rtype: optional float.
 
@@ -221,7 +224,7 @@ class GeoArray(object):
         Examples:
         """
 
-        magn = magnitude_2D(
+        magn = magnitude(
             fld_x=self._levels[ndx_fx],
             fld_y=self._levels[ndx_fy])
 
@@ -245,7 +248,7 @@ class GeoArray(object):
         Examples:
         """
 
-        orient = orientations_degr(
+        orient = orients_d(
             fld_x=self._levels[ndx_fx],
             fld_y=self._levels[ndx_fy])
 
@@ -269,7 +272,7 @@ class GeoArray(object):
         Examples:
         """
 
-        div = divergence_2D(
+        div = divergence(
             fld_x=self._levels[ndx_fx],
             fld_y=self._levels[ndx_fy],
             cell_size_x=self.cellsize_x,
@@ -295,7 +298,7 @@ class GeoArray(object):
         Examples:
         """
 
-        curl_m = curl_mod(
+        curl_m = curl_module(
             fld_x=self._levels[ndx_fx],
             fld_y=self._levels[ndx_fy],
             cell_size_x=self.cellsize_x,
@@ -332,7 +335,7 @@ class GeoArray(object):
         else:
             raise GeoArrayIOException("Axis must be 'x' or 'y. '{}' given".format(axis))
 
-        magn_grads = magnitude_gradient(
+        magn_grads = magn_grads(
             fld_x=self._levels[ndx_fx],
             fld_y=self._levels[ndx_fy],
             dir_cell_sizes=cell_sizes,
@@ -355,7 +358,7 @@ class GeoArray(object):
         :rtype: GeoArray
         """
 
-        flowln_grad = gradient_flowlines(
+        flowln_grad = magn_grad_along_flowlines(
             fld_x=self._levels[ndx_fx],
             fld_y=self._levels[ndx_fy],
             cell_size_x=self.cellsize_x,
