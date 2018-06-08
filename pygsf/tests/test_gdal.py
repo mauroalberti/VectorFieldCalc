@@ -6,7 +6,7 @@ import unittest
 from pygsf.libs_utils.gdal.gdal import *
 
 
-data_path = "../example_data/vx.asc"
+data_path = "./pygsf/example_data/vx.asc"
 
 
 class TestRasterRead(unittest.TestCase):

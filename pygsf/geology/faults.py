@@ -36,7 +36,7 @@ class Slick(object):
           >>> Slick("90", 10, False)
           Traceback (most recent call last):
           ...
-          pygsf.exceptions.geology.SlickInputTypeException: Trend must be a number
+          pygsf.geology.exceptions.SlickInputTypeException: Trend must be a number
         """
 
         if not isinstance(trend, (int, float)):
@@ -160,7 +160,7 @@ class Fault(object):
           >>> Fault(90, 45, slickenlines=[Slick(90, 55)])
           Traceback (most recent call last):
           ...
-          pygsf.exceptions.geology.FaultInputTypeException: All slickenlines must lie on the plane
+          pygsf.geology.exceptions.FaultInputTypeException: All slickenlines must lie on the plane
         """
 
         if not isinstance(azim, (int, float)):
@@ -225,7 +225,7 @@ class Fault(object):
         return self.numSlicks > 0
 
     @property
-    def slicks(self) -> List[Slick, ...]:
+    def slicks(self) -> List[Slick]:
         """
         Return the slickenlines associated with the fault.
         """
@@ -248,7 +248,7 @@ class Fault(object):
         else:
             return self._slicks[ndx]
 
-    def slickGeom(self, ndx: int=0) -> Optional[Direct, Axis]:
+    def slickGeom(self, ndx: int=0) -> Optional[Direct]:
         """
         Return the geometric object (Direct or Axis) associated with slickenline.
 
@@ -303,7 +303,7 @@ class Fault(object):
           >>> Fault(180, 45, slickenlines=[Slick(180, 45, False)]).rake()
           Traceback (most recent call last):
           ...
-          pygsf.exceptions.geology.FaultInputTypeException: Slickeline must have known movement sense
+          pygsf.geology.exceptions.FaultInputTypeException: Slickeline must have known movement sense
           >>> Fault(90, 90, slickenlines=[Slick(0, 0)]).rake()
           0.0
           >>> Fault(90, 90, slickenlines=[Slick(90, 90)]).rake()

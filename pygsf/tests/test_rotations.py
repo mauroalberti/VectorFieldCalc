@@ -3,7 +3,7 @@
 
 import unittest
 
-from .test_datasets import *
+from .src_datasets import *
 
 
 class TestFocalMechamismRotations(unittest.TestCase):

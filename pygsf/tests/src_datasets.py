@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
-import unittest
-
 from ..geology.ptbaxes import *
-from pygsf.orientations.rotations import *
+from ..orientations.rotations import *
 
 
 """
@@ -67,7 +65,3 @@ k91_ss_PTBaxes = PTBAxes(
 k91_fs_quater = k91_fs_PTBaxes.toQuatern()
 k91_ss_quater = k91_ss_PTBaxes.toQuatern()
 
-
-if __name__ == '__main__':
-
-    unittest.main()

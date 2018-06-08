@@ -4,7 +4,7 @@
 import unittest
 
 
-from .test_datasets import *
+from .src_datasets import *
 from pygsf.geology.ptbaxes import *
 
 
