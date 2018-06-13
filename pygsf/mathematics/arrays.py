@@ -2,7 +2,8 @@
 
 
 from .scalars import *
-from ..defaults.typing import *
+from .interpolations import *
+
 
 
 def arrToTuple(arr1D: 'array[Number]') -> Tuple[float, ...]:
@@ -93,9 +94,9 @@ def interp_bilinear(arr: 'array', i: Number, j: Number) -> Optional[float]:
     Interpolate the z value at a point, given its array coordinates.
     Interpolation method: bilinear.
 
-    0,0   0,1
+    0, 0   0, 1
 
-    1,0,  1,1
+    1, 0,  1, 1
 
     :param arr: array with values for which the interpolation will be made.
     :type arr: Numpy array.
@@ -118,20 +119,15 @@ def interp_bilinear(arr: 'array', i: Number, j: Number) -> Optional[float]:
     loc_cellcent_i = i - 0.5
     loc_cellcent_j = j - 0.5
 
-    grid_val_00 = arr[int(floor(loc_cellcent_i)), int(floor(loc_cellcent_j))]
-    grid_val_01 = arr[int(floor(loc_cellcent_i)), int(ceil(loc_cellcent_j))]
-    grid_val_10 = arr[int(ceil(loc_cellcent_i)), int(floor(loc_cellcent_j))]
-    grid_val_11 = arr[int(ceil(loc_cellcent_i)), int(ceil(loc_cellcent_j))]
+    v00 = arr[int(floor(loc_cellcent_i)), int(floor(loc_cellcent_j))]
+    v01 = arr[int(floor(loc_cellcent_i)), int(ceil(loc_cellcent_j))]
+    v10 = arr[int(ceil(loc_cellcent_i)), int(floor(loc_cellcent_j))]
+    v11 = arr[int(ceil(loc_cellcent_i)), int(ceil(loc_cellcent_j))]
 
-    delta_i = loc_cellcent_i - floor(loc_cellcent_i)
-    delta_j = loc_cellcent_j - floor(loc_cellcent_j)
+    di = loc_cellcent_i - floor(loc_cellcent_i)
+    dj = loc_cellcent_j - floor(loc_cellcent_j)
 
-    grid_val_y0 = grid_val_00 + (grid_val_10 - grid_val_00) * delta_i
-    grid_val_y1 = grid_val_01 + (grid_val_11 - grid_val_01) * delta_i
-
-    grid_val_interp = grid_val_y0 + (grid_val_y1 - grid_val_y0) * delta_j
-
-    return grid_val_interp
+    return interp_bilinear(di, dj, v00, v01, v10, v11)
 
 
 def pointSolution(a_array: 'array[Number]', b_array: 'array[Number]'):

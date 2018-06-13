@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
+from ..defaults.typing import *
 from ..spatial.vectorial.vectorial import Point
 from ..spatial.rasters.geoarray import GeoArray
 
@@ -92,7 +93,7 @@ def interpolate_RKF(geoarray: GeoArray, delta_time: Number, curr_Pt: Point):
         interp_Pt_x,
         interp_Pt_y)
 
-    interp_PT_error_estimate = interp_Pt.distance(temp_Pt)
+    interp_PT_error_estimate = interp_Pt.dist2DWith(temp_Pt)
 
     return interp_Pt, interp_PT_error_estimate
 
