@@ -2,7 +2,7 @@
 
 
 from .scalars import *
-from .interpolations import *
+from .interpolations import interp_bilinear as s_interp_bilinear
 
 
 
@@ -127,7 +127,7 @@ def interp_bilinear(arr: 'array', i: Number, j: Number) -> Optional[float]:
     di = loc_cellcent_i - floor(loc_cellcent_i)
     dj = loc_cellcent_j - floor(loc_cellcent_j)
 
-    return interp_bilinear(di, dj, v00, v01, v10, v11)
+    return s_interp_bilinear(di, dj, v00, v01, v10, v11)
 
 
 def pointSolution(a_array: 'array[Number]', b_array: 'array[Number]'):
