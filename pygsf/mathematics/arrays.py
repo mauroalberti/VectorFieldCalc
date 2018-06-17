@@ -2,7 +2,7 @@
 
 
 from .scalars import *
-from .interpolations import interp_bilinear as s_interp_bilinear
+from .interpolations import interp_bilinear as s_interp_bilinear, interp_linear
 
 
 
@@ -91,7 +91,7 @@ def arraysAreClose(
 
 def interp_bilinear(arr: 'array', i: Number, j: Number) -> Optional[float]:
     """
-    Interpolate the z value at a point, given its array coordinates.
+    Interpolate the z value at a given i,j values couple.
     Interpolation method: bilinear.
 
     0, 0   0, 1
@@ -108,26 +108,36 @@ def interp_bilinear(arr: 'array', i: Number, j: Number) -> Optional[float]:
     :rtype: optional float.
     """
 
-    if i < 0.5 or j < 0.5:
-        return None
-
     i_max, j_max = arr.shape
+    di = i - floor(i)
+    dj = j - floor(j)
 
-    if i > i_max - 0.5 or j > j_max - 0.5:
+    if i < 0.0 or j < 0.0:
         return None
-
-    loc_cellcent_i = i - 0.5
-    loc_cellcent_j = j - 0.5
-
-    v00 = arr[int(floor(loc_cellcent_i)), int(floor(loc_cellcent_j))]
-    v01 = arr[int(floor(loc_cellcent_i)), int(ceil(loc_cellcent_j))]
-    v10 = arr[int(ceil(loc_cellcent_i)), int(floor(loc_cellcent_j))]
-    v11 = arr[int(ceil(loc_cellcent_i)), int(ceil(loc_cellcent_j))]
-
-    di = loc_cellcent_i - floor(loc_cellcent_i)
-    dj = loc_cellcent_j - floor(loc_cellcent_j)
-
-    return s_interp_bilinear(di, dj, v00, v01, v10, v11)
+    elif i > i_max - 1 or j > j_max - 1:
+        return None
+    elif i == i_max - 1 and j == j_max - 1:
+        return arr[i, j]
+    elif i == i_max - 1:
+        v0 = arr[i, int(floor(j))]
+        v1 = arr[i, int(floor(j+1))]
+        return interp_linear(
+            frac_s=dj,
+            v0=v0,
+            v1=v1)
+    elif j == j_max - 1:
+        v0 = arr[int(floor(i)), j]
+        v1 = arr[int(floor(i+1)), j]
+        return interp_linear(
+            frac_s=di,
+            v0=v0,
+            v1=v1)
+    else:
+        v00 = arr[int(floor(i)), int(floor(j))]
+        v01 = arr[int(floor(i)), int(floor(j+1))]
+        v10 = arr[int(floor(i+1)), int(floor(j))]
+        v11 = arr[int(floor(i+1)), int(floor(j+1))]
+        return s_interp_bilinear(di, dj, v00, v01, v10, v11)
 
 
 def pointSolution(a_array: 'array[Number]', b_array: 'array[Number]'):

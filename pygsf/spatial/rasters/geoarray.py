@@ -1,15 +1,50 @@
 # -*- coding: utf-8 -*-
 
-
-from ...mathematics.defaults import *
-from ...defaults.typing import *
-
 from .exceptions import *
-
 from ...mathematics.arrays import interp_bilinear
-from pygsf.spatial.rasters.geotransform import GeoTransform, geogrToPix, pixToGeogr
+from .fields import *
 
-from .fields import orients_d, magnitude, magn_grads, divergence, curl_module, magn_grad_along_flowlines
+
+def pixToArrIndices(i_pix: Number, j_pix:Number) -> Tuple(Number, Number):
+    """
+    Converts from pixel (geotransform-derived) to array indices.
+
+    :param i_pix: the geotransform i value.
+    :type i_pix: Number.
+    :param j_pix: the geotransform j value.
+    :type j_pix: Number.
+    :return: the array-equivalent i and j indices.
+    :rtype: a tuple of two numbers.
+
+    Examples:
+      >>> pixToArrIndices(0, 0)
+      -0.5, -0.5
+      >>> pixToArrIndices(0.5, 0.5)
+      0.0, 0.0
+    """
+
+    return i_pix - 0.5, j_pix - 0.5
+
+
+def arrIndicesToPix(i_arr: Number, j_arr: Number) -> Tuple(Number, Number):
+    """
+    Converts from array indices to geotransform-related pixel indices.
+
+    :param i_arr: the array i value.
+    :type i_arr: Number.
+    :param j_arr: the array j value.
+    :type j_arr: Number.
+    :return: the geotransform-equivalent i and j indices.
+    :rtype: a tuple of two numbers.
+
+    Examples:
+      >>> arrIndicesToPix(0, 0)
+      0.5, 0.5
+      >>> arrIndicesToPix(0.5, 0.5)
+      1.0, 1.0
+    """
+
+    return i_arr + 0.5, j_arr + 0.5
 
 
 class GeoArray(object):
@@ -158,7 +193,7 @@ class GeoArray(object):
         Examples:
         """
 
-        return geogrToPix(self.gt, x, y)
+        return pixToArrIndices(geogrToPix(self.gt, x, y))
 
     def ijToxy(self, i: Number, j: Number) -> Tuple[Number, Number]:
         """
@@ -174,7 +209,8 @@ class GeoArray(object):
         Examples:
         """
 
-        return pixToGeogr(self.gt, i, j)
+        i_pix, j_pix = arrIndicesToPix(i, j)
+        return pixToGeogr(self.gt, i_pix, j_pix)
 
     @property
     def has_rotation(self) -> bool:
@@ -335,7 +371,7 @@ class GeoArray(object):
         else:
             raise GeoArrayIOException("Axis must be 'x' or 'y. '{}' given".format(axis))
 
-        magn_grads = magn_grads(
+        magnitude_gradients = magn_grads(
             fld_x=self._levels[ndx_fx],
             fld_y=self._levels[ndx_fy],
             dir_cell_sizes=cell_sizes,
@@ -344,7 +380,7 @@ class GeoArray(object):
         return GeoArray(
             inGeotransform=self.gt,
             inProjection=self.prj,
-            inLevels=magn_grads)
+            inLevels=magnitude_gradients)
 
     def grad_flowlines(self, ndx_fx: int=0, ndx_fy: int=1) -> 'GeoArray':
         """
@@ -374,3 +410,4 @@ if __name__ == "__main__":
 
     import doctest
     doctest.testmod()
+

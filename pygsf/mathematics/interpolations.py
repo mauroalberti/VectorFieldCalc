@@ -4,30 +4,35 @@
 from ..defaults.typing import Number
 
 
-def interp_linear(frac_s: Number, delta_z: Number) -> Number:
+def interp_linear(frac_s: Number, v0: Number, v1:Number) -> Number:
     """
     Interpolate a number in a linear way.
 
-    :param frac_s: the fractional distance between the start and end point.
-    :param delta_z: the z difference between the end and the start point.
-    :return: the z difference of the interpolated point with the start point.
+    :param frac_s: the fractional distance between the start and end point. Range 0-1.
+    :type frac_s: Number.
+    :param v0: the value at the start point.
+    :type v0: Number.
+    :param v1: the value at the end point.
+    ;:type v1: Number.
+    :return: the interpolated value.
 
     Examples:
-      >>> interp_linear(0, 10)
-      0
-      >>> interp_linear(1, 10)
+      >>> interp_linear(0, 10, 20)
       10
-      >>> interp_linear(-1, 10)
-      -10
-      >>> interp_linear(2, 10)
+      >>> interp_linear(1, 10, 20)
       20
-      >>> interp_linear(0.3, 10)
+      >>> interp_linear(-1, 10, 20)
+      0
+      >>> interp_linear(2, 10, 20)
+      30
+      >>> interp_linear(0.3, 0, 10)
       3.0
-      >>> interp_linear(0.75, 10)
+      >>> interp_linear(0.75, 0, 10)
       7.5
     """
 
-    return frac_s * delta_z
+    delta_z = v1 - v0
+    return v0 + frac_s * delta_z
 
 
 def interp_bilinear(i: Number, j: Number, v00: Number, v01: Number, v10: Number, v11: Number) -> Number:

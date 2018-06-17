@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-
 from ...mathematics.exceptions import InputValuesException
-
 from .geotransform import *
 
 
