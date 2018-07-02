@@ -6,94 +6,124 @@ from ..spatial.vectorial.vectorial import Point
 from ..spatial.rasters.geoarray import GeoArray
 
 
-def point_velocity(geoarray: GeoArray, currpoint: Point):
+def point_velocity(geoarray: GeoArray, pt: Point) -> Tuple[Optional[float], Optional[float]]:
     """
-    return the velocity components of a point in a velocity field
+    Return the velocity components of a 2D-flow field at a point location, based on bilinear interpolation.
+
+    :param geoarray: the flow field expressed as a GeoArray.
+    :type geoarray: GeoArray.
+    :param pt: the point for which the velocity comnponents are extracted.
+    :type pt: Point.
+    :return: the x and y velocity components of the flow field at the point location.
+    :rtype: tuple of two float values.
 
     Examples:
     """
 
-    x, y, _ = currpoint.toXYZ()
-    vx = geoarray.interpolate_bilinear(x, y, 0)
-    vy = geoarray.interpolate_bilinear(x, y, 1)
+    x, y, _ = pt.toXYZ()
+    vx = geoarray.interpolate_bilinear(
+        x=x,
+        y=y,
+        level_ndx=0)
+    vy = geoarray.interpolate_bilinear(
+        x=x,
+        y=y,
+        level_ndx=1)
 
     return vx, vy
 
 
-def interpolate_RKF(geoarray: GeoArray, delta_time: Number, curr_Pt: Point):
+def interpolate_rkf(geoarray: GeoArray, delta_time: Number, start_pt: Point) -> Tuple[Optional[Point], Optional[float]]:
     """
-    Interpolate points according to RKF method.
+    Interpolate point-like object position according to the Runge-Kutta-Fehlberg method.
+
+    :param geoarray: the flow field expressed as a GeoArray.
+    :type geoarray: GeoArray.
+    :param delta_time: the flow field expressed as a GeoArray.
+    :type delta_time: GeoArray.
+    :param start_pt: the initial point.
+    :type start_pt: Point.
+    :return: the estimated point-like object position at the incremented time, with the estimation error.
+    :rtype: tuple of optional point and optional float.
 
     Examples:
     """
 
-    K1_vx, K1_vy = point_velocity(geoarray,  curr_Pt)
-    if K1_vx is None or K1_vy is None:
+    k1_vx, k1_vy = point_velocity(geoarray, start_pt)
+
+    if k1_vx is None or k1_vy is None:
         return None, None
 
-    K2_Pt = Point(
-        curr_Pt.x + (0.25) * delta_time * K1_vx,
-        curr_Pt.y + (0.25) * delta_time * K1_vy)
+    k2_pt = Point(
+        start_pt.x + (0.25) * delta_time * k1_vx,
+        start_pt.y + (0.25) * delta_time * k1_vy
+    )
 
-    K2_vx, K2_vy = point_velocity(geoarray,  K2_Pt)
-    if K2_vx is None or K2_vy is None:
+    k2_vx, k2_vy = point_velocity(geoarray, k2_pt)
+
+    if k2_vx is None or k2_vy is None:
         return None, None
 
-    K3_Pt = Point(
-        curr_Pt.x + (3.0 / 32.0) * delta_time * K1_vx + (9.0 / 32.0) * delta_time * K2_vx,
-        curr_Pt.y + (3.0 / 32.0) * delta_time * K1_vy + (9.0 / 32.0) * delta_time * K2_vy)
+    k3_pt = Point(
+        start_pt.x + (3.0 / 32.0) * delta_time * k1_vx + (9.0 / 32.0) * delta_time * k2_vx,
+        start_pt.y + (3.0 / 32.0) * delta_time * k1_vy + (9.0 / 32.0) * delta_time * k2_vy
+    )
 
-    K3_vx, K3_vy = point_velocity(geoarray,  K3_Pt)
-    if K3_vx is None or K3_vy is None:
+    k3_vx, k3_vy = point_velocity(geoarray, k3_pt)
+
+    if k3_vx is None or k3_vy is None:
         return None, None
 
-    K4_Pt = Point(
-        curr_Pt.x + (1932.0 / 2197.0) * delta_time * K1_vx - (7200.0 / 2197.0) * delta_time * K2_vx + (7296.0 / 2197.0) * delta_time * K3_vx,
-        curr_Pt.y + (1932.0 / 2197.0) * delta_time * K1_vy - (7200.0 / 2197.0) * delta_time * K2_vy + (7296.0 / 2197.0) * delta_time * K3_vy)
+    k4_pt = Point(
+        start_pt.x + (1932.0 / 2197.0) * delta_time * k1_vx - (7200.0 / 2197.0) * delta_time * k2_vx + (7296.0 / 2197.0) * delta_time * k3_vx,
+        start_pt.y + (1932.0 / 2197.0) * delta_time * k1_vy - (7200.0 / 2197.0) * delta_time * k2_vy + (7296.0 / 2197.0) * delta_time * k3_vy)
 
-    K4_vx, K4_vy = point_velocity(geoarray,  K4_Pt)
-    if K4_vx is None or K4_vy is None:
+    k4_vx, k4_vy = point_velocity(geoarray, k4_pt)
+
+    if k4_vx is None or k4_vy is None:
         return None, None
 
-    K5_Pt = Point(
-        curr_Pt.x + (439.0 / 216.0) * delta_time * K1_vx - (8.0) * delta_time * K2_vx + (3680.0 / 513.0) * delta_time * K3_vx - (845.0 / 4104.0) * delta_time * K4_vx,
-        curr_Pt.y + (439.0 / 216.0) * delta_time * K1_vy - (8.0) * delta_time * K2_vy + (3680.0 / 513.0) * delta_time * K3_vy - (845.0 / 4104.0) * delta_time * K4_vy)
+    k5_pt = Point(
+        start_pt.x + (439.0 / 216.0) * delta_time * k1_vx - (8.0) * delta_time * k2_vx + (3680.0 / 513.0) * delta_time * k3_vx - (845.0 / 4104.0) * delta_time * k4_vx,
+        start_pt.y + (439.0 / 216.0) * delta_time * k1_vy - (8.0) * delta_time * k2_vy + (3680.0 / 513.0) * delta_time * k3_vy - (845.0 / 4104.0) * delta_time * k4_vy)
 
-    K5_vx, K5_vy = point_velocity(geoarray,  K5_Pt)
-    if K5_vx is None or K5_vy is None:
+    k5_vx, k5_vy = point_velocity(geoarray, k5_pt)
+
+    if k5_vx is None or k5_vy is None:
         return None, None
 
-    K6_Pt = Point(
-        curr_Pt.x - (8.0 / 27.0) * delta_time * K1_vx + (2.0) * delta_time * K2_vx - (3544.0 / 2565.0) * delta_time * K3_vx + (1859.0 / 4104.0) * delta_time * K4_vx - (
-                          11.0 / 40.0) * delta_time * K5_vx,
-        curr_Pt.y - (8.0 / 27.0) * delta_time * K1_vy + (2.0) * delta_time * K2_vy - (3544.0 / 2565.0) * delta_time * K3_vy + (1859.0 / 4104.0) * delta_time * K4_vy - (
-                          11.0 / 40.0) * delta_time * K5_vy)
+    k6_pt = Point(
+        start_pt.x - (8.0 / 27.0) * delta_time * k1_vx + (2.0) * delta_time * k2_vx - (3544.0 / 2565.0) * delta_time * k3_vx + (1859.0 / 4104.0) * delta_time * k4_vx - (
+                          11.0 / 40.0) * delta_time * k5_vx,
+        start_pt.y - (8.0 / 27.0) * delta_time * k1_vy + (2.0) * delta_time * k2_vy - (3544.0 / 2565.0) * delta_time * k3_vy + (1859.0 / 4104.0) * delta_time * k4_vy - (
+                          11.0 / 40.0) * delta_time * k5_vy)
 
-    K6_vx, K6_vy = point_velocity(geoarray,  K6_Pt)
-    if K6_vx is None or K6_vy is None:
+    k6_vx, k6_vy = point_velocity(geoarray, k6_pt)
+
+    if k6_vx is None or k6_vy is None:
         return None, None
 
-    rkf_4o_x = curr_Pt.x + delta_time * (
-            (25.0 / 216.0) * K1_vx + (1408.0 / 2565.0) * K3_vx + (2197.0 / 4104.0) * K4_vx - (
-            1.0 / 5.0) * K5_vx)
-    rkf_4o_y = curr_Pt.y + delta_time * (
-            (25.0 / 216.0) * K1_vy + (1408.0 / 2565.0) * K3_vy + (2197.0 / 4104.0) * K4_vy - (
-            1.0 / 5.0) * K5_vy)
-    temp_Pt = Point(
+    rkf_4o_x = start_pt.x + delta_time * (
+            (25.0 / 216.0) * k1_vx + (1408.0 / 2565.0) * k3_vx + (2197.0 / 4104.0) * k4_vx - (
+            1.0 / 5.0) * k5_vx)
+    rkf_4o_y = start_pt.y + delta_time * (
+            (25.0 / 216.0) * k1_vy + (1408.0 / 2565.0) * k3_vy + (2197.0 / 4104.0) * k4_vy - (
+            1.0 / 5.0) * k5_vy)
+    temp_pt = Point(
         rkf_4o_x,
         rkf_4o_y)
 
-    interp_Pt_x = curr_Pt.x + delta_time * (
-            (16.0 / 135.0) * K1_vx + (6656.0 / 12825.0) * K3_vx + (28561.0 / 56430.0) * K4_vx - (
-            9.0 / 50.0) * K5_vx + (2.0 / 55.0) * K6_vx)
-    interp_Pt_y = curr_Pt.y + delta_time * (
-            (16.0 / 135.0) * K1_vy + (6656.0 / 12825.0) * K3_vy + (28561.0 / 56430.0) * K4_vy - (
-            9.0 / 50.0) * K5_vy + (2.0 / 55.0) * K6_vy)
-    interp_Pt = Point(
-        interp_Pt_x,
-        interp_Pt_y)
+    interp_x = start_pt.x + delta_time * (
+            (16.0 / 135.0) * k1_vx + (6656.0 / 12825.0) * k3_vx + (28561.0 / 56430.0) * k4_vx - (
+            9.0 / 50.0) * k5_vx + (2.0 / 55.0) * k6_vx)
+    interp_y = start_pt.y + delta_time * (
+            (16.0 / 135.0) * k1_vy + (6656.0 / 12825.0) * k3_vy + (28561.0 / 56430.0) * k4_vy - (
+            9.0 / 50.0) * k5_vy + (2.0 / 55.0) * k6_vy)
+    interp_pt = Point(
+        interp_x,
+        interp_y)
 
-    interp_PT_error_estimate = interp_Pt.dist2DWith(temp_Pt)
+    interp_pt_error_estim = interp_pt.dist2DWith(temp_pt)
 
-    return interp_Pt, interp_PT_error_estimate
+    return interp_pt, interp_pt_error_estim
 

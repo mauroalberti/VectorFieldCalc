@@ -1,74 +1,53 @@
-# -*- coding: utf-8 -*-
+from __future__ import absolute_import
 
+from builtins import object
+import numpy as np
 
-from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
+from qgis.PyQt.QtCore import *
+from qgis.PyQt.QtGui import *
+from qgis.PyQt.QtWidgets import *
 
 from qgis.core import *
 
-import resources
+import ogr
 
-from vfc_dialog import VfcDialog
+#from . import resources
+from .vfc_dialog import vfc_dialog
+from .vfc_classes import *
 
 
-plugin_name = "VectorFieldCalc"
 
-
-class VectorFieldCal:
+class VectorFieldCal(object):
 
     def __init__(self, iface):        
-        """
-        Save reference to the QGIS interface
-        
-        :param iface: 
-        """
+        # Save reference to the QGIS interface
         
         self.iface = iface
 
     def initGui(self):
-        """
-        Create action that will start plugin configuration
+        # Create action that will start plugin configuration
         
-        :return: 
-        """
-        
-        self.action = QAction(
-            QIcon(":/plugins/VectorFieldCalc/icon.png"),
-            "VectorFieldCalc", 
-            self.iface.mainWindow())
+        self.action = QAction(QIcon(":/plugins/VectorFieldCalc/icon.png"), \
+            "VectorFieldCalc", self.iface.mainWindow())
         
         # connect the action to the run method
-        self.action.triggered.connect(self.run)
+        self.action.triggered.connect( self.run )
 
         # Add toolbar button and menu item
         self.iface.addToolBarIcon(self.action)
         self.iface.addPluginToMenu("&VectorFieldCalc", self.action)
 
     def unload(self):
-        """
-        Remove the plugin menu item and icon
+        # Remove the plugin menu item and icon
 
-        :return:
-        """
-
-        self.iface.removePluginMenu("&VectorFieldCalc",self.action)
+        self.iface.removePluginMenu("&VectorFieldCalc", self.action)
         self.iface.removeToolBarIcon(self.action)
 
     def run(self):
-        """
-        Run the plugin
-
-        :return:
-        """
 
         # create the dialog        
-        dlg = VfcDialog(plugin_name)
+        dlg = vfc_dialog()
  
         # show the dialog
         dlg.show()        
         dlg.exec_() 
-        
-        
-        
-               
- 

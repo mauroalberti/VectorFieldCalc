@@ -7,7 +7,7 @@ import numpy as np
 
 from osgeo import osr
 
-from qgis.core import QgsMapLayerRegistry, QgsMapLayer, QGis, QgsCoordinateTransform, QgsPoint, QgsRaster
+from qgis.core import QgsProject, QgsMapLayer, QgsWkbTypes, QgsCoordinateTransform, QgsPoint, QgsRaster
 
 from .exceptions import *
 
@@ -134,11 +134,11 @@ def vector_type(layer):
     if not layer.type() == QgsMapLayer.VectorLayer:
         raise QgisIOException("Layer is not vector")
 
-    if layer.geometryType() == QGis.Point:
+    if layer.geometryType() == QgsWkbTypes.PointGeometry:
         return "point"
-    elif layer.geometryType() == QGis.Line:
+    elif layer.geometryType() == QgsWkbTypes.LineGeometry:
         return "line"
-    elif layer.geometryType() == QGis.Polygon:
+    elif layer.geometryType() == QgsWkbTypes.PolygonGeometry:
         return "polygon"
     else:
         raise QgisIOException("Unknown vector type")
@@ -151,7 +151,7 @@ def loaded_layers():
     :return:
     """
 
-    return QgsMapLayerRegistry.instance().mapLayers().values()
+    return QgsProject.instance().mapLayers().values()
 
 
 def loaded_vector_layers():
@@ -525,7 +525,7 @@ def interpolate_bilinear(dem, qrpDemParams, point):
     """
     Interpolate the z value from a grid using the bilinear convolution.
 
-    :param dem: qgis._core.QgsRasterLayer
+    :param dem: qgis_utils._core.QgsRasterLayer
     :param qrpDemParams: qProf.gis_utils.qgs_tools.QGisRasterParameters
     :param point: qProf.gis_utils.features.Point
     :return: float

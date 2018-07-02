@@ -24,7 +24,7 @@ class PTBAxes(object):
           >>> PTBAxes(p_axis=Axis.fromAzPl(0, 0), t_axis=Axis.fromAzPl(80, 0))
           Traceback (most recent call last):
           ...
-          pygsf.exceptions.geology.PTBAxesInputException: P and T axes must be sub-orthogonal
+          pygsf.geology.exceptions.PTBAxesInputException: P and T axes must be sub-orthogonal
         """
 
         if not (isinstance(p_axis, Axis) and isinstance(t_axis, Axis)):
@@ -59,7 +59,7 @@ class PTBAxes(object):
           >>> PTBAxes.fromVects(p_vector=Vect(0.5, 1, 0), t_vector=Vect(1, 1, 0))
           Traceback (most recent call last):
           ...
-          pygsf.exceptions.geology.PTBAxesInputException: P and T axes must be sub-orthogonal
+          pygsf.geology.exceptions.PTBAxesInputException: P and T axes must be sub-orthogonal
         """
 
         if not isinstance(t_vector, Vect):

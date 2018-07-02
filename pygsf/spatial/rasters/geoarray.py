@@ -5,7 +5,7 @@ from ...mathematics.arrays import interp_bilinear
 from .fields import *
 
 
-def pixToArrIndices(i_pix: Number, j_pix:Number) -> Tuple(Number, Number):
+def pixToArrIndices(i_pix: Number, j_pix: Number) -> Tuple[Number, Number]:
     """
     Converts from pixel (geotransform-derived) to array indices.
 
@@ -18,15 +18,17 @@ def pixToArrIndices(i_pix: Number, j_pix:Number) -> Tuple(Number, Number):
 
     Examples:
       >>> pixToArrIndices(0, 0)
-      -0.5, -0.5
+      (-0.5, -0.5)
       >>> pixToArrIndices(0.5, 0.5)
-      0.0, 0.0
+      (0.0, 0.0)
+      >>> pixToArrIndices(0.5, 1.5)
+      (0.0, 1.0)
     """
 
     return i_pix - 0.5, j_pix - 0.5
 
 
-def arrIndicesToPix(i_arr: Number, j_arr: Number) -> Tuple(Number, Number):
+def arrIndicesToPix(i_arr: Number, j_arr: Number) -> Tuple[Number, Number]:
     """
     Converts from array indices to geotransform-related pixel indices.
 
@@ -39,9 +41,11 @@ def arrIndicesToPix(i_arr: Number, j_arr: Number) -> Tuple(Number, Number):
 
     Examples:
       >>> arrIndicesToPix(0, 0)
-      0.5, 0.5
+      (0.5, 0.5)
       >>> arrIndicesToPix(0.5, 0.5)
-      1.0, 1.0
+      (1.0, 1.0)
+      >>> arrIndicesToPix(1.5, 0.5)
+      (2.0, 1.0)
     """
 
     return i_arr + 0.5, j_arr + 0.5
@@ -112,15 +116,16 @@ class GeoArray(object):
         :rtype: int.
 
         Examples:
-          >>> GeoArray(grid_data=array([[1, 2], [3, 4]])).levels_num
+          >>> gt = GeoTransform(0, 0, 10, 10)
+          >>> GeoArray(gt, "", [array([[1, 2], [3, 4]])]).levels_num
           1
-          >>> GeoArray(grid_data=np.ones((4, 3, 2)))
+          >>> GeoArray(gt, "", [array([[1, 2], [3, 4]]), np.ones((4, 3, 2))]).levels_num
           2
         """
 
         return len(self._levels)
 
-    def level(self, level_ndx: int=0) -> Optional['array']:
+    def level(self, level_ndx: int=0):
         """
         Return the array corresponding to the requested level
         if existing else None.
@@ -148,10 +153,11 @@ class GeoArray(object):
         :rtype: optional tuple of two int values.
 
         Examples:
-          >>> GeoArray(grid_data=array([[1, 2], [3, 4]])).level_shape
-          2, 2
-          >>> GeoArray(grid_data=np.ones((4, 3, 2)))
-          1
+          >>> gt = GeoTransform(0, 0, 10, 10)
+          >>> GeoArray(gt, "", [array([[1, 2], [3, 4]])]).level_shape()
+          (2, 2)
+          >>> GeoArray(gt, "", [array([[1, 2], [3, 4]]), np.ones((4, 3, 2))]).level_shape(1)
+          (4, 3, 2)
         """
 
         if 0 <= level_ndx < self.levels_num:
@@ -193,7 +199,7 @@ class GeoArray(object):
         Examples:
         """
 
-        return pixToArrIndices(geogrToPix(self.gt, x, y))
+        return pixToArrIndices(*geogrToPix(self.gt, x, y))
 
     def ijToxy(self, i: Number, j: Number) -> Tuple[Number, Number]:
         """

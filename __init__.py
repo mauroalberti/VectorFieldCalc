@@ -6,7 +6,7 @@
  Processing of vector fields
                              -------------------
         begin                : 2011-11-27
-        copyright            : (C) 2011-2014 by Mauro Alberti - www.malg.eu
+        copyright            : (C) 2011-2018 by Mauro Alberti
         email                : alberti.m65@gmail.com
  ***************************************************************************/
 
@@ -21,11 +21,12 @@
  ***************************************************************************/
 
 """
+from __future__ import absolute_import
 
 
 def classFactory(iface):
     
-    from vfc_main import VectorFieldCal
+    from .vfc_main import VectorFieldCal
     return VectorFieldCal(iface)
 
 

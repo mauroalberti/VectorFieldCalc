@@ -223,22 +223,24 @@ def geogrToPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float,
     Formula derivation
     ------------------
 
-    x = g0 + p * g1 + l * g2
-    y = g3 + p * g4 + l * g5
+    x = g0 + col * g1 + row * g2
+    y = g3 + col * g4 + row * g5
 
-    x - g0 - l* g2 = p * g1
-    p = (x - g0 - l*g2) / g1
-    p = (y - g3 - l*g5) / g4
+    x - g0 - row* g2 = col * g1
+    col = (x - g0 - row*g2) / g1
+    col = (y - g3 - row*g5) / g4
 
-    g1 * y - g1 * g3 - l * g5 * g1 = g4 * x - g0 * g4 - l * g2 * g4
-    l * (g2g4 -g1g5) = -g1y + g1g3 + g4x - g0g4
-    l = (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
+    g1 * y - g1 * g3 - row * g5 * g1 = g4 * x - g0 * g4 - row * g2 * g4
+    row * (g2g4 -g1g5) = -g1y + g1g3 + g4x - g0g4
+    row = (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
 
     (x - g0 - g1p) / g2 =  (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
 
     g2 * (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5) = x - g0 - g1p
 
 
+    :param geotransform: the input geotransform.
+    :type geotransform: GeoTransform.
     :param x: the  geographic x coordinate.
     :type x: Number.
     :param y: the geographic y coordinate.
@@ -250,14 +252,18 @@ def geogrToPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float,
       >>> gt1 = GeoTransform(1500, 3000, 10, 10)
       >>> geogrToPix(gt1, 1600, 2900)
       (10.0, 10.0)
+      >>> geogrToPix(gt1, 1600, 2800)
+      (20.0, 10.0)
+      >>> geogrToPix(gt1, 1800, 2600)
+      (40.0, 30.0)
     """
 
     g0, g1, g2, g3, g4, g5 = geotransform.components
 
-    l = (g1*g3 - g0*g4 + g4*x - g1*y) / (g2*g4 - g1*g5)
-    p = (x - g0 - l*g2) / g1
+    row = (g1*g3 - g0*g4 + g4*x - g1*y) / (g2*g4 - g1*g5)
+    col = (x - g0 - row*g2) / g1
 
-    return p, l
+    return row, col
 
 
 def gtToXY(gt: GeoTransform, num_rows: int, num_cols: int) -> Tuple['array', 'array']:

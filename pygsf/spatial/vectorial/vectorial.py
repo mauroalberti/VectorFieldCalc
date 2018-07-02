@@ -11,7 +11,7 @@ class Point(object):
     Dimensions: 3D (space)
     """
 
-    def __init__(self, x: [int, float], y: [int, float], z: [int, float]):
+    def __init__(self, x: [int, float], y: [int, float], z: [int, float]=0.0):
         """
         Construct a Point instance.
         """
