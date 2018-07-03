@@ -3,6 +3,8 @@
 
 from math import floor, ceil
 
+from typing import Tuple, List
+
 import numpy as np
 
 from osgeo import osr
@@ -10,6 +12,8 @@ from osgeo import osr
 from qgis.core import QgsProject, QgsMapLayer, QgsWkbTypes, QgsCoordinateTransform, QgsPoint, QgsRaster
 
 from .exceptions import *
+
+from ..pygsf.libs_utils.gdal.gdal import *
 
 
 class QGisRasterParameters(object):
@@ -218,6 +222,36 @@ def loaded_monoband_raster_layers():
 
     return filter(lambda layer: layer.bandCount() == 1,
                   loaded_raster_layers())
+
+
+def layer_name_source(layer: QgsMapLayer) -> Tuple[str, str]:
+    """
+    Returns the name and the source path of the layer.
+
+    :param layer: the layer from which to extract name and source.
+    :type layer: QgsMapLayer.
+    :return: the layer name and source.
+    :rtype: tuple of two strings.
+
+    Examples:
+    """
+
+    return layer.name(), layer.source()
+
+
+def layers_names_sources(layers: List[QgsMapLayer]) -> List[Tuple[str, str]]:
+    """
+    Returns the name and the source path of the layer.
+
+    :param layers: list of the layers from which to extract names and sources.
+    :type layers: list of QgsMapLayer instances.
+    :return: a list storing for each layer its name and source.
+    :rtype: list of tuples made up by two strings.
+
+    Examples:
+    """
+
+    return list(map(layer_name_source, layers))
 
 
 def pt_geoms_attrs(pt_layer, field_list=None):
@@ -633,4 +667,8 @@ def get_prjcrs_as_proj4str(canvas):
         return project_crs_osr
     else:
         return None
+
+
+
+
 

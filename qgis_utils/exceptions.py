@@ -7,3 +7,11 @@ class QgisIOException(Exception):
     """
 
     pass
+
+
+class RasterParametersErrors(Exception):
+    """
+    Exception for raster parameters errors
+    """
+
+    pass

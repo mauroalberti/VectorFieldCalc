@@ -59,11 +59,11 @@ class vfc_dialog(QDialog):
                 
         # append loaded mono-band raster layers to combo boxes
 
-        #monoband_layer = loaded_monoband_raster_layers()
-        self.monoband_raster_lyr = loaded_monoband_raster_layers()
-        for layer in loaded_monoband_raster_layers():
-            self.inraster_x_comboBox.addItem(layer.name())
-            self.inraster_y_comboBox.addItem(layer.name())
+        monoband_raster_lyrs = loaded_monoband_raster_layers()
+        self.monobands = layers_names_sources(monoband_raster_lyrs)
+        for name, _ in self.monobands:
+            self.inraster_x_comboBox.addItem(name)
+            self.inraster_y_comboBox.addItem(name)
  
         inraster_groupbox.setLayout(inraster_layout)
                
@@ -317,9 +317,25 @@ class vfc_dialog(QDialog):
         if sender == self.calc_pathlines_set_outshape:
             self.pathlines_outshapefile_input.setText(fileName)
 
-    def get_raster_parameters(self):
-        
-        return self.inraster_x_comboBox.currentText(), self.inraster_y_comboBox.currentText()
+    def try_get_rasters_infos(self):
+
+        field_x_ndx = self.inraster_x_comboBox.currentIndex()
+        field_y_ndx = self.inraster_x_comboBox.currentIndex()
+
+        if field_x_ndx == field_y_ndx:
+            return False, "X- and Y- layers must be different"
+
+        try:
+            field_x_name, field_x_source = self.monobands[field_x_ndx]
+        except Exception as err:
+            return False, "Exception with getting X-layer: {}".format(err)
+
+        try:
+            field_y_name, field_y_source = self.monobands[field_y_ndx]
+        except Exception as err:
+            return False, "Exception with getting Y-layer: {}".format(err)
+
+        return True, ((field_x_name, field_x_source), (field_y_name, field_y_source))
 
     def get_vector_operator_parameters(self):
     
@@ -336,44 +352,18 @@ class vfc_dialog(QDialog):
                 self.gradient_y_calc_choice_checkBox.isChecked(), self.gradient_y_outraster_lineEdit.text(),
                 self.gradient_flowlines_calc_choice_checkBox.isChecked(), self.gradient_flowlines_outraster_lineEdit.text())
 
-    def check_inrasters_def(self, inraster_x, inraster_y):
-        
-        if inraster_x is None or inraster_x == '':  
-            return False, "No layer defined for x components" 
-         
-        if inraster_y is None or inraster_y == '':  
-            return False, "No layer defined for y components"
-        
-        if inraster_x == inraster_y:                
-            msgBox = QMessageBox()
-            msgBox.setText("The two input rasters are the same.")
-            msgBox.setInformativeText("Is this correct?")
-            msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-            msgBox.setDefaultButton(QMessageBox.Cancel)
-            ret = msgBox.exec_()
-            
-            if ret == QMessageBox.Yes:
-                return True, "Equal rasters"
-            else:
-                return False, "Redefine x- and y- input rasters"         
-
-        return True, "Ok"
-
-    def get_raster_data(self, in_raster):
-
-        ras_params, ras_array = read_raster_layer(
-            in_raster,
-            iter(list(self.monoband_raster_lyr.items())))
-        params_correct, msg = ras_params.check_params()
-        if params_correct:
-            return True, (ras_params, ras_array)
-        else:
-            return False, msg
-
     def calculate_vectorfieldops(self):
 
         # input rasters            
-        inraster_x, inraster_y = self.get_raster_parameters()
+        success, cnt = self.try_get_rasters_infos()
+        if not success:
+            QMessageBox.critical(
+                self,
+                "Vector field processing",
+                cnt)
+            return
+        else:
+            (field_x_name, field_x_source), (field_y_name, field_y_source) = cnt
 
         # vector field parameters            
         magnitude_calc_choice, magnitude_outraster_path, \
@@ -394,37 +384,29 @@ class vfc_dialog(QDialog):
                 "No parameter to calculate")
             return
 
-        # check input values for vector field rasters
-        success, msg = self.check_inrasters_def(inraster_x, inraster_y)
-        if not success:
-            QMessageBox.critical(
-                self,
-                "Input component rasters",
-                msg)
-            return
-        
         # get x- and y-axis component data
-        success, result = self.get_raster_data(inraster_x)
+        success, result = try_read_raster_band(field_x_source)
         if not success:
             QMessageBox.critical(
                 self,
-                "Input x-component raster",
-                msg)
+                "Input X-field",
+                result)
             return   
         else:
-            field_x_params, field_x_values = result
-                     
-        success, result = self.get_raster_data(inraster_y)
+            gt_x, prj_x, bnd_pars_x, data_x = result
+
+        success, result = try_read_raster_band(field_y_source)
         if not success:
             QMessageBox.critical(
                 self,
-                "Input y-component raster",
-                msg)
+                "Input Y-field",
+                result)
             return   
         else:
-            field_y_params, field_y_values = result
+            gt_y, prj_y, bnd_pars_y, data_y = result
             
         # check geometric and geographic equivalence of the two components rasters
+
         if not field_x_params.geo_equiv(field_y_params):
             QMessageBox.critical(
                 self,
@@ -470,7 +452,7 @@ class vfc_dialog(QDialog):
     def calculate_vectorfieldgrads(self):
         
         # input rasters            
-        inraster_x, inraster_y = self.get_raster_parameters()
+        inraster_x, inraster_y = self.try_get_rasters_infos()
 
         # gradients parameters                                           
         gradient_x_calc_choice, gradient_x_outraster_path, \
@@ -494,14 +476,14 @@ class vfc_dialog(QDialog):
             return
         
         # get x- and y-axis component data
-        success, result = self.get_raster_data(inraster_x)
+        success, result = try_get_monoband_raster_data(inraster_x)
         if not success:
             QMessageBox.critical(self, "Input x-component raster", msg)
             return   
         else:
             comp_x_params, comp_x_array = result
                      
-        success, result = self.get_raster_data(inraster_y)
+        success, result = try_get_monoband_raster_data(inraster_y)
         if not success:
             QMessageBox.critical(self, "Input y-component raster", msg)
             return   
@@ -551,7 +533,7 @@ class vfc_dialog(QDialog):
     def calculate_vectorfieldpathlines(self):
 
         # input rasters            
-        inraster_x, inraster_y = self.get_raster_parameters()
+        inraster_x, inraster_y = self.try_get_rasters_infos()
 
         # pathline calculation parameters                    
         pathlines_input_shapefile = self.pathlines_inshapefile_input.text()
@@ -572,14 +554,14 @@ class vfc_dialog(QDialog):
             return
         
         # get x- and y-axis component data
-        success, result = self.get_raster_data(inraster_x)
+        success, result = try_get_monoband_raster_data(inraster_x)
         if not success:
             QMessageBox.critical(self, "Input x-component raster", msg)
             return   
         else:
             comp_x_params, comp_x_array = result
                      
-        success, result = self.get_raster_data(inraster_y)
+        success, result = try_get_monoband_raster_data(inraster_y)
         if not success:
             QMessageBox.critical(self, "Input y-component raster", msg)
             return   

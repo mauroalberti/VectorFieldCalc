@@ -17,7 +17,7 @@ changelog=
     	 - fixed bug in computations management
     1.3: - added backward (upstream) calculation
     1.4: - ported to QGIS 3 courtesy of Andy Aschwanden - Geophysical Institute - University of Alaska Fairbanks
-    2.0: - based on pygsf
+    1.5: - based on pygsf
 
 tags=raster,vector field, curl, divergence, flow, gradient, magnitude
 homepage=https://github.com/mauroalberti/VectorFieldCalc

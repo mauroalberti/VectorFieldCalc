@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from typing import Any, Tuple, Optional
+from typing import Any, Tuple, Dict, Optional, Union
 
 import numpy as np
 
@@ -23,7 +23,6 @@ def read_raster(file_ref: Any) -> Tuple[gdal.Dataset, Optional[GeoTransform], in
     :raises: RasterIOException
 
     Examples:
-
     """
 
     # open raster file and check operation success
@@ -117,6 +116,19 @@ def read_band(dataset: gdal.Dataset, bnd_ndx: int=1) -> Tuple[dict, 'np.array']:
         numColorTableEntries=nColTableEntries)
 
     return band_params, data
+
+
+def try_read_raster_band(raster_source: str, bnd_ndx: int=1) -> Tuple[bool, Union[str, Tuple[GeoTransform, str, Dict, 'np.array']]]:
+
+    # get raster parameters and data
+    try:
+        dataset, geotransform, num_bands, projection = read_raster(raster_source)
+    except (IOError, TypeError, RasterIOException) as err:
+        return False, "Exception with reading {}: {}".format(raster_source, err)
+
+    band_params, data = read_band(dataset, bnd_ndx)
+
+    return True, (geotransform, projection, band_params, data)
 
 
 if __name__ == "__main__":

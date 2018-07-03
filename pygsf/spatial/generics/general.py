@@ -100,6 +100,20 @@ class RectangularDomain(object):
         return self.xrange * self.yrange
 
 
+def prjEquiv(prj1: str, prj2: str) -> bool:
+    """
+    Naive check on two projections equivalence.
+
+    :param prj1: the first projection string.
+    :type prj1: str.
+    :param prj2: the second projection string.
+    :type prj2: str.
+    :return: bool
+    """
+
+    return prj1 == prj2
+
+
 if __name__ == "__main__":
 
     import doctest

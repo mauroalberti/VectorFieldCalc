@@ -89,6 +89,29 @@ def arraysAreClose(
     return all(are_close)
 
 
+def arraysSameShape(
+        a_array: 'array',
+        b_array: 'array') -> bool:
+    """
+    Checks that two arrays have the same shape.
+
+    :param a_array: first array
+    :type a_array: Numpy array.
+    :param b_array: second array
+    :type b_array: Numpy array.
+    :return: whether the two arrays have the same shape.
+    :rtype: bool.
+
+    Examples:
+      >>> arraysSameShape(np.ones((2,2)), np.ones(4))
+      False
+      >>> arraysSameShape(np.ones((2,2,3)), np.zeros((2,2,3)))
+      True
+    """
+
+    return a_array.shape == b_array.shape
+
+
 def interp_bilinear(arr: 'array', i: Number, j: Number) -> Optional[float]:
     """
     Interpolate the z value at a given i,j values couple.

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from ...mathematics.scalars import *
+from ...mathematics.arrays import *
 
 
 class GeoTransform(np.ndarray):
@@ -48,7 +48,7 @@ class GeoTransform(np.ndarray):
     @classmethod
     def fromGdalGt(cls, gdal_gt: Tuple[float, float, float, float, float, float]):
         """
-        Creates a Geotransform from a GDAL-convetion tuple.
+        Creates a Geotransform from a GDAL-convention tuple.
 
         :param gdal_gt: tuple with GDAL geotransform parameters
         :return: None
@@ -294,7 +294,34 @@ def gtToXY(gt: GeoTransform, num_rows: int, num_cols: int) -> Tuple['array', 'ar
     return X, Y
 
 
+def gtEquiv(gt1: GeoTransform, gt2: GeoTransform) -> bool:
+    """
+    Check equivalence between two GeoTransform instances.
+
+    :param gt1: the first geotransform,
+    :type gt1: GeoTransform.
+    :param gt2: the second geotransform.
+    :type gt2: GeoTransform.
+    :return: whether the two geotransform are quivalent.
+    :rtype: bool.
+
+    Examples:
+      >>> gt1 = GeoTransform(1500, 3000, 10, 10)
+      >>> gt2 = GeoTransform(1500, 3000, 10, 10)
+      >>> gtEquiv(gt1, gt2)
+      True
+      >>> gt3 = GeoTransform(1600, 3000, 10, 10)
+      >>> gtEquiv(gt1, gt3)
+      False
+    """
+
+    return arraysAreClose(
+        gt1,
+        gt2)
+
+
 if __name__ == "__main__":
 
     import doctest
     doctest.testmod()
+

@@ -630,31 +630,3 @@ class Grid(object):
         return True        
 
 
-def read_raster_layer(raster_name, layermap_items):
-
-    # verify input parameters
-    if raster_name is None or raster_name == '':
-        raise Raster_Parameters_Errors('No name defined for raster')
-
-    # get raster input file
-    raster_layer = None
-    for (name,layer) in layermap_items:
-        if layer.name() == raster_name:
-            raster_layer = layer
-            break
-    if raster_layer is None:
-        raise Raster_Parameters_Errors('Unable to get raster name')
-
-    try:
-        raster_source = raster_layer.source()
-    except:
-        raise Raster_Parameters_Errors('Unable to get raster file')
-
-    # get raster parameters and data
-    try:
-        raster_params, raster_array = read_band(raster_source)
-    except (IOError, TypeError) as e:
-        raise Raster_Parameters_Errors(str(e))
-
-    return raster_params, raster_array
-
