@@ -6,13 +6,14 @@ import os
 import numpy as np
 
 from ...defaults.typing import *
+from ...defaults.constants import *
 from ...mathematics.scalars import areClose
 from .geoarray import GeoArray
 
 
-def write_esrigrid(geoarray: GeoArray, outgrid_fn: str, esri_nullvalue: Number=-99999.99, level_ndx: int=0) -> Tuple[bool, str]:
+def try_write_esrigrid(geoarray: GeoArray, outgrid_fn: str, esri_nullvalue: Number=GRID_NULL_VALUE, level_ndx: int=0) -> Tuple[bool, str]:
     """
-    writes ESRI ascii grid
+    Writes ESRI ascii grid.
     
     :param geoarray: 
     :param outgrid_fn: 
@@ -48,7 +49,7 @@ def write_esrigrid(geoarray: GeoArray, outgrid_fn: str, esri_nullvalue: Number=-
         return False, "Cell sizes in the x- and y- directions are not similar"
 
     arr = geoarray.level(level_ndx)
-    if not arr:
+    if arr is None:
         return False, "Array with index {} does not exist".format((level_ndx))
 
     num_rows, num_cols = arr.shape
@@ -61,7 +62,7 @@ def write_esrigrid(geoarray: GeoArray, outgrid_fn: str, esri_nullvalue: Number=-
     outputgrid.write("XLLCORNER %.8f\n" % llc_x)
     outputgrid.write("YLLCORNER %.8f\n" % llc_y)
     outputgrid.write("CELLSIZE %.8f\n" % cell_size_x)
-    outputgrid.write("NODATA_VALUE %d\n" % esri_nullvalue)
+    outputgrid.write("NODATA_VALUE %f\n" % esri_nullvalue)
 
     esrigrid_outvalues = np.where(np.isnan(arr), esri_nullvalue, arr)
 

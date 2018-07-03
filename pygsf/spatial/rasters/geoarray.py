@@ -3,6 +3,7 @@
 from .exceptions import *
 from ...mathematics.arrays import interp_bilinear
 from .fields import *
+from ..generics.general import *
 
 
 def pixToArrIndices(i_pix: Number, j_pix: Number) -> Tuple[Number, Number]:
@@ -181,7 +182,7 @@ class GeoArray(object):
         if not shape:
             return None
 
-        llc_i, llc_j = shape[0], 0
+        llc_i, llc_j = - shape[0], 0
 
         return self.ijToxy(llc_i, llc_j)
 
@@ -410,6 +411,56 @@ class GeoArray(object):
             inGeotransform=self.gt,
             inProjection=self.prj,
             inLevels=[flowln_grad])
+
+
+def levelCreateParams(gt: GeoTransform, prj: str, data: array) -> Dict:
+    """
+    Create parameter dictionary from level parameters.
+
+    :param gt: the level geotransform.
+    :type gt: GeoTransform.
+    :param prj: the level projection string.
+    :type prj: str.
+    :param data: the level data.
+    :type data: Numpy array.
+    :return: the dictionary of the relevant parameters.
+    :rtype: dictinary.
+
+    Examples:
+    """
+
+    return dict(
+        geotransform=gt,
+        projection=prj,
+        data_shape=data.shape
+    )
+
+def levelsEquival(level_params_1: Dict, level_params_2: dict) -> bool:
+    """
+    Compares two level paramenters for equivalence.
+
+    :param level_params_1: the first level dictionary.
+    :type level_params_1: dictionary.
+    :param level_params_2: the second level dictionary.
+    :type level_params_2: dictionary.
+    :return: the equivalence result.
+    :rtype: bool.
+    """
+
+    if not gtEquiv(
+        gt1=level_params_1["geotransform"],
+        gt2=level_params_2["geotransform"]):
+        return False
+
+    if not prjEquiv(
+        prj1=level_params_1["projection"],
+        prj2=level_params_2["projection"]):
+        return False
+
+    if level_params_1["data_shape"] != level_params_2["data_shape"]:
+        return False
+
+    return True
 
 
 if __name__ == "__main__":

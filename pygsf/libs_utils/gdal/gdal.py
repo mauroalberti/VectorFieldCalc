@@ -9,6 +9,7 @@ import gdal
 
 from .exceptions import *
 
+from ...defaults.constants import *
 from ...spatial.rasters.geotransform import GeoTransform
 
 

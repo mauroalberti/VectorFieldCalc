@@ -19,7 +19,8 @@ from .vfc_classes import *
 
 from .pygsf.libs_utils.gdal.gdal import *
 from .qgis_utils.qgs import *
-
+from .pygsf.spatial.rasters.geoarray import *
+from .pygsf.spatial.rasters.io import *
 
 class vfc_dialog(QDialog):
 
@@ -320,7 +321,7 @@ class vfc_dialog(QDialog):
     def try_get_rasters_infos(self):
 
         field_x_ndx = self.inraster_x_comboBox.currentIndex()
-        field_y_ndx = self.inraster_x_comboBox.currentIndex()
+        field_y_ndx = self.inraster_y_comboBox.currentIndex()
 
         if field_x_ndx == field_y_ndx:
             return False, "X- and Y- layers must be different"
@@ -353,6 +354,24 @@ class vfc_dialog(QDialog):
                 self.gradient_flowlines_calc_choice_checkBox.isChecked(), self.gradient_flowlines_outraster_lineEdit.text())
 
     def calculate_vectorfieldops(self):
+
+        def write_and_load_result(result_ga: GeoArray, result_fpath: str):
+
+            success, msg = try_write_esrigrid(
+                geoarray=result_ga,
+                outgrid_fn=result_fpath)
+
+            if not success:
+                QMessageBox.critical(
+                    self,
+                    "Vector field processing",
+                    "Unable to write {}".format(result_fpath))
+                return
+
+            # add required layer to the map canvas - modified after RasterCalc module
+            if load_output:
+                newLayer = QgsRasterLayer(result_fpath, QFileInfo(result_fpath).baseName())
+                QgsProject.instance().addMapLayer(newLayer)
 
         # input rasters            
         success, cnt = self.try_get_rasters_infos()
@@ -393,7 +412,7 @@ class vfc_dialog(QDialog):
                 result)
             return   
         else:
-            gt_x, prj_x, bnd_pars_x, data_x = result
+            gt_x, prj_x, _, data_x = result
 
         success, result = try_read_raster_band(field_y_source)
         if not success:
@@ -403,23 +422,25 @@ class vfc_dialog(QDialog):
                 result)
             return   
         else:
-            gt_y, prj_y, bnd_pars_y, data_y = result
+            gt_y, prj_y, _, data_y = result
             
         # check geometric and geographic equivalence of the two components rasters
 
-        if not field_x_params.geo_equiv(field_y_params):
+        if not levelsEquival(
+            levelCreateParams(gt_x, prj_x, data_x),
+            levelCreateParams(gt_y, prj_y, data_y)):
             QMessageBox.critical(
                 self,
                 "Raster component grids",
-                "The two rasters have different geographic extent and/or cell sizes")
+                "The two rasters have different geographic parameters (e.g., extent, projection, cell sizes)")
             return 
         
-        # pre-processes vector field parameters            
-        params_choices = (magnitude_calc_choice, orientations_calc_choice, divergence_calc_choice, curlmodule_calc_choice)     
+        # pre-processes vector field parameters
+
+        params_choices = (magnitude_calc_choice, orientations_calc_choice, divergence_calc_choice, curlmodule_calc_choice)
         params_names = ('magnitude', 'orientation', 'divergence', 'curl module')
         params_savefiles = (magnitude_outraster_path, orientations_outraster_path, divergence_outraster_path, curlmodule_outraster_path)
-        #params_functions = ('magnitude', 'orientations', 'divergence', 'curl_module')
-    
+
         # verify input choices for vector field parameters            
         for vfp_name, vfp_choice, vfp_savefile in zip(params_names, params_choices, params_savefiles):
             if vfp_choice and (vfp_savefile is None or vfp_savefile == ''):
@@ -428,23 +449,27 @@ class vfc_dialog(QDialog):
         
         ### PROCESSINGS
         
-        # create velocity vector field            
-        ##vector_array = np.zeros((comp_x_params.get_rows(), comp_x_params.get_cols(), 2))
-        ##vector_array[:, :, 0], vector_array[:, :, 1] = field_x_values, field_y_values
+        # create velocity geoarray
 
-        # calculates vector field parameters 
-        for vfp_name, vfp_choice, vfp_savefile in zip(params_names, params_choices, params_savefiles):
-            if vfp_choice:
-                exec("curr_fld = vector_array.%s()" % vfp_function)
-                exec("curr_fld.write_esrigrid('%s')" % vfp_savefile)
-        
-        # add required layer to the map canvas - modified after RasterCalc module                
-        if load_output:
-            # vector field parameters
-            for vfc_choice, vfc_savefile in zip(params_choices, params_savefiles):  
-                if vfc_choice:
-                    newLayer = QgsRasterLayer(vfc_savefile, QFileInfo(vfc_savefile).baseName())
-                    QgsProject.instance().addMapLayer(newLayer)
+        ga = GeoArray(
+            inGeotransform=gt_x,
+            inProjection=prj_x,
+            inLevels=[data_x, data_y])
+
+        # calculates vector field parameters
+
+        if magnitude_calc_choice:
+            magn = ga.magnitude_field()
+            write_and_load_result(magn, magnitude_outraster_path)
+        if orientations_calc_choice:
+            orients = ga.orientations()
+            write_and_load_result(orients, orientations_outraster_path)
+        if divergence_calc_choice:
+            diverg = ga.divergence_2D()
+            write_and_load_result(diverg, divergence_outraster_path)
+        if curlmodule_calc_choice:
+            curl_mod = ga.curl_module()
+            write_and_load_result(curl_mod, curlmodule_outraster_path)
 
         # all done
         QMessageBox.information(self, "Vector operators output", "Processings completed.")
@@ -517,7 +542,7 @@ class vfc_dialog(QDialog):
         for vfg_name, vfg_choice, vfg_savefile, vfg_function in zip(vfgrads_names, vfgrads_choices, vfgrads_savefiles, vfgrads_functions):  
             if vfg_choice:
                 exec("curr_fld = vector_field.%s()" % vfg_function)
-                exec("curr_fld.write_esrigrid('%s')" % vfg_savefile)
+                exec("curr_fld.try_write_esrigrid('%s')" % vfg_savefile)
     
         # add required layer to the map canvas - modified after RasterCalc module                
         if load_output:
