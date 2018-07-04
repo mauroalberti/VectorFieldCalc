@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from .exceptions import *
-from ...mathematics.arrays import interp_bilinear
 from .fields import *
 from ..generics.general import *
 
 
-def pixToArrIndices(i_pix: Number, j_pix: Number) -> Tuple[Number, Number]:
+def ijPixToijArray(i_pix: Number, j_pix: Number) -> Tuple[Number, Number]:
     """
     Converts from pixel (geotransform-derived) to array indices.
 
@@ -18,18 +17,18 @@ def pixToArrIndices(i_pix: Number, j_pix: Number) -> Tuple[Number, Number]:
     :rtype: a tuple of two numbers.
 
     Examples:
-      >>> pixToArrIndices(0, 0)
+      >>> ijPixToijArray(0, 0)
       (-0.5, -0.5)
-      >>> pixToArrIndices(0.5, 0.5)
+      >>> ijPixToijArray(0.5, 0.5)
       (0.0, 0.0)
-      >>> pixToArrIndices(0.5, 1.5)
+      >>> ijPixToijArray(0.5, 1.5)
       (0.0, 1.0)
     """
 
     return i_pix - 0.5, j_pix - 0.5
 
 
-def arrIndicesToPix(i_arr: Number, j_arr: Number) -> Tuple[Number, Number]:
+def ijArrToijPix(i_arr: Number, j_arr: Number) -> Tuple[Number, Number]:
     """
     Converts from array indices to geotransform-related pixel indices.
 
@@ -41,11 +40,11 @@ def arrIndicesToPix(i_arr: Number, j_arr: Number) -> Tuple[Number, Number]:
     :rtype: a tuple of two numbers.
 
     Examples:
-      >>> arrIndicesToPix(0, 0)
+      >>> ijArrToijPix(0, 0)
       (0.5, 0.5)
-      >>> arrIndicesToPix(0.5, 0.5)
+      >>> ijArrToijPix(0.5, 0.5)
       (1.0, 1.0)
-      >>> arrIndicesToPix(1.5, 0.5)
+      >>> ijArrToijPix(1.5, 0.5)
       (2.0, 1.0)
     """
 
@@ -182,29 +181,45 @@ class GeoArray(object):
         if not shape:
             return None
 
-        llc_i, llc_j = - shape[0], 0
+        llc_i_pix, llc_j_pix = - shape[0], 0
 
-        return self.ijToxy(llc_i, llc_j)
+        return self.ijPixToxy(llc_i_pix, llc_j_pix)
 
-    def xyToij(self, x: Number, y: Number) -> Tuple[Number, Number]:
+    def xyToijArr(self, x: Number, y: Number) -> Tuple[Number, Number]:
         """
         Converts from geographic to array coordinates.
+
+        :param x: x geographic component.
+        :type x: Number.
+        :param y: y geographic component.
+        :type y: Number.
+        :return: i and j values referred to array.
+        :type: tuple of two float values.
+
+        Examples:
+        """
+
+        return ijPixToijArray(*xyGeogrToijPix(self.gt, x, y))
+
+    def xyToijPix(self, x: Number, y: Number) -> Tuple[Number, Number]:
+        """
+        Converts from geographic to pixel coordinates.
 
         :param x: x geographic component
         :type x: Number
         :param y: y geographic component
         :type y: Number
-        :return: i and j values
+        :return: i and j values referred to grid.
         :type: tuple of two float values
 
         Examples:
         """
 
-        return pixToArrIndices(*geogrToPix(self.gt, x, y))
+        return xyGeogrToijPix(self.gt, x, y)
 
-    def ijToxy(self, i: Number, j: Number) -> Tuple[Number, Number]:
+    def ijArrToxy(self, i: Number, j: Number) -> Tuple[Number, Number]:
         """
-        Converts from array to geographic coordinates.
+        Converts from array indices to geographic coordinates.
 
         :param i: i array component.
         :type i: Number.
@@ -216,8 +231,24 @@ class GeoArray(object):
         Examples:
         """
 
-        i_pix, j_pix = arrIndicesToPix(i, j)
-        return pixToGeogr(self.gt, i_pix, j_pix)
+        i_pix, j_pix = ijArrToijPix(i, j)
+        return ijPixToxyGeogr(self.gt, i_pix, j_pix)
+
+    def ijPixToxy(self, i: Number, j: Number) -> Tuple[Number, Number]:
+        """
+        Converts from grid indices to geographic coordinates.
+
+        :param i: i pixel component.
+        :type i: Number.
+        :param j: j pixel component.
+        :type j: Number.
+        :return: x and y geographic coordinates.
+        :type: tuple of two float values.
+
+        Examples:
+        """
+
+        return ijPixToxyGeogr(self.gt, i, j)
 
     @property
     def has_rotation(self) -> bool:
@@ -249,7 +280,7 @@ class GeoArray(object):
         Examples:
         """
 
-        i, j = self.xyToij(x, y)
+        i, j = self.xyToijArr(x, y)
 
         return interp_bilinear(self._levels[level_ndx], i, j)
 

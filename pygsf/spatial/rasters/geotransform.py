@@ -11,7 +11,13 @@ class GeoTransform(np.ndarray):
     See: http://www.gdal.org/gdal_datamodel.html
     """
 
-    def __new__(cls, inTopLeftX: Number, inTopLeftY: Number, inPixWidth: Number, inPixHeight: Number, inRotRow: Number=0.0, inRotColumn: Number=0.0) -> None:
+    def __new__(cls,
+            inTopLeftX: Number,
+            inTopLeftY: Number,
+            inPixWidth: Number,
+            inPixHeight: Number,
+            inRotRow: Number=0.0,
+            inRotColumn: Number=0.0) -> 'GeoTransform':
         """
         Instance creator.
         Note: pixel height input is positive.
@@ -46,7 +52,7 @@ class GeoTransform(np.ndarray):
         ], dtype=float).view(cls)
 
     @classmethod
-    def fromGdalGt(cls, gdal_gt: Tuple[float, float, float, float, float, float]):
+    def fromGdalGt(cls, gdal_gt: Tuple[float, float, float, float, float, float]) -> 'GeoTransform':
         """
         Creates a Geotransform from a GDAL-convention tuple.
 
@@ -173,7 +179,7 @@ class GeoTransform(np.ndarray):
         return self[4]
 
 
-def pixToGeogr(geotransform: GeoTransform, i: Number, j: Number) -> Tuple[float, float]:
+def ijPixToxyGeogr(geotransform: GeoTransform, i: Number, j: Number) -> Tuple[float, float]:
     """
     Transforms from pixel to geographic coordinates.
 
@@ -195,11 +201,11 @@ def pixToGeogr(geotransform: GeoTransform, i: Number, j: Number) -> Tuple[float,
 
     Examples:
       >>> gt1 = GeoTransform(1500, 3000, 10, 10)
-      >>> pixToGeogr(gt1, 0, 0)
+      >>> ijPixToxyGeogr(gt1, 0, 0)
       (1500.0, 3000.0)
-      >>> pixToGeogr(gt1, 10, 10)
+      >>> ijPixToxyGeogr(gt1, 10, 10)
       (1600.0, 2900.0)
-      >>> pixToGeogr(gt1, 2, 1)
+      >>> ijPixToxyGeogr(gt1, 2, 1)
       (1510.0, 2980.0)
     """
 
@@ -209,7 +215,7 @@ def pixToGeogr(geotransform: GeoTransform, i: Number, j: Number) -> Tuple[float,
     return Xgeo, Ygeo
 
 
-def geogrToPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float, float]:
+def xyGeogrToijPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float, float]:
     """
     Transforms from geographic to pixel coordinates.
 
@@ -250,11 +256,11 @@ def geogrToPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float,
 
     Examples:
       >>> gt1 = GeoTransform(1500, 3000, 10, 10)
-      >>> geogrToPix(gt1, 1600, 2900)
+      >>> xyGeogrToijPix(gt1, 1600, 2900)
       (10.0, 10.0)
-      >>> geogrToPix(gt1, 1600, 2800)
+      >>> xyGeogrToijPix(gt1, 1600, 2800)
       (20.0, 10.0)
-      >>> geogrToPix(gt1, 1800, 2600)
+      >>> xyGeogrToijPix(gt1, 1800, 2600)
       (40.0, 30.0)
     """
 
@@ -266,7 +272,7 @@ def geogrToPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[float,
     return row, col
 
 
-def gtToXY(gt: GeoTransform, num_rows: int, num_cols: int) -> Tuple['array', 'array']:
+def gtToxyCellCenters(gt: GeoTransform, num_rows: int, num_cols: int) -> Tuple['array', 'array']:
     """
     Create two arrays that represent the X and Y geographic coordinates of
     the cells CENTERS (not corners) given the geotransform.
@@ -287,7 +293,7 @@ def gtToXY(gt: GeoTransform, num_rows: int, num_cols: int) -> Tuple['array', 'ar
     Y = np.zeros((num_rows, num_cols), dtype=np.float64)
     for i in range(num_rows):
         for j in range(num_cols):
-            x, y = pixToGeogr(gt, i+0.5, j+0.5)
+            x, y = ijPixToxyGeogr(gt, i + 0.5, j + 0.5)
             X[i, j] = x
             Y[i, j] = y
 

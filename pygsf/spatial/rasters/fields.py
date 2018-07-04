@@ -34,7 +34,7 @@ def ij_transfer_func(
     Examples:
     """
 
-    return z_transfer_func(*pixToGeogr(geotransform, i+i_shift, j+j_shift))
+    return z_transfer_func(*ijPixToxyGeogr(geotransform, i + i_shift, j + j_shift))
 
 
 def array_from_function(
