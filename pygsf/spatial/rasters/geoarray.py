@@ -385,7 +385,7 @@ class GeoArray(object):
 
     def magnitude_grads(self, axis: str= '', ndx_fx: int=0, ndx_fy: int=1) -> 'GeoArray':
         """
-        Calculates the magnitude gradient along the x axis of a 2D field as a geoarray.
+        Calculates the magnitude gradient along the x, y axis or both, of a 2D field as a geoarray.
 
         :param axis: axis along wich to calculate the gradient, 'x' or 'y', or '' (predefined) for both x and y.
         :type axis: str.
@@ -393,7 +393,7 @@ class GeoArray(object):
         :type ndx_fx: integer.
         :param ndx_fy: index of y field.
         :type ndx_fy: integer.
-        :return: a geoarray storing the magnitude gradient along the x axis field.
+        :return: a geoarray storing the magnitude gradient along the x, y axis (or both) field.
         :rtype: GeoArray.
         :raises: GeoArrayIOException.
 

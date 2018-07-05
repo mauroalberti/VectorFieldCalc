@@ -353,27 +353,27 @@ class vfc_dialog(QDialog):
                 self.gradient_y_calc_choice_checkBox.isChecked(), self.gradient_y_outraster_lineEdit.text(),
                 self.gradient_flowlines_calc_choice_checkBox.isChecked(), self.gradient_flowlines_outraster_lineEdit.text())
 
+    def write_and_load_result(self, result_ga: GeoArray, result_fpath: str, load_in_TOC: bool) -> None:
+
+        success, msg = try_write_esrigrid(
+            geoarray=result_ga,
+            outgrid_fn=result_fpath)
+
+        if not success:
+            QMessageBox.critical(
+                self,
+                "Vector field processing",
+                "Unable to write {}".format(result_fpath))
+            return
+
+        # add required layer to the map canvas - modified after RasterCalc module
+        if load_in_TOC:
+            newLayer = QgsRasterLayer(result_fpath, QFileInfo(result_fpath).baseName())
+            QgsProject.instance().addMapLayer(newLayer)
+
     def calculate_vectorfieldops(self):
 
-        def write_and_load_result(result_ga: GeoArray, result_fpath: str):
-
-            success, msg = try_write_esrigrid(
-                geoarray=result_ga,
-                outgrid_fn=result_fpath)
-
-            if not success:
-                QMessageBox.critical(
-                    self,
-                    "Vector field processing",
-                    "Unable to write {}".format(result_fpath))
-                return
-
-            # add required layer to the map canvas - modified after RasterCalc module
-            if load_output:
-                newLayer = QgsRasterLayer(result_fpath, QFileInfo(result_fpath).baseName())
-                QgsProject.instance().addMapLayer(newLayer)
-
-        # input rasters            
+        # input rasters
         success, cnt = self.try_get_rasters_infos()
         if not success:
             QMessageBox.critical(
@@ -404,6 +404,7 @@ class vfc_dialog(QDialog):
             return
 
         # get x- and y-axis component data
+
         success, result = try_read_raster_band(field_x_source)
         if not success:
             QMessageBox.critical(
@@ -441,10 +442,14 @@ class vfc_dialog(QDialog):
         params_names = ('magnitude', 'orientation', 'divergence', 'curl module')
         params_savefiles = (magnitude_outraster_path, orientations_outraster_path, divergence_outraster_path, curlmodule_outraster_path)
 
-        # verify input choices for vector field parameters            
+        # verify input choices for vector field parameters
+
         for vfp_name, vfp_choice, vfp_savefile in zip(params_names, params_choices, params_savefiles):
             if vfp_choice and (vfp_savefile is None or vfp_savefile == ''):
-                QMessageBox.critical(self, vfp_name + " values", "No output layer defined")   
+                QMessageBox.critical(
+                    self,
+                    vfp_name + " values",
+                    "No output layer defined")
                 return 
         
         ### PROCESSINGS
@@ -460,24 +465,32 @@ class vfc_dialog(QDialog):
 
         if magnitude_calc_choice:
             magn = ga.magnitude_field()
-            write_and_load_result(magn, magnitude_outraster_path)
+            self.write_and_load_result(magn, magnitude_outraster_path, load_output)
         if orientations_calc_choice:
             orients = ga.orientations()
-            write_and_load_result(orients, orientations_outraster_path)
+            self.write_and_load_result(orients, orientations_outraster_path, load_output)
         if divergence_calc_choice:
             diverg = ga.divergence_2D()
-            write_and_load_result(diverg, divergence_outraster_path)
+            self.write_and_load_result(diverg, divergence_outraster_path, load_output)
         if curlmodule_calc_choice:
             curl_mod = ga.curl_module()
-            write_and_load_result(curl_mod, curlmodule_outraster_path)
+            self.write_and_load_result(curl_mod, curlmodule_outraster_path, load_output)
 
         # all done
         QMessageBox.information(self, "Vector operators output", "Processings completed.")
 
     def calculate_vectorfieldgrads(self):
-        
-        # input rasters            
-        inraster_x, inraster_y = self.try_get_rasters_infos()
+
+        # input rasters
+        success, cnt = self.try_get_rasters_infos()
+        if not success:
+            QMessageBox.critical(
+                self,
+                "Vector field processing",
+                cnt)
+            return
+        else:
+            (field_x_name, field_x_source), (field_y_name, field_y_source) = cnt
 
         # gradients parameters                                           
         gradient_x_calc_choice, gradient_x_outraster_path, \
@@ -491,67 +504,81 @@ class vfc_dialog(QDialog):
         
         # check if any calculation                   
         if not (gradient_x_calc_choice or gradient_y_calc_choice or gradient_flowlines_calc_choice):
-            QMessageBox.critical(self, "Vector field gradient processing", "No parameter to calculate")   
+            QMessageBox.critical(
+                self,
+                "Vector field gradient processing",
+                "No parameter to calculate")
             return
 
-        # check input values for vector field rasters
-        success, msg = self.check_inrasters_def(inraster_x, inraster_y)
-        if not success:
-            QMessageBox.critical(self, "Input component rasters", msg)
-            return
-        
         # get x- and y-axis component data
-        success, result = try_get_monoband_raster_data(inraster_x)
+
+        success, result = try_read_raster_band(field_x_source)
         if not success:
-            QMessageBox.critical(self, "Input x-component raster", msg)
-            return   
+            QMessageBox.critical(
+                self,
+                "Input X-field",
+                result)
+            return
         else:
-            comp_x_params, comp_x_array = result
-                     
-        success, result = try_get_monoband_raster_data(inraster_y)
+            gt_x, prj_x, _, data_x = result
+
+        success, result = try_read_raster_band(field_y_source)
         if not success:
-            QMessageBox.critical(self, "Input y-component raster", msg)
-            return   
+            QMessageBox.critical(
+                self,
+                "Input Y-field",
+                result)
+            return
         else:
-            comp_y_params, comp_y_array = result        
-            
+            gt_y, prj_y, _, data_y = result
+
         # check geometric and geographic equivalence of the two components rasters
-        if not comp_x_params.geo_equiv(comp_y_params):
-            QMessageBox.critical(self, "Raster component grids", "The two rasters have different geographic extent and/or cell sizes")
+
+        if not levelsEquival(
+            levelCreateParams(gt_x, prj_x, data_x),
+            levelCreateParams(gt_y, prj_y, data_y)):
+            QMessageBox.critical(
+                self,
+                "Raster component grids",
+                "The two rasters have different geographic parameters (e.g., extent, projection, cell sizes)")
             return 
         
         # pre-processes gradients parameters            
         vfgrads_choices = (gradient_x_calc_choice, gradient_y_calc_choice, gradient_flowlines_calc_choice)     
         vfgrads_names = ('gradient along x axis','gradient along y axis','gradient along flow lines')                      
         vfgrads_savefiles = (gradient_x_outraster_path, gradient_y_outraster_path, gradient_flowlines_outraster_path)
-        vfgrads_functions = ('grad_xaxis', 'grad_yaxis', 'grad_flowlines')
                  
-        # verify input choices for gradients parameters            
+        # verify input choices for gradients parameters
+
         for vfg_name, vfg_choice, vfg_savefile in zip(vfgrads_names, vfgrads_choices, vfgrads_savefiles):
             if vfg_choice and (vfg_savefile is None or vfg_savefile == ''):
-                QMessageBox.critical(self, vfg_name + " values", "No output layer defined")   
+                QMessageBox.critical(
+                    self,
+                    vfg_name + " values",
+                    "No output layer defined")
                 return 
         
         ### PROCESSINGS
         
-        # create velocity vector field            
-        vector_array = np.zeros((comp_x_params.get_rows(), comp_x_params.get_cols(), 2))
-        vector_array[:, :, 0], vector_array[:, :, 1] = comp_x_array, comp_y_array
+        # create velocity geoarray
 
-        # calculates gradients parameters 
-        for vfg_name, vfg_choice, vfg_savefile, vfg_function in zip(vfgrads_names, vfgrads_choices, vfgrads_savefiles, vfgrads_functions):  
-            if vfg_choice:
-                exec("curr_fld = vector_field.%s()" % vfg_function)
-                exec("curr_fld.try_write_esrigrid('%s')" % vfg_savefile)
-    
-        # add required layer to the map canvas - modified after RasterCalc module                
-        if load_output:
-            # gradient parameters                                              
-            for vfg_choice, vfg_savefile in zip(vfgrads_choices, vfgrads_savefiles):  
-                if vfg_choice:
-                    newLayer = QgsRasterLayer(vfg_savefile, QFileInfo(vfg_savefile).baseName())
-                    QgsMapLayerRegistry.instance().addMapLayer(newLayer)    
-   
+        ga = GeoArray(
+            inGeotransform=gt_x,
+            inProjection=prj_x,
+            inLevels=[data_x, data_y])
+
+        # calculates gradients parameters
+
+        if gradient_x_calc_choice:
+            grad_x_vals = ga.magnitude_grads(axis='x')
+            self.write_and_load_result(grad_x_vals, gradient_x_outraster_path, load_output)
+        if gradient_y_calc_choice:
+            grad_y_vals = ga.magnitude_grads(axis='y')
+            self.write_and_load_result(grad_y_vals, gradient_y_outraster_path, load_output)
+        if gradient_flowlines_calc_choice:
+            grad_flwlns_vals = ga.grad_flowlines()
+            self.write_and_load_result(grad_flwlns_vals, gradient_flowlines_outraster_path, load_output)
+
         # all done
         QMessageBox.information(self, "Gradients output", "Processings completed.")
 
