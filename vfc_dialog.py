@@ -15,12 +15,13 @@ from qgis.PyQt.QtWidgets import *
 from qgis.core import *
 
 from .vfc_utils import *
-from .vfc_classes import *
 
 from .pygsf.libs_utils.gdal.gdal import *
 from .qgis_utils.qgs import *
 from .pygsf.spatial.rasters.geoarray import *
 from .pygsf.spatial.rasters.io import *
+from .pygsf.space_time.movements import *
+
 
 class vfc_dialog(QDialog):
 
@@ -340,7 +341,8 @@ class vfc_dialog(QDialog):
 
     def get_vector_operator_parameters(self):
     
-        # vector operator parameters            
+        # vector operator parameters
+
         return (self.magnitude_calc_choice_checkBox.isChecked(), self.magnitude_outraster_lineEdit.text(),
                 self.orientations_calc_choice_checkBox.isChecked(), self.orientations_outraster_lineEdit.text(),
                 self.divergence_calc_choice_checkBox.isChecked(), self.divergence_outraster_lineEdit.text(),
@@ -374,6 +376,7 @@ class vfc_dialog(QDialog):
     def calculate_vectorfieldops(self):
 
         # input rasters
+
         success, cnt = self.try_get_rasters_infos()
         if not success:
             QMessageBox.critical(
@@ -384,18 +387,21 @@ class vfc_dialog(QDialog):
         else:
             (field_x_name, field_x_source), (field_y_name, field_y_source) = cnt
 
-        # vector field parameters            
+        # vector field parameters
+
         magnitude_calc_choice, magnitude_outraster_path, \
         orientations_calc_choice, orientations_outraster_path, \
         divergence_calc_choice, divergence_outraster_path, \
         curlmodule_calc_choice, curlmodule_outraster_path = self.get_vector_operator_parameters()
 
-        # load results                       
+        # load results
+
         load_output = self.output_vfops_load_choice_checkBox.isChecked()
 
         ### PRE-PROCESSINGS
         
-        # check if any calculation            
+        # check if any calculation
+
         if not (magnitude_calc_choice or orientations_calc_choice or divergence_calc_choice or curlmodule_calc_choice):
             QMessageBox.critical(
                 self,
@@ -584,82 +590,127 @@ class vfc_dialog(QDialog):
 
     def calculate_vectorfieldpathlines(self):
 
-        # input rasters            
-        inraster_x, inraster_y = self.try_get_rasters_infos()
+        # input rasters
+        success, cnt = self.try_get_rasters_infos()
+        if not success:
+            QMessageBox.critical(
+                self,
+                "Vector field processing",
+                cnt)
+            return
+        else:
+            (field_x_name, field_x_source), (field_y_name, field_y_source) = cnt
 
-        # pathline calculation parameters                    
+        # pathline calculation parameters
+
         pathlines_input_shapefile = self.pathlines_inshapefile_input.text()
         time_step = self.pathlines_timestep_input.text()
         total_time = self.pathlines_totaltime_input.text()
         error_max_tolerance = self.pathlines_stepmaxerror_input.text()
         pathlines_output_shapefile = self.pathlines_outshapefile_input.text()
         
-        # load results                       
+        # load results
+
         load_output = self.output_pathl_load_choice_checkBox.isChecked()
 
-        ### PRE-PROCESSINGS
-        
-        # check input values for vector field rasters
-        success, msg = self.check_inrasters_def(inraster_x, inraster_y)
-        if not success:
-            QMessageBox.critical(self, "Input component rasters", msg)
-            return
-        
-        # get x- and y-axis component data
-        success, result = try_get_monoband_raster_data(inraster_x)
-        if not success:
-            QMessageBox.critical(self, "Input x-component raster", msg)
-            return   
-        else:
-            comp_x_params, comp_x_array = result
-                     
-        success, result = try_get_monoband_raster_data(inraster_y)
-        if not success:
-            QMessageBox.critical(self, "Input y-component raster", msg)
-            return   
-        else:
-            comp_y_params, comp_y_array = result        
-            
-        # check geometric and geographic equivalence of the two components rasters
-        if not comp_x_params.geo_equiv(comp_y_params):
-            QMessageBox.critical(self, "Raster component grids", "The two rasters have different geographic extent and/or cell sizes")
-            return 
+        # PRE-PROCESSINGS
 
-        # verify input parameters                
+        # verify input parameters
+
         if pathlines_input_shapefile is None or pathlines_input_shapefile == '':
-            QMessageBox.critical(self, "Pathline calculation", "No input point layer defined")   
-            return 
+            QMessageBox.critical(
+                self,
+                "Pathline calculation",
+                "No input point layer defined")
+            return
+
         try:
             time_step = float(time_step)
             total_time = float(total_time)
-            assert time_step * total_time > 0.0
         except:
-            QMessageBox.critical(self, "Pathline calculation", "Time step and total time should be both positive or both negative")   
-            return 
-        
+            QMessageBox.critical(
+                self,
+                "Pathline calculation",
+                "Time step and total time should be both valid decimal numbers")
+            return
+
+        if not time_step * total_time > 0.0:
+            QMessageBox.critical(
+                self,
+                "Pathline calculation",
+                "Time step and total time must be of the same sign (positive or negative)")
+            return
+
         try:
             error_max_tolerance = float(error_max_tolerance)
-            assert error_max_tolerance > 0.0
         except:
-            QMessageBox.critical(self, "Pathline calculation", "Max error should be a positive number")   
-            return                        
-                       
+            QMessageBox.critical(
+                self,
+                "Pathline calculation",
+                "Max error should be a valid decimal number")
+            return
+
+        if not error_max_tolerance > 0.0:
+            QMessageBox.critical(
+                self,
+                "Pathline calculation",
+                "Max error should be a positive number")
+            return
+
         if pathlines_output_shapefile is None or pathlines_output_shapefile == '':
-            QMessageBox.critical(self, "Pathline calculation", "No output point layer defined")   
+            QMessageBox.critical(
+                self,
+                "Pathline calculation",
+                "No output point layer defined")
             return 
             
-        ### PROCESSINGS
-        
-        # create velocity vector field            
-        vector_array = np.zeros((comp_x_params.get_rows(), comp_x_params.get_cols(), 2))
-        vector_array[:,:,0], vector_array[:,:,1] = comp_x_array, comp_y_array
-        
-        vector_field = Grid(comp_x_params, vector_array)            
-        
+        # PROCESSINGS
+
+        # get x- and y-axis component data
+
+        success, result = try_read_raster_band(field_x_source)
+        if not success:
+            QMessageBox.critical(
+                self,
+                "Input X-field",
+                result)
+            return
+        else:
+            gt_x, prj_x, _, data_x = result
+
+        success, result = try_read_raster_band(field_y_source)
+        if not success:
+            QMessageBox.critical(
+                self,
+                "Input Y-field",
+                result)
+            return
+        else:
+            gt_y, prj_y, _, data_y = result
+
+        # check geometric and geographic equivalence of the two components rasters
+
+        if not levelsEquival(
+                levelCreateParams(gt_x, prj_x, data_x),
+                levelCreateParams(gt_y, prj_y, data_y)):
+            QMessageBox.critical(
+                self,
+                "Raster component grids",
+                "The two rasters have different geographic parameters (e.g., extent, projection, cell sizes)")
+            return
+
+        # create velocity geoarray
+
+        ga = GeoArray(
+            inGeotransform=gt_x,
+            inProjection=prj_x,
+            inLevels=[data_x, data_y])
+
+        # get input and output shapefiles
+
         pathlines_input_shapefile = str(pathlines_input_shapefile)        
         pathlines_output_shapefile = str(pathlines_output_shapefile)
 
-        # get input and output shapefiles        
         driver = ogr.GetDriverByName('ESRI Shapefile') 
       
         in_shapefile = driver.Open(pathlines_input_shapefile, 0)                        
@@ -681,7 +732,10 @@ class vfc_dialog(QDialog):
                 "Unable to create output shapefile: %s" % pathlines_output_shapefile)
             return
         
-        out_layer = out_shape.CreateLayer('out_pathlines', geom_type=ogr.wkbPoint)
+        out_layer = out_shape.CreateLayer(
+            'out_pathlines',
+            geom_type=ogr.wkbPoint)
+
         if out_layer is None:
             QMessageBox.critical(
                 self,
@@ -690,146 +744,212 @@ class vfc_dialog(QDialog):
             return        
     
         # add fields to the output shapefile    
-        path_id_fieldDef = ogr.FieldDefn('path_id', ogr.OFTInteger)
+        path_id_fieldDef = ogr.FieldDefn(
+            'path_id',
+            ogr.OFTInteger)
         out_layer.CreateField(path_id_fieldDef)
     
-        point_id_fieldDef = ogr.FieldDefn('point_id', ogr.OFTInteger)
+        point_id_fieldDef = ogr.FieldDefn(
+            'point_id',
+            ogr.OFTInteger)
         out_layer.CreateField(point_id_fieldDef)
         
-        x_fieldDef = ogr.FieldDefn('x', ogr.OFTReal)
+        x_fieldDef = ogr.FieldDefn(
+            'x',
+            ogr.OFTReal)
         out_layer.CreateField(x_fieldDef)
     
-        y_fieldDef = ogr.FieldDefn('y', ogr.OFTReal)
+        y_fieldDef = ogr.FieldDefn(
+            'y',
+            ogr.OFTReal)
         out_layer.CreateField(y_fieldDef)
     
-        delta_s_fieldDef = ogr.FieldDefn('ds', ogr.OFTReal)
+        delta_s_fieldDef = ogr.FieldDefn(
+            'ds',
+            ogr.OFTReal)
         out_layer.CreateField(delta_s_fieldDef)
         
-        s_fieldDef = ogr.FieldDefn('s', ogr.OFTReal)
+        s_fieldDef = ogr.FieldDefn(
+            's',
+            ogr.OFTReal)
         out_layer.CreateField(s_fieldDef)
     
-        vx_fieldDef = ogr.FieldDefn('vx', ogr.OFTReal)
+        vx_fieldDef = ogr.FieldDefn(
+            'vx',
+            ogr.OFTReal)
         out_layer.CreateField(vx_fieldDef)
     
-        vy_fieldDef = ogr.FieldDefn('vy', ogr.OFTReal)
+        vy_fieldDef = ogr.FieldDefn(
+            'vy',
+            ogr.OFTReal)
         out_layer.CreateField(vy_fieldDef)
     
-        vmagn_fieldDef = ogr.FieldDefn('vmagn', ogr.OFTReal)
+        vmagn_fieldDef = ogr.FieldDefn(
+            'vmagn',
+            ogr.OFTReal)
         out_layer.CreateField(vmagn_fieldDef)
     
-        dtime_fieldDef = ogr.FieldDefn('d_time', ogr.OFTReal)
+        dtime_fieldDef = ogr.FieldDefn(
+            'd_time',
+            ogr.OFTReal)
         out_layer.CreateField(dtime_fieldDef)
     
-        t_fieldDef = ogr.FieldDefn('t', ogr.OFTReal)
+        t_fieldDef = ogr.FieldDefn(
+            't',
+            ogr.OFTReal)
         out_layer.CreateField(t_fieldDef)
     
-        error_fieldDef = ogr.FieldDefn('error', ogr.OFTReal)
+        error_fieldDef = ogr.FieldDefn(
+            'error',
+            ogr.OFTReal)
         out_layer.CreateField(error_fieldDef)    
     
         # get the layer definition of the output shapefile
+
         outshape_featdef = out_layer.GetLayerDefn()
     
         # get info from input layer
+
         ptLayer = in_shapefile.GetLayer(0) 
     
-        # inizialization of pathline id
+        # initialization of pathline id
+
         pathline_id = 0
         
         # get next feature
+
         pt_feature = ptLayer.GetNextFeature()
     
         while pt_feature:
             
-            # update of current pathline id
+            # initialization of current pathline parameters
+
             pathline_id += 1
-            
-            # inizializations for new point pathline
             pathline_cumulated_time = 0.0
             pathline_cumulated_length = 0.0
-            pathline_point_id = 0
-            interp_Pt_error_estimate = 0.0
+
+            #  initialization of current point parameters
+
+            curr_pt_id = 0
+            curr_pt_error_estim = 0.0
             delta_time = time_step
             delta_s = 0.0
             
             # new point with coords and path_id from input layer
-            curr_Pt = Point(pt_feature.GetGeometryRef().GetX(), pt_feature.GetGeometryRef().GetY())
-            
-            # case where the start point is outside the velocity field
-            if not vector_field.include_point_location(curr_Pt):
-                # get next feature
-                pt_feature = ptLayer.GetNextFeature()
-                continue                        
-                
+
+            start_pt_geom_ref = pt_feature.GetGeometryRef()
+            start_pt_x = start_pt_geom_ref.GetX()
+            start_pt_y = start_pt_geom_ref.GetY()
+
+            start_pt = Point(
+                start_pt_x,
+                start_pt_y)
+
+            curr_pt_vx = ga.interpolate_bilinear(start_pt_x, start_pt_y, level_ndx=0)
+            curr_pt_vy = ga.interpolate_bilinear(start_pt_x, start_pt_y, level_ndx=1)
+            curr_v_magnitude = sqrt(curr_pt_vx*curr_pt_vx + curr_pt_vy*curr_pt_vy)
+
+            # pre-processing for new feature in output layer
+
+            curr_pt_geom = ogr.Geometry(ogr.wkbPoint)
+            curr_pt_geom.AddPoint(start_pt_x, start_pt_y)
+
+            # create a new feature
+
+            curr_pt_shape = ogr.Feature(outshape_featdef)
+            curr_pt_shape.SetGeometry(curr_pt_geom)
+            curr_pt_shape.SetField('path_id', pathline_id)
+            curr_pt_shape.SetField('point_id', curr_pt_id)
+            curr_pt_shape.SetField('x', start_pt_x)
+            curr_pt_shape.SetField('y', start_pt_y)
+            curr_pt_shape.SetField('ds', delta_s)
+            curr_pt_shape.SetField('s', pathline_cumulated_length)
+            curr_pt_shape.SetField('t', pathline_cumulated_time)
+            curr_pt_shape.SetField('vx', curr_pt_vx)
+            curr_pt_shape.SetField('vy', curr_pt_vy)
+            curr_pt_shape.SetField('vmagn', curr_v_magnitude)
+            curr_pt_shape.SetField('d_time', delta_time)
+            curr_pt_shape.SetField('error', curr_pt_error_estim)
+
+            # add the feature to the output layer
+            out_layer.CreateFeature(curr_pt_shape)
+
+            # destroy no longer used objects
+            curr_pt_geom.Destroy()
+            curr_pt_shape.Destroy()
+
             # pathline cycle
+
+            str_pt = start_pt
+
             while abs(pathline_cumulated_time) < abs(total_time):
-                
-                if vector_field.include_point_location(curr_Pt):            
-                    
-                    # projects current point in grid coords
-                    curr_Pt_gridcoord = vector_field.geog2gridcoord(curr_Pt) 
-    
-                    # interpolate velocity components for current point 
-                    curr_Pt_vx = vector_field.interpolate_level_bilinear(0, curr_Pt_gridcoord)
-                    curr_Pt_vy = vector_field.interpolate_level_bilinear(1, curr_Pt_gridcoord)
-                               
-                    # velocity magnitude
-                    curr_v_magnitude = sqrt(curr_Pt_vx**2 + curr_Pt_vy**2)            
-    
-                    # update total length
-                    if abs(pathline_cumulated_time) > 0:
-                        delta_s = curr_Pt.distance(self.prev_Pt)
-                        pathline_cumulated_length += delta_s
-    
-                    # pre-processing for new feature in output layer
-                    curr_Pt_geom = ogr.Geometry(ogr.wkbPoint)
-                    curr_Pt_geom.AddPoint(float(curr_Pt.x), float(curr_Pt.y))
-                        
-                    # create a new feature
-                    curr_Pt_shape = ogr.Feature(outshape_featdef)
-                    curr_Pt_shape.SetGeometry(curr_Pt_geom)
-                    curr_Pt_shape.SetField('path_id', pathline_id) 
-                    curr_Pt_shape.SetField('point_id', pathline_point_id)                            
-                    curr_Pt_shape.SetField('x', curr_Pt.x)
-                    curr_Pt_shape.SetField('y', curr_Pt.y) 
-                    curr_Pt_shape.SetField('ds', delta_s) 
-                    curr_Pt_shape.SetField('s', pathline_cumulated_length)                            
-                    curr_Pt_shape.SetField('t', pathline_cumulated_time)
-                    curr_Pt_shape.SetField('vx', curr_Pt_vx)
-                    curr_Pt_shape.SetField('vy', curr_Pt_vy)
-                    curr_Pt_shape.SetField('vmagn', curr_v_magnitude)        
-                    curr_Pt_shape.SetField('d_time', delta_time)            
-                    curr_Pt_shape.SetField('error', interp_Pt_error_estimate)         
-    
-                    # add the feature to the output layer
-                    out_layer.CreateFeature(curr_Pt_shape)            
-                    
-                    # destroy no longer used objects
-                    curr_Pt_geom.Destroy()
-                    curr_Pt_shape.Destroy()
-                    
-                    # store coordinates for pathline length calculation
-                    self.prev_Pt = Point(curr_Pt.x, curr_Pt.y)
-                    
-                    # when possible, doubles the delta time value 
-                    if interp_Pt_error_estimate < error_max_tolerance/100.0:
-                        delta_time *= 2.0                
-                    
+
+
+                # store coordinates for pathline length calculation
+                self.prev_Pt = Point(start_pt.x, start_pt.y)
+
+                # when possible, doubles the delta time value
+                if curr_pt_error_estim < error_max_tolerance / 100.0:
+                    delta_time *= 2.0
+
                     # interpolate new location
-                    interp_Pt, interp_Pt_error_estimate = vector_field.interpolate_RKF(delta_time, curr_Pt)                            
-                    if interp_Pt is None or interp_Pt_error_estimate is None:
-                        break                             
-                    while interp_Pt_error_estimate > error_max_tolerance:
-                        delta_time /= 2.0
-                        interp_Pt, interp_Pt_error_estimate = vector_field.interpolate_RKF(delta_time, curr_Pt)                
-                       
-                    # update current Point coords with those of the interpolated point
-                    curr_Pt.x = interp_Pt.x
-                    curr_Pt.y = interp_Pt.y
-                      
-                    # update total time and point counter
-                    pathline_cumulated_time += delta_time
-                    pathline_point_id += 1
-                    
+                interp_Pt, curr_pt_error_estim = vector_field.interpolate_RKF(delta_time, start_pt)
+                if interp_Pt is None or curr_pt_error_estim is None:
+                    break
+                while curr_pt_error_estim > error_max_tolerance:
+                    delta_time /= 2.0
+                    interp_Pt, curr_pt_error_estim = vector_field.interpolate_RKF(delta_time, start_pt)
+
+
+                curr_pt, curr_pt_error_estim = interpolate_rkf(
+                    geoarray=ga,
+                    delta_time=time_step,
+                    start_pt=str_pt)
+
+                if curr_pt is None:
+                    break
+
+                # current point parameters
+
+                curr_pt_id += 1
+                curr_pt_x = curr_pt.x
+                curr_pt_y = curr_pt.y
+                delta_s = str_pt.dist2DWith(curr_pt)
+                pathline_cumulated_length += delta_s
+                pathline_cumulated_time += delta_time
+                curr_pt_vx = ga.interpolate_bilinear(curr_pt_x, curr_pt_y, level_ndx=0)
+                curr_pt_vy = ga.interpolate_bilinear(curr_pt_x, curr_pt_y, level_ndx=1)
+                curr_v_magnitude = sqrt(curr_pt_vx * curr_pt_vx + curr_pt_vy * curr_pt_vy)
+
+                # pre-processing for new feature in output layer
+                curr_pt_geom = ogr.Geometry(ogr.wkbPoint)
+                curr_pt_geom.AddPoint(curr_pt_x, curr_pt_y)
+
+                # create a new feature
+                curr_pt_shape = ogr.Feature(outshape_featdef)
+                curr_pt_shape.SetGeometry(curr_pt_geom)
+                curr_pt_shape.SetField('path_id', pathline_id)
+                curr_pt_shape.SetField('point_id', curr_pt_id)
+                curr_pt_shape.SetField('x', curr_pt_x)
+                curr_pt_shape.SetField('y', curr_pt_y)
+                curr_pt_shape.SetField('ds', delta_s)
+                curr_pt_shape.SetField('s', pathline_cumulated_length)
+                curr_pt_shape.SetField('t', pathline_cumulated_time)
+                curr_pt_shape.SetField('vx', curr_pt_vx)
+                curr_pt_shape.SetField('vy', curr_pt_vy)
+                curr_pt_shape.SetField('vmagn', curr_v_magnitude)
+                curr_pt_shape.SetField('d_time', delta_time)
+                curr_pt_shape.SetField('error', curr_pt_error_estim)
+
+                # add the feature to the output layer
+                out_layer.CreateFeature(curr_pt_shape)
+
+                # destroy no longer used objects
+                curr_pt_geom.Destroy()
+                curr_pt_shape.Destroy()
+
+                str_pt = curr_pt
+
             # get next feature
             pt_feature = ptLayer.GetNextFeature()
         
