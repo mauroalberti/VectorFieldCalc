@@ -590,6 +590,28 @@ class vfc_dialog(QDialog):
 
     def calculate_vectorfieldpathlines(self):
 
+        def interpolate_location(ga: GeoArray, t_step: Number, init_pt: Point):
+
+            interp_point, interp_point_error_estim = interpolate_rkf(
+                geoarray=ga,
+                delta_time=t_step,
+                start_pt=init_pt)
+
+            if interp_point is None or interp_point_error_estim is None:
+                return None, None, t_step
+            elif interp_point_error_estim <= error_max_tolerance:
+                return interp_point, interp_point_error_estim, t_step
+            else:
+                while interp_point_error_estim > error_max_tolerance:
+                    t_step /= 2.0
+                    interp_point, interp_point_error_estim = interpolate_rkf(
+                        geoarray=ga,
+                        delta_time=t_step,
+                        start_pt=init_pt)
+                    if interp_point is None or interp_point_error_estim is None:
+                        return None, None, t_step
+                return interp_point, interp_point_error_estim, t_step
+
         # input rasters
         success, cnt = self.try_get_rasters_infos()
         if not success:
@@ -698,12 +720,15 @@ class vfc_dialog(QDialog):
                 "Raster component grids",
                 "The two rasters have different geographic parameters (e.g., extent, projection, cell sizes)")
             return
+        else:
+            gt = gt_x
+            prj = prj_x
 
         # create velocity geoarray
 
         ga = GeoArray(
-            inGeotransform=gt_x,
-            inProjection=prj_x,
+            inGeotransform=gt,
+            inProjection=prj,
             inLevels=[data_x, data_y])
 
         # get input and output shapefiles
@@ -742,68 +767,43 @@ class vfc_dialog(QDialog):
                 "Pathline calculation",
                 "Unable to create output shapefile: %s" % pathlines_output_shapefile)
             return        
-    
-        # add fields to the output shapefile    
-        path_id_fieldDef = ogr.FieldDefn(
-            'path_id',
-            ogr.OFTInteger)
-        out_layer.CreateField(path_id_fieldDef)
-    
-        point_id_fieldDef = ogr.FieldDefn(
-            'point_id',
-            ogr.OFTInteger)
-        out_layer.CreateField(point_id_fieldDef)
-        
-        x_fieldDef = ogr.FieldDefn(
-            'x',
-            ogr.OFTReal)
-        out_layer.CreateField(x_fieldDef)
-    
-        y_fieldDef = ogr.FieldDefn(
-            'y',
-            ogr.OFTReal)
-        out_layer.CreateField(y_fieldDef)
-    
-        delta_s_fieldDef = ogr.FieldDefn(
-            'ds',
-            ogr.OFTReal)
-        out_layer.CreateField(delta_s_fieldDef)
-        
-        s_fieldDef = ogr.FieldDefn(
-            's',
-            ogr.OFTReal)
-        out_layer.CreateField(s_fieldDef)
-    
-        vx_fieldDef = ogr.FieldDefn(
-            'vx',
-            ogr.OFTReal)
-        out_layer.CreateField(vx_fieldDef)
-    
-        vy_fieldDef = ogr.FieldDefn(
-            'vy',
-            ogr.OFTReal)
-        out_layer.CreateField(vy_fieldDef)
-    
-        vmagn_fieldDef = ogr.FieldDefn(
-            'vmagn',
-            ogr.OFTReal)
-        out_layer.CreateField(vmagn_fieldDef)
-    
-        dtime_fieldDef = ogr.FieldDefn(
-            'd_time',
-            ogr.OFTReal)
-        out_layer.CreateField(dtime_fieldDef)
-    
-        t_fieldDef = ogr.FieldDefn(
-            't',
-            ogr.OFTReal)
-        out_layer.CreateField(t_fieldDef)
-    
-        error_fieldDef = ogr.FieldDefn(
-            'error',
-            ogr.OFTReal)
-        out_layer.CreateField(error_fieldDef)    
-    
+
+        path_id_fldnm = "path_id"
+        point_id_fldnm = "point_id"
+        x_fldnm ="x"
+        y_fldnm ="y"
+        estim_error_fldnm = "estim_err"
+        d_s_fldnm ="delta_s"
+        s_fldnm ="tot_s"
+        d_time_fldnm ="delta_t"
+        t_fldnm ="tot_t"
+        vx_fldnm ="vx"
+        vy_fldnm ="vy"
+        v_magn_fldnm ="v_magn"
+
+        fields = [
+            (path_id_fldnm, ogr.OFTInteger),
+            (point_id_fldnm, ogr.OFTInteger),
+            (x_fldnm, ogr.OFTReal),
+            (y_fldnm, ogr.OFTReal),
+            (estim_error_fldnm, ogr.OFTReal),
+            (d_s_fldnm, ogr.OFTReal),
+            (s_fldnm, ogr.OFTReal),
+            (d_time_fldnm, ogr.OFTReal),
+            (t_fldnm, ogr.OFTReal),
+            (vx_fldnm, ogr.OFTReal),
+            (vy_fldnm, ogr.OFTReal),
+            (v_magn_fldnm, ogr.OFTReal)
+        ]
+
+        # add fields to the output shapefile
+
+        for fld_nm, fld_type in fields:
+            out_layer.CreateField(
+                ogr.FieldDefn(
+                    fld_nm,
+                    fld_type))
+
         # get the layer definition of the output shapefile
 
         outshape_featdef = out_layer.GetLayerDefn()
@@ -831,9 +831,9 @@ class vfc_dialog(QDialog):
             #  initialization of current point parameters
 
             curr_pt_id = 0
-            curr_pt_error_estim = 0.0
-            delta_time = time_step
-            delta_s = 0.0
+            interp_pt_error_estim = 0.0
+            d_time = 0.0
+            d_space = 0.0
             
             # new point with coords and path_id from input layer
 
@@ -858,18 +858,18 @@ class vfc_dialog(QDialog):
 
             curr_pt_shape = ogr.Feature(outshape_featdef)
             curr_pt_shape.SetGeometry(curr_pt_geom)
-            curr_pt_shape.SetField('path_id', pathline_id)
-            curr_pt_shape.SetField('point_id', curr_pt_id)
-            curr_pt_shape.SetField('x', start_pt_x)
-            curr_pt_shape.SetField('y', start_pt_y)
-            curr_pt_shape.SetField('ds', delta_s)
-            curr_pt_shape.SetField('s', pathline_cumulated_length)
-            curr_pt_shape.SetField('t', pathline_cumulated_time)
-            curr_pt_shape.SetField('vx', curr_pt_vx)
-            curr_pt_shape.SetField('vy', curr_pt_vy)
-            curr_pt_shape.SetField('vmagn', curr_v_magnitude)
-            curr_pt_shape.SetField('d_time', delta_time)
-            curr_pt_shape.SetField('error', curr_pt_error_estim)
+            curr_pt_shape.SetField(path_id_fldnm, pathline_id)
+            curr_pt_shape.SetField(point_id_fldnm, curr_pt_id)
+            curr_pt_shape.SetField(x_fldnm, start_pt_x)
+            curr_pt_shape.SetField(y_fldnm, start_pt_y)
+            curr_pt_shape.SetField(estim_error_fldnm, interp_pt_error_estim)
+            curr_pt_shape.SetField(d_s_fldnm, d_space)
+            curr_pt_shape.SetField(s_fldnm, pathline_cumulated_length)
+            curr_pt_shape.SetField(d_time_fldnm, d_time)
+            curr_pt_shape.SetField(t_fldnm, pathline_cumulated_time)
+            curr_pt_shape.SetField(vx_fldnm, curr_pt_vx)
+            curr_pt_shape.SetField(vy_fldnm, curr_pt_vy)
+            curr_pt_shape.SetField(v_magn_fldnm, curr_v_magnitude)
 
             # add the feature to the output layer
             out_layer.CreateFeature(curr_pt_shape)
@@ -884,39 +884,24 @@ class vfc_dialog(QDialog):
 
             while abs(pathline_cumulated_time) < abs(total_time):
 
+                # interpolate new location
 
-                # store coordinates for pathline length calculation
-                self.prev_Pt = Point(start_pt.x, start_pt.y)
+                interp_pt, interp_pt_error_estim, d_time = interpolate_location(
+                    ga,
+                    d_time,
+                    str_pt)
 
-                # when possible, doubles the delta time value
-                if curr_pt_error_estim < error_max_tolerance / 100.0:
-                    delta_time *= 2.0
-
-                    # interpolate new location
-                interp_Pt, curr_pt_error_estim = vector_field.interpolate_RKF(delta_time, start_pt)
-                if interp_Pt is None or curr_pt_error_estim is None:
-                    break
-                while curr_pt_error_estim > error_max_tolerance:
-                    delta_time /= 2.0
-                    interp_Pt, curr_pt_error_estim = vector_field.interpolate_RKF(delta_time, start_pt)
-
-
-                curr_pt, curr_pt_error_estim = interpolate_rkf(
-                    geoarray=ga,
-                    delta_time=time_step,
-                    start_pt=str_pt)
-
-                if curr_pt is None:
+                if interp_pt is None or interp_pt_error_estim is None:
                     break
 
                 # current point parameters
 
                 curr_pt_id += 1
-                curr_pt_x = curr_pt.x
-                curr_pt_y = curr_pt.y
-                delta_s = str_pt.dist2DWith(curr_pt)
-                pathline_cumulated_length += delta_s
-                pathline_cumulated_time += delta_time
+                curr_pt_x = interp_pt.x
+                curr_pt_y = interp_pt.y
+                d_space = str_pt.dist2DWith(interp_pt)
+                pathline_cumulated_length += d_space
+                pathline_cumulated_time += d_time
                 curr_pt_vx = ga.interpolate_bilinear(curr_pt_x, curr_pt_y, level_ndx=0)
                 curr_pt_vy = ga.interpolate_bilinear(curr_pt_x, curr_pt_y, level_ndx=1)
                 curr_v_magnitude = sqrt(curr_pt_vx * curr_pt_vx + curr_pt_vy * curr_pt_vy)
@@ -928,27 +913,33 @@ class vfc_dialog(QDialog):
                 # create a new feature
                 curr_pt_shape = ogr.Feature(outshape_featdef)
                 curr_pt_shape.SetGeometry(curr_pt_geom)
-                curr_pt_shape.SetField('path_id', pathline_id)
-                curr_pt_shape.SetField('point_id', curr_pt_id)
-                curr_pt_shape.SetField('x', curr_pt_x)
-                curr_pt_shape.SetField('y', curr_pt_y)
-                curr_pt_shape.SetField('ds', delta_s)
-                curr_pt_shape.SetField('s', pathline_cumulated_length)
-                curr_pt_shape.SetField('t', pathline_cumulated_time)
-                curr_pt_shape.SetField('vx', curr_pt_vx)
-                curr_pt_shape.SetField('vy', curr_pt_vy)
-                curr_pt_shape.SetField('vmagn', curr_v_magnitude)
-                curr_pt_shape.SetField('d_time', delta_time)
-                curr_pt_shape.SetField('error', curr_pt_error_estim)
+                curr_pt_shape.SetField(path_id_fldnm, pathline_id)
+                curr_pt_shape.SetField(point_id_fldnm, curr_pt_id)
+                curr_pt_shape.SetField(x_fldnm, curr_pt_x)
+                curr_pt_shape.SetField(y_fldnm, curr_pt_y)
+                curr_pt_shape.SetField(estim_error_fldnm, interp_pt_error_estim)
+                curr_pt_shape.SetField(d_s_fldnm, d_space)
+                curr_pt_shape.SetField(s_fldnm, pathline_cumulated_length)
+                curr_pt_shape.SetField(d_time_fldnm, d_time)
+                curr_pt_shape.SetField(t_fldnm, pathline_cumulated_time)
+                curr_pt_shape.SetField(vx_fldnm, curr_pt_vx)
+                curr_pt_shape.SetField(vy_fldnm, curr_pt_vy)
+                curr_pt_shape.SetField(v_magn_fldnm, curr_v_magnitude)
 
                 # add the feature to the output layer
+
                 out_layer.CreateFeature(curr_pt_shape)
 
                 # destroy no longer used objects
                 curr_pt_geom.Destroy()
                 curr_pt_shape.Destroy()
 
-                str_pt = curr_pt
+                str_pt = interp_pt
+
+                # when possible, doubles the delta time value
+
+                if interp_pt_error_estim < error_max_tolerance / 100.0:
+                    d_time *= 2.0
 
             # get next feature
             pt_feature = ptLayer.GetNextFeature()
@@ -958,9 +949,10 @@ class vfc_dialog(QDialog):
 
         # add required layer to the map canvas - modified after RasterCalc module                
         if load_output:
-            pathlines_outshape = QgsVectorLayer(pathlines_output_shapefile, 
-                                                QFileInfo(pathlines_output_shapefile).baseName(), 
-                                                "ogr")                    
+            pathlines_outshape = QgsVectorLayer(
+                pathlines_output_shapefile,
+                QFileInfo(pathlines_output_shapefile).baseName(),
+                "ogr")
             QgsMapLayerRegistry.instance().addMapLayer(pathlines_outshape)
 
         # all done
@@ -979,7 +971,7 @@ class vfc_dialog(QDialog):
         
         QMessageBox.about(self, "About VectorFieldCalc", 
         """
-            <p>VectorFieldCalc version 2.0<br />License: GPL v. 3</p>
+            <p>VectorFieldCalc version 1.5<br />License: GPL v. 3</p>
             <p>Mauro Alberti</p> 
             <p>This application calculates vector field parameters (e.g., divergence, curl module, gradients)
             and pathlines.            
