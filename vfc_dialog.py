@@ -421,6 +421,13 @@ class vfc_dialog(QDialog):
         else:
             gt_x, prj_x, _, data_x = result
 
+        if gt_x.has_rotation:
+            QMessageBox.critical(
+                self,
+                "Input X-field",
+                "The plugin does not support rasters with axis rotations")
+            return
+
         success, result = try_read_raster_band(field_y_source)
         if not success:
             QMessageBox.critical(
@@ -430,7 +437,14 @@ class vfc_dialog(QDialog):
             return   
         else:
             gt_y, prj_y, _, data_y = result
-            
+
+        if gt_y.has_rotation:
+            QMessageBox.critical(
+                self,
+                "Input Y-field",
+                "The plugin does not support rasters with axis rotations")
+            return
+
         # check geometric and geographic equivalence of the two components rasters
 
         if not levelsEquival(
@@ -528,6 +542,13 @@ class vfc_dialog(QDialog):
         else:
             gt_x, prj_x, _, data_x = result
 
+        if gt_x.has_rotation:
+            QMessageBox.critical(
+                self,
+                "Input X-field",
+                "The plugin does not support rasters with axis rotations")
+            return
+
         success, result = try_read_raster_band(field_y_source)
         if not success:
             QMessageBox.critical(
@@ -537,6 +558,13 @@ class vfc_dialog(QDialog):
             return
         else:
             gt_y, prj_y, _, data_y = result
+
+        if gt_y.has_rotation:
+            QMessageBox.critical(
+                self,
+                "Input Y-field",
+                "The plugin does not support rasters with axis rotations")
+            return
 
         # check geometric and geographic equivalence of the two components rasters
 
@@ -700,6 +728,13 @@ class vfc_dialog(QDialog):
         else:
             gt_x, prj_x, _, data_x = result
 
+        if gt_x.has_rotation:
+            QMessageBox.critical(
+                self,
+                "Input X-field",
+                "The plugin does not support rasters with axis rotations")
+            return
+
         success, result = try_read_raster_band(field_y_source)
         if not success:
             QMessageBox.critical(
@@ -709,6 +744,13 @@ class vfc_dialog(QDialog):
             return
         else:
             gt_y, prj_y, _, data_y = result
+
+        if gt_y.has_rotation:
+            QMessageBox.critical(
+                self,
+                "Input Y-field",
+                "The plugin does not support rasters with axis rotations")
+            return
 
         # check geometric and geographic equivalence of the two components rasters
 
@@ -768,6 +810,8 @@ class vfc_dialog(QDialog):
                 "Unable to create output shapefile: %s" % pathlines_output_shapefile)
             return        
 
+        # Output shapefile field names
+
         path_id_fldnm = "path_id"
         point_id_fldnm = "point_id"
         x_fldnm ="x"
@@ -793,8 +837,7 @@ class vfc_dialog(QDialog):
             (t_fldnm, ogr.OFTReal),
             (vx_fldnm, ogr.OFTReal),
             (vy_fldnm, ogr.OFTReal),
-            (v_magn_fldnm, ogr.OFTReal)
-        ]
+            (v_magn_fldnm, ogr.OFTReal)]
 
         # add fields to the output shapefile
 
@@ -818,41 +861,45 @@ class vfc_dialog(QDialog):
         
         # get next feature
 
-        pt_feature = ptLayer.GetNextFeature()
+        pathline_init_pt = ptLayer.GetNextFeature()
     
-        while pt_feature:
+        while pathline_init_pt:
             
             # initialization of current pathline parameters
 
             pathline_id += 1
-            pathline_cumulated_time = 0.0
-            pathline_cumulated_length = 0.0
 
-            #  initialization of current point parameters
+            pathline_cumul_time = 0.0
+            pathline_cumul_length = 0.0
+
+            #  initialization of initial point parameters
 
             curr_pt_id = 0
-            interp_pt_error_estim = 0.0
+            interp_pt_err_estim = 0.0
             d_time = 0.0
             d_space = 0.0
             
             # new point with coords and path_id from input layer
 
-            start_pt_geom_ref = pt_feature.GetGeometryRef()
-            start_pt_x = start_pt_geom_ref.GetX()
-            start_pt_y = start_pt_geom_ref.GetY()
+            init_pt_geom_ref = pathline_init_pt.GetGeometryRef()
+            init_pt_x = init_pt_geom_ref.GetX()
+            init_pt_y = init_pt_geom_ref.GetY()
 
-            start_pt = Point(
-                start_pt_x,
-                start_pt_y)
+            init_pt = Point(
+                init_pt_x,
+                init_pt_y)
 
-            curr_pt_vx = ga.interpolate_bilinear(start_pt_x, start_pt_y, level_ndx=0)
-            curr_pt_vy = ga.interpolate_bilinear(start_pt_x, start_pt_y, level_ndx=1)
-            curr_v_magnitude = sqrt(curr_pt_vx*curr_pt_vx + curr_pt_vy*curr_pt_vy)
+            curr_pt_vx = ga.interpolate_bilinear(init_pt_x, init_pt_y, level_ndx=0)
+            curr_pt_vy = ga.interpolate_bilinear(init_pt_x, init_pt_y, level_ndx=1)
+            if curr_pt_vx is None or curr_pt_vy is None:
+                curr_v_magnitude = None
+            else:
+                curr_v_magnitude = sqrt(curr_pt_vx*curr_pt_vx + curr_pt_vy*curr_pt_vy)
 
             # pre-processing for new feature in output layer
 
             curr_pt_geom = ogr.Geometry(ogr.wkbPoint)
-            curr_pt_geom.AddPoint(start_pt_x, start_pt_y)
+            curr_pt_geom.AddPoint(init_pt_x, init_pt_y)
 
             # create a new feature
 
@@ -860,38 +907,40 @@ class vfc_dialog(QDialog):
             curr_pt_shape.SetGeometry(curr_pt_geom)
             curr_pt_shape.SetField(path_id_fldnm, pathline_id)
             curr_pt_shape.SetField(point_id_fldnm, curr_pt_id)
-            curr_pt_shape.SetField(x_fldnm, start_pt_x)
-            curr_pt_shape.SetField(y_fldnm, start_pt_y)
-            curr_pt_shape.SetField(estim_error_fldnm, interp_pt_error_estim)
+            curr_pt_shape.SetField(x_fldnm, init_pt_x)
+            curr_pt_shape.SetField(y_fldnm, init_pt_y)
+            curr_pt_shape.SetField(estim_error_fldnm, interp_pt_err_estim)
             curr_pt_shape.SetField(d_s_fldnm, d_space)
-            curr_pt_shape.SetField(s_fldnm, pathline_cumulated_length)
+            curr_pt_shape.SetField(s_fldnm, pathline_cumul_length)
             curr_pt_shape.SetField(d_time_fldnm, d_time)
-            curr_pt_shape.SetField(t_fldnm, pathline_cumulated_time)
+            curr_pt_shape.SetField(t_fldnm, pathline_cumul_time)
             curr_pt_shape.SetField(vx_fldnm, curr_pt_vx)
             curr_pt_shape.SetField(vy_fldnm, curr_pt_vy)
             curr_pt_shape.SetField(v_magn_fldnm, curr_v_magnitude)
 
             # add the feature to the output layer
+
             out_layer.CreateFeature(curr_pt_shape)
 
             # destroy no longer used objects
+
             curr_pt_geom.Destroy()
             curr_pt_shape.Destroy()
 
             # pathline cycle
 
-            str_pt = start_pt
+            src_pt = init_pt
 
-            while abs(pathline_cumulated_time) < abs(total_time):
+            while abs(pathline_cumul_time) < abs(total_time):
 
                 # interpolate new location
 
-                interp_pt, interp_pt_error_estim, d_time = interpolate_location(
+                interp_pt, interp_pt_err_estim, d_time = interpolate_location(
                     ga,
                     d_time,
-                    str_pt)
+                    src_pt)
 
-                if interp_pt is None or interp_pt_error_estim is None:
+                if interp_pt is None or interp_pt_err_estim is None:
                     break
 
                 # current point parameters
@@ -899,12 +948,15 @@ class vfc_dialog(QDialog):
                 curr_pt_id += 1
                 curr_pt_x = interp_pt.x
                 curr_pt_y = interp_pt.y
-                d_space = str_pt.dist2DWith(interp_pt)
-                pathline_cumulated_length += d_space
-                pathline_cumulated_time += d_time
+                d_space = src_pt.dist2DWith(interp_pt)
+                pathline_cumul_length += d_space
+                pathline_cumul_time += d_time
                 curr_pt_vx = ga.interpolate_bilinear(curr_pt_x, curr_pt_y, level_ndx=0)
                 curr_pt_vy = ga.interpolate_bilinear(curr_pt_x, curr_pt_y, level_ndx=1)
-                curr_v_magnitude = sqrt(curr_pt_vx * curr_pt_vx + curr_pt_vy * curr_pt_vy)
+                if curr_pt_vx is None or curr_pt_vy is None:
+                    curr_v_magnitude = None
+                else:
+                    curr_v_magnitude = sqrt(curr_pt_vx * curr_pt_vx + curr_pt_vy * curr_pt_vy)
 
                 # pre-processing for new feature in output layer
                 curr_pt_geom = ogr.Geometry(ogr.wkbPoint)
@@ -917,11 +969,11 @@ class vfc_dialog(QDialog):
                 curr_pt_shape.SetField(point_id_fldnm, curr_pt_id)
                 curr_pt_shape.SetField(x_fldnm, curr_pt_x)
                 curr_pt_shape.SetField(y_fldnm, curr_pt_y)
-                curr_pt_shape.SetField(estim_error_fldnm, interp_pt_error_estim)
+                curr_pt_shape.SetField(estim_error_fldnm, interp_pt_err_estim)
                 curr_pt_shape.SetField(d_s_fldnm, d_space)
-                curr_pt_shape.SetField(s_fldnm, pathline_cumulated_length)
+                curr_pt_shape.SetField(s_fldnm, pathline_cumul_length)
                 curr_pt_shape.SetField(d_time_fldnm, d_time)
-                curr_pt_shape.SetField(t_fldnm, pathline_cumulated_time)
+                curr_pt_shape.SetField(t_fldnm, pathline_cumul_time)
                 curr_pt_shape.SetField(vx_fldnm, curr_pt_vx)
                 curr_pt_shape.SetField(vy_fldnm, curr_pt_vy)
                 curr_pt_shape.SetField(v_magn_fldnm, curr_v_magnitude)
@@ -931,18 +983,20 @@ class vfc_dialog(QDialog):
                 out_layer.CreateFeature(curr_pt_shape)
 
                 # destroy no longer used objects
+
                 curr_pt_geom.Destroy()
                 curr_pt_shape.Destroy()
 
-                str_pt = interp_pt
+                src_pt = interp_pt
 
                 # when possible, doubles the delta time value
 
-                if interp_pt_error_estim < error_max_tolerance / 100.0:
+                if interp_pt_err_estim < error_max_tolerance / 100.0:
                     d_time *= 2.0
 
             # get next feature
-            pt_feature = ptLayer.GetNextFeature()
+
+            pathline_init_pt = ptLayer.GetNextFeature()
         
         # destroy output geometry
         out_shape.Destroy()
@@ -953,7 +1007,7 @@ class vfc_dialog(QDialog):
                 pathlines_output_shapefile,
                 QFileInfo(pathlines_output_shapefile).baseName(),
                 "ogr")
-            QgsMapLayerRegistry.instance().addMapLayer(pathlines_outshape)
+            QgsProject.instance().addMapLayer(pathlines_outshape)
 
         # all done
         QMessageBox.information(self, "Pathline output", "Processings completed.")

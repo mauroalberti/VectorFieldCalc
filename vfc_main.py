@@ -13,7 +13,6 @@ import ogr
 
 #from . import resources
 from .vfc_dialog import vfc_dialog
-from .vfc_classes import *
 
 
 

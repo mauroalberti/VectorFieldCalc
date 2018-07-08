@@ -261,7 +261,7 @@ class GeoArray(object):
         Examples:
         """
 
-        return self.gt.rotRow != 0.0 or self.gt.rotColumn != 0.0
+        return self.gt.has_rotation
 
     def interpolate_bilinear(self, x: Number, y: Number, level_ndx=0) -> Optional[float]:
         """

@@ -64,7 +64,7 @@ class GeoTransform(np.ndarray):
             gdal_gt[0],
             gdal_gt[3],
             gdal_gt[1],
-            gdal_gt[5],
+            -gdal_gt[5],
             gdal_gt[2],
             gdal_gt[4])
 
@@ -177,6 +177,20 @@ class GeoTransform(np.ndarray):
         """
 
         return self[4]
+
+
+    @property
+    def has_rotation(self) -> bool:
+        """
+        Determines if the geotransform has axis rotations defined.
+
+        :return: true if there are rotations, false otherwise.
+        :rtype: bool.
+
+        Examples:
+        """
+
+        return self.rotRow != 0.0 or self.rotColumn != 0.0
 
 
 def ijPixToxyGeogr(geotransform: GeoTransform, i: Number, j: Number) -> Tuple[float, float]:
