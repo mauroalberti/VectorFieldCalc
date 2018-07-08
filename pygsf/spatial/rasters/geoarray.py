@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import math
+
 from .exceptions import *
 from .fields import *
 from ..generics.general import *
@@ -282,7 +284,12 @@ class GeoArray(object):
 
         i, j = self.xyToijArr(x, y)
 
-        return interp_bilinear(self._levels[level_ndx], i, j)
+        inter_res = interp_bilinear(self._levels[level_ndx], i, j)
+
+        if math.isnan(inter_res):
+            return None
+        else:
+            return inter_res
 
     def magnitude_field(self, ndx_fx=0, ndx_fy=1) -> 'GeoArray':
         """

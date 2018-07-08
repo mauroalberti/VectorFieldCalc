@@ -876,7 +876,6 @@ class vfc_dialog(QDialog):
 
             curr_pt_id = 0
             interp_pt_err_estim = 0.0
-            d_time = 0.0
             d_space = 0.0
             
             # new point with coords and path_id from input layer
@@ -912,7 +911,7 @@ class vfc_dialog(QDialog):
             curr_pt_shape.SetField(estim_error_fldnm, interp_pt_err_estim)
             curr_pt_shape.SetField(d_s_fldnm, d_space)
             curr_pt_shape.SetField(s_fldnm, pathline_cumul_length)
-            curr_pt_shape.SetField(d_time_fldnm, d_time)
+            curr_pt_shape.SetField(d_time_fldnm, 0.0)
             curr_pt_shape.SetField(t_fldnm, pathline_cumul_time)
             curr_pt_shape.SetField(vx_fldnm, curr_pt_vx)
             curr_pt_shape.SetField(vy_fldnm, curr_pt_vy)
@@ -930,6 +929,7 @@ class vfc_dialog(QDialog):
             # pathline cycle
 
             src_pt = init_pt
+            d_time = time_step
 
             while abs(pathline_cumul_time) < abs(total_time):
 
