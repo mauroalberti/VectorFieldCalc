@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/plugins/VectorFieldCalc" >
-        <file>icon.png</file>
+        <file>icons/icon.png</file>
+		<file>icons/help.ico</file>
     </qresource>
 </RCC>

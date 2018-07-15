@@ -255,10 +255,6 @@ class vfc_dialog(QDialog):
         manage_window = QWidget()
         manage_layout = QHBoxLayout()
         manage_window.setLayout(manage_layout)
-        
-        self.help_pb = QPushButton("Help")
-        self.help_pb.clicked.connect(self.open_help)
-        manage_layout.addWidget(self.help_pb)
 
         self.about_pb = QPushButton("About")
         self.about_pb.clicked.connect(self.about)
@@ -823,7 +819,8 @@ class vfc_dialog(QDialog):
         t_fldnm ="tot_t"
         vx_fldnm ="vx"
         vy_fldnm ="vy"
-        v_magn_fldnm ="v_magn"
+        v_magn_fldnm ="inst_v"
+        aver_v_fldnm = "aver_v"
 
         fields = [
             (path_id_fldnm, ogr.OFTInteger),
@@ -837,7 +834,8 @@ class vfc_dialog(QDialog):
             (t_fldnm, ogr.OFTReal),
             (vx_fldnm, ogr.OFTReal),
             (vy_fldnm, ogr.OFTReal),
-            (v_magn_fldnm, ogr.OFTReal)]
+            (v_magn_fldnm, ogr.OFTReal),
+            (aver_v_fldnm, ogr.OFTReal)]
 
         # add fields to the output shapefile
 
@@ -895,6 +893,11 @@ class vfc_dialog(QDialog):
             else:
                 curr_v_magnitude = sqrt(curr_pt_vx*curr_pt_vx + curr_pt_vy*curr_pt_vy)
 
+            if pathline_cumul_length != 0.0:
+                aver_v = pathline_cumul_length / pathline_cumul_time
+            else:
+                aver_v = None
+
             # pre-processing for new feature in output layer
 
             curr_pt_geom = ogr.Geometry(ogr.wkbPoint)
@@ -916,6 +919,7 @@ class vfc_dialog(QDialog):
             curr_pt_shape.SetField(vx_fldnm, curr_pt_vx)
             curr_pt_shape.SetField(vy_fldnm, curr_pt_vy)
             curr_pt_shape.SetField(v_magn_fldnm, curr_v_magnitude)
+            curr_pt_shape.SetField(aver_v_fldnm, aver_v)
 
             # add the feature to the output layer
 
@@ -958,6 +962,11 @@ class vfc_dialog(QDialog):
                 else:
                     curr_v_magnitude = sqrt(curr_pt_vx * curr_pt_vx + curr_pt_vy * curr_pt_vy)
 
+                if pathline_cumul_length != 0.0:
+                    aver_v = pathline_cumul_length / pathline_cumul_time
+                else:
+                    aver_v = None
+
                 # pre-processing for new feature in output layer
                 curr_pt_geom = ogr.Geometry(ogr.wkbPoint)
                 curr_pt_geom.AddPoint(curr_pt_x, curr_pt_y)
@@ -977,6 +986,7 @@ class vfc_dialog(QDialog):
                 curr_pt_shape.SetField(vx_fldnm, curr_pt_vx)
                 curr_pt_shape.SetField(vy_fldnm, curr_pt_vy)
                 curr_pt_shape.SetField(v_magn_fldnm, curr_v_magnitude)
+                curr_pt_shape.SetField(aver_v_fldnm, aver_v)
 
                 # add the feature to the output layer
 
@@ -1011,12 +1021,6 @@ class vfc_dialog(QDialog):
 
         # all done
         QMessageBox.information(self, "Pathline output", "Processings completed.")
-
-    def open_help(self):
-        # modified after CADTOOLS module   
-             
-        help_path = os.path.join(os.path.dirname(__file__), 'help', 'help.html')
-        webbrowser.open(help_path) 
 
     def about(self):
         """

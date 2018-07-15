@@ -5,8 +5,7 @@
 	<link href="style.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-	<h2>VectorFieldCalc v. 1.3</h2>
-	<p>see: <a href="http://www.malg.eu/vectorparameters.php">www.malg.eu/vectorparameters.php</a>
+	<h2>VectorFieldCalc v. 1.5</h2>
 	<p>
 		This plugin for Quantum GIS allows to calculate physical parameters (e.g., divergence, curl module, pathlines), given a 2D, steady vector field,
 		such as the velocity field of glacial flows.
@@ -157,18 +156,19 @@ The orientations of the vectors are calculated as decimal degrees (0-360&deg;) f
 	<div>
 	The output consists in a point shapefile with the following attribute fields:
 	<ul>
-	<li><em>path_id</em>: pathline counter, with increasing integer values for each input point</li>
-	<li><em>point_id</em>: progressive counter for each interpolated point within a pathline</li>
-	<li><em>x</em>: x value for interpolated point</li>
-	<li><em>y</em>: y value for interpolated point</li>
-	<li><em>ds</em>: segment length associated with interpolated point</li>
-	<li><em>s</em>: cumulated length for pathline</li>
-	<li><em>vx</em>: x component of the velocity vector for interpolated point</li>
-	<li><em>vy</em>: y component of the velocity vector for interpolated point</li>
-	<li><em>vmagn</em>: magnitude of the velocity vector for interpolated point</li>
-	<li><em>dt</em>: time step for interpolated point: <i>positive</i> for forward pathlines, <i>negative</i> for backward p.</li>
-	<li><em>t</em>: cumulated time for pathline: <i>positive</i> for forward pathlines, <i>negative</i> for backward p.</li>
-	<li><em>error</em>: error (in spatial unit) for interpolated point</li>
+		<li><em>path_id</em>: pathline counter, with increasing integer values for each input point</li>
+		<li><em>point_id</em>: progressive counter for each interpolated point within a pathline</li>
+		<li><em>x</em>: x value for interpolated point</li>
+		<li><em>y</em>: y value for interpolated point</li>
+		<li><em>estim_err</em>: error (in spatial unit) for interpolated point</li>
+		<li><em>delta_s</em>: segment length associated with interpolated point</li>
+		<li><em>tot_s</em>: cumulated length for pathline</li>
+		<li><em>delta_t</em>: time step for interpolated point: <i>positive</i> for forward pathlines, <i>negative</i> for backward p.</li>
+		<li><em>tot_t</em>: cumulated time for pathline: <i>positive</i> for forward pathlines, <i>negative</i> for backward p.</li>
+		<li><em>vx</em>: x component of the velocity vector for interpolated point</li>
+		<li><em>vy</em>: y component of the velocity vector for interpolated point</li>
+		<li><em>inst_v</em>: magnitude of the velocity vector for interpolated point</li>
+		<li><em>aver_v</em>: average magnitude of the velocity vector (from start to current location)</li>
 	</ul>
 	</div>
 <br />

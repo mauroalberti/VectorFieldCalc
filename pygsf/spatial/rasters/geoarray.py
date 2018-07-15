@@ -286,7 +286,9 @@ class GeoArray(object):
 
         inter_res = interp_bilinear(self._levels[level_ndx], i, j)
 
-        if math.isnan(inter_res):
+        if inter_res is None:
+            return None
+        elif math.isnan(inter_res):
             return None
         else:
             return inter_res

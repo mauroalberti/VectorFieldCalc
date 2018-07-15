@@ -39,7 +39,7 @@ class GeoTransform(np.ndarray):
 
         Examples:
           >>> GeoTransform(1500, 3000, 10, 10)
-          GeoTransform(topLeftX: 1500.00, topLeftY: 3000.00, pixWidth: 10.00, pixHeight: 10.00, rotRow: 0.00, rotColumn: 0.00)
+          GeoTransform(topLeftX: 1500.00, topLeftY: 3000.00, pixWidth: 10.00, pixHeight: -10.00, rotRow: 0.00, rotColumn: 0.00)
           """
 
         return np.array([
@@ -143,10 +143,10 @@ class GeoTransform(np.ndarray):
 
         Examples:
           >>> GeoTransform(1500, 3000, 10, 10, 0, 0).pixHeight
-          10.0
+          -10.0
         """
 
-        return -self[5]
+        return self[5]
 
     @property
     def rotRow(self) -> float:
@@ -251,7 +251,7 @@ def xyGeogrToijPix(geotransform: GeoTransform, x: Number, y: Number) -> Tuple[fl
     col = (y - g3 - row*g5) / g4
 
     g1 * y - g1 * g3 - row * g5 * g1 = g4 * x - g0 * g4 - row * g2 * g4
-    row * (g2g4 -g1g5) = -g1y + g1g3 + g4x - g0g4
+    row * (g2g4 + g1g5) = -g1y + g1g3 + g4x - g0g4
     row = (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
 
     (x - g0 - g1p) / g2 =  (g1g3 - g0g4 + g4x - g1y) / (g2g4 - g1g5)
