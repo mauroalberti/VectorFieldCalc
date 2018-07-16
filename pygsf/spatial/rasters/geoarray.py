@@ -183,7 +183,7 @@ class GeoArray(object):
         if not shape:
             return None
 
-        llc_i_pix, llc_j_pix = - shape[0], 0
+        llc_i_pix, llc_j_pix = shape[0], 0
 
         return self.ijPixToxy(llc_i_pix, llc_j_pix)
 
@@ -234,6 +234,7 @@ class GeoArray(object):
         """
 
         i_pix, j_pix = ijArrToijPix(i, j)
+
         return ijPixToxyGeogr(self.gt, i_pix, j_pix)
 
     def ijPixToxy(self, i: Number, j: Number) -> Tuple[Number, Number]:

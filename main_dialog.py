@@ -23,7 +23,32 @@ from .pygsf.spatial.rasters.io import *
 from .pygsf.space_time.movements import *
 
 
-class vfc_dialog(QDialog):
+class HelpDialog(QDialog):
+
+    def __init__(self, local_url):
+
+        QDialog.__init__(self)
+
+        self.setWindowTitle("Help")
+
+        self.dialog_layout = QVBoxLayout()
+        self.setLayout(self.dialog_layout)
+
+        self.help_widget = self.setup_help_widget(local_url)
+        self.dialog_layout.addWidget(self.help_widget)
+
+        self.adjustSize()
+
+
+    def setup_help_widget(self, url_path):
+
+        help_widget = QTextBrowser()
+        help_widget.setSource(QUrl(url_path))
+
+        return help_widget
+
+
+class MainDialog(QDialog):
 
     def __init__(self):
 

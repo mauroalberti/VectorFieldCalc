@@ -23,7 +23,7 @@ from . import resources
 from .qgis_utils.gui import *
 
 
-from .vfc_dialog import vfc_dialog
+from .main_dialog import MainDialog, HelpDialog
 
 
 _plugin_name_ = "VectorFieldCalc"
@@ -56,7 +56,6 @@ class VectorFieldCal(object):
             self.open_html_help,
             whats_this="Topographic and geological profiles Help",
             parent=self.iface.mainWindow())
-        #self.actions.append(self.qactOpenHelp)
         self.iface.addPluginToMenu(self.plugin_name,
                                    self.qactOpenHelp)
 
@@ -69,7 +68,7 @@ class VectorFieldCal(object):
     def run(self):
 
         # create the dialog        
-        dlg = vfc_dialog()
+        dlg = MainDialog()
  
         # show the dialog
         dlg.show()        
@@ -77,4 +76,11 @@ class VectorFieldCal(object):
 
     def open_html_help(self):
 
-        webbrowser.open('{}/help/help.html'.format(os.path.dirname(__file__)), new=True)
+        file_path = '{}/help/help.html'.format(os.path.dirname(__file__))
+
+        # create the dialog
+        dlg = HelpDialog(file_path)
+
+        # show the dialog
+        dlg.show()
+        dlg.exec_()
