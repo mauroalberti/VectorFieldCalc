@@ -1055,7 +1055,7 @@ class MainDialog(QDialog):
         
         QMessageBox.about(self, "About VectorFieldCalc", 
         """
-            <p>VectorFieldCalc version 1.5<br />License: GPL v. 3</p>
+            <p>VectorFieldCalc version 1.5.1<br />License: GPL v. 3</p>
             <p>Mauro Alberti</p> 
             <p>This application calculates vector field parameters (e.g., divergence, curl module, gradients)
             and pathlines.            
