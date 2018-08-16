@@ -77,10 +77,8 @@ class VectorFieldCal(object):
 
     def open_html_help(self):
 
-        file_path = '{}/help/help.html'.format(os.path.dirname(__file__))
-
         # create the dialog
-        dlg = HelpDialog(file_path)
+        dlg = HelpDialog()
 
         # show the dialog
         dlg.show()

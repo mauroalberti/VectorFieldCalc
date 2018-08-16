@@ -25,7 +25,7 @@ from .pygsf.space_time.movements import *
 
 class HelpDialog(QDialog):
 
-    def __init__(self, local_url):
+    def __init__(self):
 
         QDialog.__init__(self)
 
@@ -34,15 +34,16 @@ class HelpDialog(QDialog):
         self.dialog_layout = QVBoxLayout()
         self.setLayout(self.dialog_layout)
 
-        self.help_widget = self.setup_help_widget(local_url)
+        self.help_widget = self.setup_help_widget()
         self.dialog_layout.addWidget(self.help_widget)
 
         self.adjustSize()
 
 
-    def setup_help_widget(self, url_path):
+    def setup_help_widget(self):
 
         help_widget = QTextBrowser()
+        url_path = "file:///{}/help/help.html".format(os.path.dirname(__file__))
         help_widget.setSource(QUrl(url_path))
 
         return help_widget
