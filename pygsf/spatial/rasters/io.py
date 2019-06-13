@@ -59,7 +59,7 @@ def try_write_esrigrid(geoarray: GeoArray, outgrid_flpth: str, esri_nullvalue: N
 
     arr = geoarray.level(level_ndx)
     if arr is None:
-        return False, "Array with index {} does not exist".format((level_ndx))
+        return False, "Array with index {} does not exist".format(level_ndx)
 
     num_rows, num_cols = arr.shape
     llc_x, llc_y = geoarray.level_llc(level_ndx)
@@ -71,7 +71,7 @@ def try_write_esrigrid(geoarray: GeoArray, outgrid_flpth: str, esri_nullvalue: N
     outputgrid.write("XLLCORNER %.8f\n" % llc_x)
     outputgrid.write("YLLCORNER %.8f\n" % llc_y)
     outputgrid.write("CELLSIZE %.8f\n" % cell_size_x)
-    outputgrid.write("NODATA_VALUE %f\n" % esri_nullvalue)
+    outputgrid.write("NODATA_VALUE %.8f\n" % esri_nullvalue)
 
     esrigrid_outvalues = np.where(np.isnan(arr), esri_nullvalue, arr)
 

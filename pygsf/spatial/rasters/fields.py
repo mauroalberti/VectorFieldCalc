@@ -168,7 +168,9 @@ def magnitude(
     Examples:
     """
 
-    return np.sqrt(fld_x ** 2 + fld_y ** 2)
+    magn = np.sqrt(fld_x ** 2 + fld_y ** 2)
+
+    return magn
 
 
 def orients_r(

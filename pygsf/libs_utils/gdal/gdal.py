@@ -3,13 +3,14 @@
 
 from typing import Any, Tuple, Dict, Optional, Union
 
+from math import isfinite
+
 import numpy as np
 
 import gdal
 
 from .exceptions import *
 
-from ...defaults.constants import *
 from ...spatial.rasters.geotransform import GeoTransform
 
 
@@ -99,24 +100,19 @@ def read_band(dataset: gdal.Dataset, bnd_ndx: int=1) -> Tuple[dict, 'np.array']:
     if grid_values is None:
         raise RasterIOException("Unable to read data from rasters")
 
-    # transform data into numpy array
-
-    data = np.asarray(grid_values)
-
     # if nodatavalue exists, set null values to NaN in numpy array
 
-    if noDataVal is not None:
-        data = np.where(abs(data - noDataVal) > 1e-10, data, np.NaN)
+    if noDataVal is not None and isfinite(noDataVal):
+        grid_values = np.where(abs(grid_values - noDataVal) > 1e-10, grid_values, np.NaN)
 
     band_params = dict(
         dataType=data_type,
         unitType=unit_type,
         stats=dStats,
-        noData=noDataVal,
         numOverviews=nOverviews,
         numColorTableEntries=nColTableEntries)
 
-    return band_params, data
+    return band_params, grid_values
 
 
 def try_read_raster_band(raster_source: str, bnd_ndx: int=1) -> Tuple[bool, Union[str, Tuple[GeoTransform, str, Dict, 'np.array']]]:

@@ -391,6 +391,7 @@ class MainDialog(QDialog):
             return
 
         # add required layer to the map canvas - modified after RasterCalc module
+
         if load_in_TOC:
             newLayer = QgsRasterLayer(result_fpath, QFileInfo(result_fpath).baseName())
             QgsProject.instance().addMapLayer(newLayer)

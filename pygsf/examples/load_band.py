@@ -15,7 +15,6 @@ band_params, band_array = read_band(dataset, 1)
 print("Data type: {}".format(band_params["dataType"]))
 print("Unit type: {}".format(band_params["unitType"]))
 print("Statistics: {}".format(band_params["stats"]))
-print("No data value: {}".format(band_params["noData"]))
 
 print("Number of overviews: {}".format(band_params["numOverviews"]))
 print("Number of color table entries: {}".format(band_params["numColorTableEntries"]))
