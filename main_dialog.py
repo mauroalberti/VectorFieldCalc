@@ -381,13 +381,13 @@ class MainDialog(QDialog):
 
         success, msg = try_write_esrigrid(
             geoarray=result_ga,
-            outgrid_fn=result_fpath)
+            outgrid_flpth=result_fpath)
 
         if not success:
             QMessageBox.critical(
                 self,
                 "Vector field processing",
-                "Unable to write {}".format(result_fpath))
+                msg)
             return
 
         # add required layer to the map canvas - modified after RasterCalc module

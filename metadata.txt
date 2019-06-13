@@ -5,7 +5,7 @@ author=Mauro Alberti
 qgisMinimumVersion=3.0
 description=Calculation of vector field parameters
 about=This plugin calculates vector field parameters (e.g., magnitude, divergence, curl) and pathlines, given two rasters representing x- and y- velocities
-version=1.5.1
+version=1.5.2
 tracker=https://github.com/mauroalberti/VectorFieldCalc/issues
 repository=https://github.com/mauroalberti/VectorFieldCalc/releases
 ; end of mandatory metadata
@@ -13,6 +13,7 @@ repository=https://github.com/mauroalberti/VectorFieldCalc/releases
 ; start of optional metadata
 category=Plugins
 changelog=
+    1.5.2  - fixed bug with missing asc extension in file names
     1.5.1: - fixed problem with help in Windows
     1.5:   - based on pygsf
     1.4:   - ported to QGIS 3 courtesy of Andy Aschwanden - Geophysical Institute - University of Alaska Fairbanks

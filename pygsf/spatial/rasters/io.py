@@ -11,12 +11,12 @@ from ...mathematics.scalars import areClose
 from .geoarray import GeoArray
 
 
-def try_write_esrigrid(geoarray: GeoArray, outgrid_fn: str, esri_nullvalue: Number=GRID_NULL_VALUE, level_ndx: int=0) -> Tuple[bool, str]:
+def try_write_esrigrid(geoarray: GeoArray, outgrid_flpth: str, esri_nullvalue: Number=GRID_NULL_VALUE, level_ndx: int=0) -> Tuple[bool, str]:
     """
     Writes ESRI ascii grid.
     
     :param geoarray: 
-    :param outgrid_fn: 
+    :param outgrid_flpth: 
     :param esri_nullvalue: 
     :param level_ndx: index of the level array to write.
     :type level_ndx: int.
@@ -24,20 +24,29 @@ def try_write_esrigrid(geoarray: GeoArray, outgrid_fn: str, esri_nullvalue: Numb
     :rtype: tuple made up by a boolean and a string
     """
     
-    outgrid_fn = str(outgrid_fn)
+    outgrid_flpth = str(outgrid_flpth)
+
+    out_fldr, out_flnm = os.path.split(outgrid_flpth)
+    if not out_flnm.lower().endswith('.asc'):
+        out_flnm += '.asc'
+
+    outgrid_flpth = os.path.join(
+        out_fldr,
+        out_flnm
+    )
 
     # checking existence of output slope grid
 
-    if os.path.exists(outgrid_fn):
-        return False, "Output grid '{}' already exists".format(outgrid_fn)
+    if os.path.exists(outgrid_flpth):
+        return False, "Output grid '{}' already exists".format(outgrid_flpth)
 
     try:
-        outputgrid = open(outgrid_fn, 'w')  # create the output ascii file
+        outputgrid = open(outgrid_flpth, 'w')  # create the output ascii file
     except Exception:
-        return False, "Unable to create output grid '{}'".format(outgrid_fn)
+        return False, "Unable to create output grid '{}'".format(outgrid_flpth)
 
     if outputgrid is None:
-        return False, "Unable to create output grid '{}'".format(outgrid_fn)
+        return False, "Unable to create output grid '{}'".format(outgrid_flpth)
 
     if geoarray.has_rotation:
         return False, "Grid has axes rotations defined"
@@ -75,7 +84,7 @@ def try_write_esrigrid(geoarray: GeoArray, outgrid_fn: str, esri_nullvalue: Numb
 
     outputgrid.close()
 
-    return True, "Data saved in {}".format(outgrid_fn)
+    return True, "Data saved in {}".format(outgrid_flpth)
 
 
 
