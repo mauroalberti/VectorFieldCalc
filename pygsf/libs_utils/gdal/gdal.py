@@ -3,6 +3,8 @@
 
 from typing import Any, Tuple, Dict, Optional, Union
 
+import os
+
 from math import isfinite
 
 import numpy as np
@@ -11,7 +13,11 @@ import gdal
 
 from .exceptions import *
 
+from ...defaults.constants import GRID_NULL_VALUE
+from ...defaults.typing import Number
+from ...mathematics.scalars import areClose
 from ...spatial.rasters.geotransform import GeoTransform
+from ...spatial.rasters.geoarray import GeoArray
 
 
 def read_raster(file_ref: Any) -> Tuple[gdal.Dataset, Optional[GeoTransform], int, str]:
@@ -48,7 +54,7 @@ def read_raster(file_ref: Any) -> Tuple[gdal.Dataset, Optional[GeoTransform], in
     return dataset, geotransform, num_bands, projection
 
 
-def read_band(dataset: gdal.Dataset, bnd_ndx: int=1) -> Tuple[dict, 'np.array']:
+def read_band(dataset: gdal.Dataset, bnd_ndx: int = 1) -> Tuple[dict, 'np.array']:
     """
     Read data and metadata of a rasters band based on GDAL.
 
@@ -103,7 +109,7 @@ def read_band(dataset: gdal.Dataset, bnd_ndx: int=1) -> Tuple[dict, 'np.array']:
     # if nodatavalue exists, set null values to NaN in numpy array
 
     if noDataVal is not None and isfinite(noDataVal):
-        grid_values = np.where(abs(grid_values - noDataVal) > 1e-10, grid_values, np.NaN)
+        grid_values = np.where(np.isclose(grid_values, noDataVal), np.NaN, grid_values)
 
     band_params = dict(
         dataType=data_type,
@@ -116,6 +122,13 @@ def read_band(dataset: gdal.Dataset, bnd_ndx: int=1) -> Tuple[dict, 'np.array']:
 
 
 def try_read_raster_band(raster_source: str, bnd_ndx: int=1) -> Tuple[bool, Union[str, Tuple[GeoTransform, str, Dict, 'np.array']]]:
+    """
+    Deprecated. Use "read_raster_band" instead.
+
+    :param raster_source:
+    :param bnd_ndx:
+    :return:
+    """
 
     # get raster parameters and data
     try:
@@ -126,6 +139,113 @@ def try_read_raster_band(raster_source: str, bnd_ndx: int=1) -> Tuple[bool, Unio
     band_params, data = read_band(dataset, bnd_ndx)
 
     return True, (geotransform, projection, band_params, data)
+
+
+def read_raster_band(raster_source: str, bnd_ndx: int = 1, epsg_cd: int = -1) -> Optional[GeoArray]:
+    """
+    Read parameters and values of a raster band.
+    Since it is not immediate to get the EPSG code of the input raster,
+    the user is advised to provide it directly in the function call.
+
+
+    :param raster_source: the raster path.
+    :param bnd_ndx: the optional band index.
+    :param epsg_cd: the EPSG code of the raster.
+    :return: the band as a geoarray.
+    :rtype: Optional GeoArray.
+    """
+
+    try:
+
+        dataset, geotransform, num_bands, projection = read_raster(raster_source)
+        band_params, data = read_band(dataset, bnd_ndx)
+        ga = GeoArray(
+            inGeotransform=geotransform,
+            epsg_cd=epsg_cd,
+            inLevels=[data]
+        )
+
+        return ga
+
+    except:
+
+        return None
+
+
+def try_write_esrigrid(geoarray: GeoArray, outgrid_flpth: str, esri_nullvalue: Number=GRID_NULL_VALUE, level_ndx: int=0) -> Tuple[bool, str]:
+    """
+    Writes ESRI ascii grid.
+
+    :param geoarray:
+    :param outgrid_flpth:
+    :param esri_nullvalue:
+    :param level_ndx: index of the level array to write.
+    :type level_ndx: int.
+    :return: success and descriptive message
+    :rtype: tuple made up by a boolean and a string
+    """
+
+    outgrid_flpth = str(outgrid_flpth)
+
+    out_fldr, out_flnm = os.path.split(outgrid_flpth)
+    if not out_flnm.lower().endswith('.asc'):
+        out_flnm += '.asc'
+
+    outgrid_flpth = os.path.join(
+        out_fldr,
+        out_flnm
+    )
+
+    # checking existence of output slope grid
+
+    if os.path.exists(outgrid_flpth):
+        return False, "Output grid '{}' already exists".format(outgrid_flpth)
+
+    try:
+        outputgrid = open(outgrid_flpth, 'w')  # create the output ascii file
+    except Exception:
+        return False, "Unable to create output grid '{}'".format(outgrid_flpth)
+
+    if outputgrid is None:
+        return False, "Unable to create output grid '{}'".format(outgrid_flpth)
+
+    if geoarray.has_rotation:
+        return False, "Grid has axes rotations defined"
+
+    cell_size_x = geoarray.src_cellsize_j
+    cell_size_y = geoarray.src_cellsize_i
+
+    if not areClose(cell_size_x, cell_size_y):
+        return False, "Cell sizes in the x- and y- directions are not similar"
+
+    arr = geoarray.level(level_ndx)
+    if arr is None:
+        return False, "Array with index {} does not exist".format(level_ndx)
+
+    num_rows, num_cols = arr.shape
+    llc_x, llc_y = geoarray.level_llc(level_ndx)
+
+    # writes header of grid ascii file
+
+    outputgrid.write("NCOLS %d\n" % num_cols)
+    outputgrid.write("NROWS %d\n" % num_rows)
+    outputgrid.write("XLLCORNER %.8f\n" % llc_x)
+    outputgrid.write("YLLCORNER %.8f\n" % llc_y)
+    outputgrid.write("CELLSIZE %.8f\n" % cell_size_x)
+    outputgrid.write("NODATA_VALUE %.8f\n" % esri_nullvalue)
+
+    esrigrid_outvalues = np.where(np.isnan(arr), esri_nullvalue, arr)
+
+    # output of results
+
+    for i in range(0, num_rows):
+        for j in range(0, num_cols):
+            outputgrid.write("%.8f " % (esrigrid_outvalues[i, j]))
+        outputgrid.write("\n")
+
+    outputgrid.close()
+
+    return True, "Data saved in {}".format(outgrid_flpth)
 
 
 if __name__ == "__main__":

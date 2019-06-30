@@ -2,14 +2,6 @@ from __future__ import absolute_import
 
 from builtins import object
 
-import os
-
-from builtins import object
-import numpy as np
-
-
-import webbrowser
-
 from qgis.PyQt.QtCore import *
 
 
@@ -17,11 +9,9 @@ from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import *
 
 from qgis.core import *
-
-
-from . import resources
-
 from .qgis_utils.gui import *
+
+from . import resources  # maintain however
 
 
 from .main_dialog import MainDialog, HelpDialog

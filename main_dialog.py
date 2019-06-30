@@ -2,10 +2,8 @@
 
 from __future__ import absolute_import
 
-
-from builtins import str
 from builtins import zip
-import os, webbrowser
+
 from osgeo import ogr
 
 from qgis.PyQt.QtCore import *
@@ -16,7 +14,6 @@ from qgis.core import *
 
 from .vfc_utils import *
 
-from .pygsf.libs_utils.gdal.gdal import *
 from .qgis_utils.qgs import *
 from .pygsf.spatial.rasters.geoarray import *
 from .pygsf.spatial.rasters.io import *
@@ -38,7 +35,6 @@ class HelpDialog(QDialog):
         self.dialog_layout.addWidget(self.help_widget)
 
         self.adjustSize()
-
 
     def setup_help_widget(self):
 
@@ -495,7 +491,7 @@ class MainDialog(QDialog):
                     "No output layer defined")
                 return 
         
-        ### PROCESSINGS
+        # PROCESSINGS
         
         # create velocity geoarray
 
@@ -1056,11 +1052,11 @@ class MainDialog(QDialog):
         
         QMessageBox.about(self, "About VectorFieldCalc", 
         """
-            <p>VectorFieldCalc version 1.5.1<br />License: GPL v. 3</p>
+            <p>VectorFieldCalc version 1.5.3<br />License: GPL v. 3</p>
             <p>Mauro Alberti</p> 
             <p>This application calculates vector field parameters (e.g., divergence, curl module, gradients)
             and pathlines.            
             </p>
-             <p>Please report any bug to <a href="mailto:alberti.m65@gmail.com">alberti.m65@gmail.com</a></p>
+             <p>Please report any bug to <a href="mailto:maualbe@libero.it">maualbe@libero.it</a></p>
         """)              
 
